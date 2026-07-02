@@ -1,0 +1,6 @@
+{
+  "name": "CODA Marketplace",
+  "description": "A marketplace platform that lets small business owners create an online storefront, list products, and receive orders in under 5 minutes.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

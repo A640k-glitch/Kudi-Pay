@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #0F9D58;
+  --color-primary-dark: #0D8A4D;
+  --color-accent: #F5A623;
+  --color-accent-dark: #E0961F;
+  --color-neutral-base: #FAFAF8;
+  --color-neutral-text: #1A1A1A;
+  --color-destructive: #E53935;
+  --color-destructive-dark: #D32F2F;
+}
+
+@layer base {
+  html {
+    font-size: 15px;
+  }
+  body {
+    background-color: var(--color-neutral-base);
+    color: var(--color-neutral-text);
+  }
+}
+
+/* Base styles for scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Number input arrows removal */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
