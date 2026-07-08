@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import BrutalButton from '../../components/ui/BrutalButton';
@@ -31,9 +32,11 @@ export const TrustScoreInfoPage: React.FC = () => {
               <p className="text-xl md:text-2xl font-bold max-w-lg border-b-[4px] border-[#4D9DE0] pb-4">
                 Your Trust Score tells the world you're reliable. Higher score = more sales and bigger loans.
               </p>
-              <BrutalButton color="#4D9DE0" textColor="#FFFFFF" className="text-xl">
-                Start Building Now
-              </BrutalButton>
+              <Link to="/signup?intent=start-building" className="inline-block">
+                <BrutalButton color="#4D9DE0" textColor="#FFFFFF" className="text-xl">
+                  Start Building Now
+                </BrutalButton>
+              </Link>
             </div>
             
             <div className="flex-1 w-full relative">

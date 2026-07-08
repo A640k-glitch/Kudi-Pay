@@ -8,23 +8,23 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#312E81',
-          dark: '#1E1B4B',
+          DEFAULT: '#0F172A',
+          dark: '#020617',
         },
         accent: {
-          DEFAULT: '#059669',
-          dark: '#047857',
+          DEFAULT: '#10B981',
+          dark: '#059669',
         },
-        'neutral-base': '#F5F5F4',
-        'neutral-text': '#18181B',
+        'neutral-base': '#F8FAFC',
+        'neutral-text': '#0F172A',
         destructive: {
           DEFAULT: '#DC2626',
           dark: '#B91C1C',
         },
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Text"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
-        display: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+        sans: ['Outfit', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'sans-serif'],
       },
       screens: {
         xs: '400px',

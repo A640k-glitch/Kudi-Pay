@@ -13,7 +13,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full flex flex-col gap-1 md:gap-1.5">
         {label && (
-          <label className="text-xs md:text-sm font-semibold text-gray-600">
+          <label className="text-xs md:text-sm font-medium text-slate-700">
             {label}
           </label>
         )}
@@ -26,7 +26,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             className={cn(
-              "flex h-11 md:h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs md:text-sm ring-offset-white transition-colors file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-11 md:h-12 w-full rounded-xl border border-slate-200 bg-white/50 px-3.5 py-2 text-xs md:text-sm ring-offset-white transition-colors file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50",
               prefix && "pl-10",
               error && "border-destructive focus:border-destructive focus:ring-destructive",
               className
@@ -62,7 +62,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           className={cn(
-            "flex min-h-[100px] w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-base ring-offset-white placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50 resize-none",
+            "flex min-h-[100px] w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-base ring-offset-white placeholder:text-slate-400 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-colors",
             error && "border-destructive focus:border-destructive focus:ring-destructive",
             className
           )}
@@ -99,7 +99,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           <select
             ref={ref}
             className={cn(
-              "flex h-11 md:h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs md:text-sm ring-offset-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-11 md:h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white/50 px-3.5 py-2 text-xs md:text-sm ring-offset-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
               error && "border-destructive focus:border-destructive focus:ring-destructive",
               className
             )}

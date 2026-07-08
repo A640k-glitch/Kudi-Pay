@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import BrutalButton from '../../components/ui/BrutalButton';
@@ -43,9 +44,11 @@ export const BusinessLoansInfoPage: React.FC = () => {
               <p className="text-xl md:text-2xl font-bold max-w-lg border-b-[4px] border-[#FFD166] pb-4 ml-auto md:ml-0">
                 Get access to capital based on your Kudi sales history. Instant approval, flexible repayment.
               </p>
-              <BrutalButton color="#FF6666" className="text-xl">
-                Check Eligibility
-              </BrutalButton>
+              <Link to="/signup?intent=eligibility" className="inline-block">
+                <BrutalButton color="#FF6666" className="text-xl">
+                  Check Eligibility
+                </BrutalButton>
+              </Link>
             </div>
 
           </div>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import BrutalButton from '../../components/ui/BrutalButton';
@@ -31,9 +32,11 @@ export const StorefrontsInfoPage: React.FC = () => {
               <p className="text-xl md:text-2xl font-bold max-w-lg border-b-[4px] border-[#FF6666] pb-4">
                 Launch a beautiful online store in 3 minutes. Zero coding, zero stress.
               </p>
-              <BrutalButton color="#E0FF4F" className="text-xl">
-                Open Your Storefront
-              </BrutalButton>
+              <Link to="/signup?intent=open-storefront" className="inline-block">
+                <BrutalButton color="#E0FF4F" className="text-xl">
+                  Open Your Storefront
+                </BrutalButton>
+              </Link>
             </div>
             
             <div className="flex-1 w-full relative">

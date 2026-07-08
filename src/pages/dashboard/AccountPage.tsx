@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, ShieldCheck, LogOut, Trash2, ShieldAlert, CheckCircle2, Loader2, ArrowLeft, ArrowRight, CreditCard, Sparkles, Building, Landmark, ChevronRight, Lock } from 'lucide-react';
+import { User, ShieldCheck, SignOut, Trash, WarningCircle, CheckCircle, ArrowLeft, ArrowRight, CreditCard, Sparkle, Buildings, Bank } from '@phosphor-icons/react';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { Business } from '../../lib/types';
-import BrutalButton from '../../components/ui/BrutalButton';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
 import { Logo } from '../../components/Logo';
@@ -83,43 +82,43 @@ export default function AccountPage() {
   const isNinValid = /^\d{11}$/.test(nin);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto pb-24 md:pb-10 animate-fade-in text-black">
-      <header className="mb-8 border-b-[4px] border-black pb-4 flex items-center justify-between">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto pb-24 md:pb-10 animate-fade-in text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900">
+      <header className="mb-8 border-b-2 border-slate-200 pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">Account</h1>
-          <p className="font-bold text-gray-700">Manage your security and identity.</p>
+          <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight mb-2">Account</h1>
+          <p className="font-bold text-slate-500">Manage your security and identity.</p>
         </div>
-        <div className="w-16 h-16 bg-[#E0FF4F] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center rotate-3">
-          <User className="w-8 h-8" strokeWidth={3} />
+        <div className="w-16 h-16 bg-[#E0FF4F] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[16px] flex items-center justify-center rotate-3">
+          <User className="w-8 h-8 text-slate-900" weight="bold" />
         </div>
       </header>
 
       <div className="space-y-6">
         {/* Phone card */}
-        <div className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <p className="font-black uppercase text-sm mb-2 text-gray-500">Registered Phone Number</p>
+        <div className="glass-panel p-6">
+          <p className="font-bold text-sm mb-2 text-slate-500">Registered Phone Number</p>
           <div className="flex items-center gap-4">
-            <p className="text-2xl md:text-3xl font-black tracking-widest">{maskPhone(phone)}</p>
+            <p className="text-2xl md:text-3xl font-display font-black tracking-widest">{maskPhone(phone)}</p>
           </div>
         </div>
 
         {/* KYC Tier card */}
-        <div className={`border-[4px] border-black p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6 ${
+        <div className={`p-6 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] flex flex-col md:flex-row md:items-center justify-between gap-6 ${
           business.kycTier === 1
-            ? 'bg-[#06D6A0]'
+            ? 'bg-[#E0FF4F]'
             : 'bg-[#FFD166]'
         }`}>
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white border-[3px] border-black flex items-center justify-center shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)] -rotate-3">
+            <div className="w-12 h-12 bg-white border-2 border-slate-900 rounded-[12px] flex items-center justify-center shrink-0 shadow-sm -rotate-3">
               {business.kycTier === 1
-                ? <ShieldCheck className="w-6 h-6" strokeWidth={3} />
-                : <ShieldAlert className="w-6 h-6" strokeWidth={3} />}
+                ? <ShieldCheck className="w-6 h-6 text-[#10B981]" weight="fill" />
+                : <WarningCircle className="w-6 h-6 text-[#F59E0B]" weight="fill" />}
             </div>
             <div>
-              <p className="text-xl md:text-2xl font-black uppercase mb-1">
+              <p className="text-xl md:text-2xl font-display font-black mb-1 text-slate-900">
                 {business.kycTier === 1 ? 'Tier 1 Verified' : 'Unverified'}
               </p>
-              <p className="font-bold text-sm">
+              <p className="font-bold text-sm text-slate-700">
                 {business.kycTier === 1
                   ? 'Payments and credit unlocked'
                   : 'Basic selling limits apply'}
@@ -127,9 +126,12 @@ export default function AccountPage() {
             </div>
           </div>
           {business.kycTier === 0 && (
-            <BrutalButton color="#FFFFFF" onClick={() => setIsVerificationOpen(true)} className="whitespace-nowrap">
+            <button 
+              onClick={() => setIsVerificationOpen(true)} 
+              className="whitespace-nowrap px-6 py-3 bg-white text-slate-900 font-bold rounded-[12px] shadow-[4px_4px_0px_#0f172a] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
+            >
               Verify Now
-            </BrutalButton>
+            </button>
           )}
         </div>
 
@@ -137,111 +139,108 @@ export default function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="bg-white border-[4px] border-black p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:bg-gray-100 hover:translate-y-1 hover:shadow-none transition-all flex items-center gap-4 group"
+            className="glass-panel p-6 flex items-center gap-4 group hover:border-slate-400"
           >
-            <div className="w-10 h-10 bg-gray-200 border-[3px] border-black flex items-center justify-center group-hover:bg-black group-hover:text-white transition-colors">
-              <LogOut className="w-5 h-5" strokeWidth={3} />
+            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+              <SignOut className="w-5 h-5 text-slate-700" weight="bold" />
             </div>
-            <span className="text-lg font-black uppercase">Log Out</span>
+            <span className="text-lg font-bold text-slate-900">Log Out</span>
           </button>
           
           <button
             onClick={() => setIsDeleteModalOpen(true)}
-            className="bg-[#FF6666] text-black border-[4px] border-black p-6 shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-all flex items-center gap-4"
+            className="bg-[#FF6666] text-white rounded-[24px] border-2 border-slate-900 p-6 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-4"
           >
-            <div className="w-10 h-10 bg-white border-[3px] border-black flex items-center justify-center">
-              <Trash2 className="w-5 h-5" strokeWidth={3} />
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Trash className="w-5 h-5 text-white" weight="fill" />
             </div>
-            <span className="text-lg font-black uppercase">Delete Account</span>
+            <span className="text-lg font-bold">Delete Account</span>
           </button>
         </div>
       </div>
 
       {/* Verification Flow Modal */}
-      {isVerificationOpen && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm overflow-y-auto flex items-center justify-center sm:p-4">
-          <div className="bg-[#4D9DE0] border-0 sm:border-[4px] border-black shadow-none sm:shadow-[12px_12px_0px_rgba(0,0,0,1)] w-full sm:max-w-xl h-full sm:h-auto min-h-screen sm:min-h-0 p-4 sm:p-6 md:p-10 flex flex-col relative animate-in zoom-in-95 duration-300">
-            <div className="flex items-center justify-between mb-4 sm:mb-8 border-b-[4px] border-black pb-4 bg-white px-4 py-3 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-              <Logo className="h-8" />
-              {verifyStep < 5 && (
-                <button 
-                  onClick={() => setIsVerificationOpen(false)} 
-                  className="font-black uppercase flex items-center gap-2 hover:underline decoration-4 underline-offset-4"
-                >
-                  Cancel <ArrowLeft className="w-5 h-5" strokeWidth={3} />
-                </button>
-              )}
-            </div>
-
-            <div className="bg-white border-[4px] border-black p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,1)] flex-1 flex flex-col justify-center">
+      <Modal 
+        isOpen={isVerificationOpen} 
+        onClose={() => setIsVerificationOpen(false)}
+        theme="brutal"
+      >
+        <div className="p-2 sm:p-6 flex flex-col justify-center">
               {verifyStep === 1 && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
-                  <div className="w-16 h-16 bg-[#E0FF4F] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center mb-6 -rotate-6">
-                    <ShieldCheck className="w-8 h-8" strokeWidth={3} />
+                  <div className="w-16 h-16 bg-[#E0FF4F] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[16px] flex items-center justify-center mb-6 -rotate-6">
+                    <ShieldCheck className="w-8 h-8 text-slate-900" weight="fill" />
                   </div>
-                  <h2 className="text-3xl font-black uppercase mb-4">Verify Identity</h2>
-                  <p className="font-bold text-gray-700 mb-8">
+                  <h2 className="text-3xl font-display font-black mb-3">Verify Identity</h2>
+                  <p className="font-bold text-slate-500 mb-8 leading-relaxed">
                     Confirm your identity to unlock customer payments, increase selling limits, and activate credit features.
                   </p>
                   
                   <div className="space-y-4 mb-8">
                     {[
                       { icon: CreditCard, title: 'Accept Online Payments', desc: 'Card, transfer, & mobile money' },
-                      { icon: Sparkles, title: 'Unlock Business Credit', desc: 'Low-interest overdrafts' },
-                      { icon: Building, title: 'Build Store Trust', desc: 'Verified seller badge' }
+                      { icon: Sparkle, title: 'Unlock Business Credit', desc: 'Low-interest overdrafts' },
+                      { icon: Buildings, title: 'Build Store Trust', desc: 'Verified seller badge' }
                     ].map((item, idx) => (
-                      <div key={idx} className="flex gap-4 p-4 border-[3px] border-black bg-gray-50 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                        <div className="w-10 h-10 bg-white border-[2px] border-black flex items-center justify-center shrink-0">
-                          <item.icon className="w-5 h-5" strokeWidth={2.5} />
+                      <div key={idx} className="flex gap-4 p-4 border border-slate-200 bg-white rounded-[16px] shadow-sm">
+                        <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center shrink-0">
+                          <item.icon className="w-5 h-5 text-slate-700" weight="fill" />
                         </div>
                         <div>
-                          <h4 className="font-black uppercase text-sm">{item.title}</h4>
-                          <p className="text-xs font-bold text-gray-500 mt-1">{item.desc}</p>
+                          <h4 className="font-bold text-sm text-slate-900">{item.title}</h4>
+                          <p className="text-xs font-medium text-slate-500 mt-1">{item.desc}</p>
                         </div>
                       </div>
                     ))}
                   </div>
                   
-                  <BrutalButton className="w-full text-lg h-14" onClick={() => setVerifyStep(2)}>
-                    Get Started <ArrowRight className="w-5 h-5 ml-2" strokeWidth={3} />
-                  </BrutalButton>
+                  <button 
+                    className="w-full h-14 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center" 
+                    onClick={() => setVerifyStep(2)}
+                  >
+                    Get Started <ArrowRight className="w-5 h-5 ml-2" weight="bold" />
+                  </button>
                 </div>
               )}
 
               {verifyStep === 2 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <div className="w-16 h-16 bg-[#FFD166] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center mb-6 rotate-3">
-                    <Landmark className="w-8 h-8" strokeWidth={3} />
+                  <div className="w-16 h-16 bg-[#FFD166] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[16px] flex items-center justify-center mb-6 rotate-3">
+                    <Bank className="w-8 h-8 text-slate-900" weight="fill" />
                   </div>
-                  <h2 className="text-3xl font-black uppercase mb-4">Enter BVN</h2>
-                  <p className="font-bold text-gray-700 mb-8">
+                  <h2 className="text-3xl font-display font-black mb-3">Enter BVN</h2>
+                  <p className="font-bold text-slate-500 mb-8 leading-relaxed">
                     Bank Verification Number to verify your full name and DOB.
                   </p>
                   
                   <div className="space-y-6">
                     <div className="relative">
-                      <label className="block font-black uppercase text-sm mb-2">BVN (11 Digits)</label>
+                      <label className="block font-bold text-slate-700 text-sm mb-2">BVN (11 Digits)</label>
                       <input 
                         type="text"
                         placeholder="00000000000" 
                         value={bvn}
                         onChange={(e) => setBvn(e.target.value.replace(/\D/g, '').slice(0, 11))}
                         maxLength={11}
-                        className="w-full border-[4px] border-black p-4 text-2xl font-black tracking-[0.2em] text-center outline-none focus:bg-[#E0FF4F] transition-colors"
+                        className="w-full border-2 border-slate-200 rounded-[16px] p-4 text-2xl font-black tracking-[0.2em] text-center outline-none focus:border-slate-900 focus:shadow-[4px_4px_0px_#E0FF4F] transition-all"
                       />
                     </div>
                     
-                    <div className="bg-[#FF6666] text-white border-[3px] border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-1 font-bold text-sm">
-                      <span className="font-black uppercase block mb-1">Tip!</span>
-                      Retrieve your BVN by dialing *565*0#
+                    <div className="bg-[#E0FF4F] text-slate-900 rounded-[12px] p-4 font-medium text-sm flex gap-3 items-start shadow-sm">
+                      <span className="font-black mt-0.5">Tip!</span>
+                      <span>Retrieve your BVN by dialing *565*0#</span>
                     </div>
                     
                     <div className="flex gap-4 pt-4">
-                      <BrutalButton color="#FFFFFF" className="flex-1" onClick={() => setVerifyStep(1)} disabled={isVerifying}>
+                      <button 
+                        className="flex-1 py-4 bg-white text-slate-900 font-bold rounded-[16px] border-2 border-slate-200 hover:border-slate-900 transition-colors" 
+                        onClick={() => setVerifyStep(1)} 
+                        disabled={isVerifying}
+                      >
                         Back
-                      </BrutalButton>
-                      <BrutalButton 
-                        className="flex-[2]" 
+                      </button>
+                      <button 
+                        className="flex-[2] py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0" 
                         disabled={!isBvnValid || isVerifying}
                         onClick={() => {
                           setIsVerifying(true);
@@ -249,7 +248,7 @@ export default function AccountPage() {
                         }}
                       >
                         {isVerifying ? 'Verifying...' : 'Continue'}
-                      </BrutalButton>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -257,38 +256,42 @@ export default function AccountPage() {
 
               {verifyStep === 3 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <div className="w-16 h-16 bg-[#4D9DE0] text-white border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center mb-6 -rotate-3">
-                    <User className="w-8 h-8" strokeWidth={3} />
+                  <div className="w-16 h-16 bg-[#4D9DE0] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[16px] flex items-center justify-center mb-6 -rotate-3">
+                    <User className="w-8 h-8 text-white" weight="fill" />
                   </div>
-                  <h2 className="text-3xl font-black uppercase mb-4">Enter NIN</h2>
-                  <p className="font-bold text-gray-700 mb-8">
+                  <h2 className="text-3xl font-display font-black mb-3">Enter NIN</h2>
+                  <p className="font-bold text-slate-500 mb-8 leading-relaxed">
                     National Identity Number as secondary verification.
                   </p>
                   
                   <div className="space-y-6">
                     <div className="relative">
-                      <label className="block font-black uppercase text-sm mb-2">NIN (11 Digits)</label>
+                      <label className="block font-bold text-slate-700 text-sm mb-2">NIN (11 Digits)</label>
                       <input 
                         type="text"
                         placeholder="00000000000" 
                         value={nin}
                         onChange={(e) => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
                         maxLength={11}
-                        className="w-full border-[4px] border-black p-4 text-2xl font-black tracking-[0.2em] text-center outline-none focus:bg-[#E0FF4F] transition-colors"
+                        className="w-full border-2 border-slate-200 rounded-[16px] p-4 text-2xl font-black tracking-[0.2em] text-center outline-none focus:border-slate-900 focus:shadow-[4px_4px_0px_#E0FF4F] transition-all"
                       />
                     </div>
                     
-                    <div className="bg-gray-100 border-[3px] border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] rotate-1 font-bold text-sm">
-                      <span className="font-black uppercase block mb-1">Tip!</span>
-                      Dial *346# to check your NIN.
+                    <div className="bg-slate-100 rounded-[12px] p-4 font-medium text-sm flex gap-3 items-start shadow-sm text-slate-700">
+                      <span className="font-black mt-0.5">Tip!</span>
+                      <span>Dial *346# to check your NIN.</span>
                     </div>
                     
                     <div className="flex gap-4 pt-4">
-                      <BrutalButton color="#FFFFFF" className="flex-1" onClick={() => setVerifyStep(2)} disabled={isVerifying}>
+                      <button 
+                        className="flex-1 py-4 bg-white text-slate-900 font-bold rounded-[16px] border-2 border-slate-200 hover:border-slate-900 transition-colors" 
+                        onClick={() => setVerifyStep(2)} 
+                        disabled={isVerifying}
+                      >
                         Back
-                      </BrutalButton>
-                      <BrutalButton 
-                        className="flex-[2]" 
+                      </button>
+                      <button 
+                        className="flex-[2] py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0" 
                         disabled={!isNinValid || isVerifying}
                         onClick={() => {
                           setIsVerifying(true);
@@ -296,7 +299,7 @@ export default function AccountPage() {
                         }}
                       >
                         {isVerifying ? 'Verifying...' : 'Continue'}
-                      </BrutalButton>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -304,38 +307,42 @@ export default function AccountPage() {
 
               {verifyStep === 4 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <div className="w-16 h-16 bg-black text-white border-[4px] border-white shadow-[4px_4px_0px_rgba(224,255,79,1)] flex items-center justify-center mb-6">
-                    <ShieldCheck className="w-8 h-8" strokeWidth={3} />
+                  <div className="w-16 h-16 bg-slate-900 border-2 border-slate-200 shadow-sm rounded-[16px] flex items-center justify-center mb-6">
+                    <ShieldCheck className="w-8 h-8 text-[#E0FF4F]" weight="fill" />
                   </div>
-                  <h2 className="text-3xl font-black uppercase mb-4">Consent</h2>
-                  <p className="font-bold text-gray-700 mb-8">
+                  <h2 className="text-3xl font-display font-black mb-3">Consent</h2>
+                  <p className="font-bold text-slate-500 mb-8">
                     Final confirmation.
                   </p>
                   
                   <div className="space-y-6">
-                    <label className="flex items-start gap-4 p-4 border-[4px] border-black bg-[#E0FF4F] shadow-[4px_4px_0px_rgba(0,0,0,1)] cursor-pointer">
+                    <label className="flex items-start gap-4 p-4 border-2 border-slate-900 bg-white shadow-sm rounded-[16px] cursor-pointer hover:bg-slate-50 transition-colors">
                       <input 
                         type="checkbox" 
-                        className="w-6 h-6 mt-1 accent-black"
+                        className="w-6 h-6 mt-0.5 accent-slate-900 rounded-[6px]"
                         checked={consent}
                         onChange={(e) => setConsent(e.target.checked)}
                       />
-                      <span className="font-bold text-sm leading-relaxed">
-                        I authorize Kudi to verify my identity against the central database. All information is accurate. Read Privacy Policy.
+                      <span className="font-medium text-sm leading-relaxed text-slate-700">
+                        I authorize Kudi to verify my identity against the central database. All information is accurate. Read <a href="#" className="underline font-bold text-slate-900">Privacy Policy</a>.
                       </span>
                     </label>
                     
                     <div className="flex gap-4 pt-4">
-                      <BrutalButton color="#FFFFFF" className="flex-1" onClick={() => setVerifyStep(3)} disabled={isVerifying}>
+                      <button 
+                        className="flex-1 py-4 bg-white text-slate-900 font-bold rounded-[16px] border-2 border-slate-200 hover:border-slate-900 transition-colors" 
+                        onClick={() => setVerifyStep(3)} 
+                        disabled={isVerifying}
+                      >
                         Back
-                      </BrutalButton>
-                      <BrutalButton 
-                        className="flex-[2]" 
+                      </button>
+                      <button 
+                        className="flex-[2] py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0" 
                         disabled={!consent || isVerifying}
                         onClick={handleVerifySubmit}
                       >
                         {isVerifying ? 'Verifying...' : 'Submit'}
-                      </BrutalButton>
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -343,53 +350,49 @@ export default function AccountPage() {
 
               {verifyStep === 5 && (
                 <div className="animate-in zoom-in-95 duration-500 text-center flex flex-col items-center py-8">
-                  <div className="w-24 h-24 bg-[#06D6A0] border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] flex items-center justify-center mb-8 rotate-6">
-                    <CheckCircle2 className="w-12 h-12" strokeWidth={3} />
+                  <div className="w-24 h-24 bg-[#E0FF4F] border-2 border-slate-900 shadow-[8px_8px_0px_#0f172a] rounded-[24px] flex items-center justify-center mb-8 rotate-6">
+                    <CheckCircle className="w-12 h-12 text-slate-900" weight="fill" />
                   </div>
-                  <h2 className="text-4xl font-black uppercase mb-4">Verified!</h2>
-                  <span className="inline-block bg-black text-[#E0FF4F] font-black uppercase px-4 py-2 border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-2 mb-8">
-                    Tier 1 Status
-                  </span>
-                  <p className="font-bold text-lg mb-8 max-w-sm mx-auto">
+                  <h2 className="text-4xl font-display font-black mb-4 text-slate-900">Verified!</h2>
+
+                  <p className="font-bold text-lg mb-10 max-w-sm mx-auto text-slate-600 leading-relaxed">
                     You can now accept bank transfers and request loans!
                   </p>
-                  <BrutalButton 
-                    className="w-full h-16 text-xl" 
+                  <button 
+                    className="w-full py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all" 
                     onClick={() => { setIsVerificationOpen(false); setVerifyStep(1); }}
                   >
                     Done
-                  </BrutalButton>
+                  </button>
                 </div>
               )}
-            </div>
-          </div>
         </div>
-      )}
+      </Modal>
 
       {/* Logout & Delete Modals */}
       <Modal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
-        <div className="p-6 bg-white border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] text-center">
-          <h3 className="text-2xl font-black uppercase mb-4">Log out?</h3>
-          <p className="font-bold mb-8">You will need to verify your phone number to log back in.</p>
+        <div className="p-8 bg-white border-2 border-slate-900 rounded-[32px] shadow-[8px_8px_0px_#0f172a] text-center max-w-sm mx-auto">
+          <h3 className="text-2xl font-display font-black mb-4">Log out?</h3>
+          <p className="font-bold text-slate-500 mb-8 leading-relaxed">You will need to verify your phone number to log back in.</p>
           <div className="flex gap-4">
-            <BrutalButton color="#FFFFFF" className="flex-1" onClick={() => setIsLogoutModalOpen(false)}>Cancel</BrutalButton>
-            <BrutalButton className="flex-1" onClick={handleLogout}>Log Out</BrutalButton>
+            <button className="flex-1 py-4 bg-white text-slate-900 font-bold rounded-[16px] border-2 border-slate-200 hover:border-slate-900 transition-colors" onClick={() => setIsLogoutModalOpen(false)}>Cancel</button>
+            <button className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all" onClick={handleLogout}>Log Out</button>
           </div>
         </div>
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
-        <div className="p-6 bg-[#FF6666] border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] text-center">
-          <div className="w-16 h-16 bg-white border-[4px] border-black flex items-center justify-center mx-auto mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-            <Trash2 className="w-8 h-8 text-black" strokeWidth={3} />
+        <div className="p-8 bg-[#FF6666] border-2 border-slate-900 rounded-[32px] shadow-[8px_8px_0px_#0f172a] text-center max-w-sm mx-auto">
+          <div className="w-16 h-16 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <Trash className="w-8 h-8 text-slate-900" weight="fill" />
           </div>
-          <h3 className="text-2xl font-black uppercase mb-4 text-black">Delete Account?</h3>
-          <p className="font-bold mb-6 text-black">This action cannot be undone. All data will be lost.</p>
+          <h3 className="text-2xl font-display font-black mb-4 text-white">Delete Account?</h3>
+          <p className="font-bold mb-8 text-white/90 leading-relaxed">This action cannot be undone. All data will be lost.</p>
           
-          <div className="mb-6 text-left">
-            <label className="block font-black uppercase text-sm mb-2 text-black">Type DELETE to confirm</label>
+          <div className="mb-8 text-left">
+            <label className="block font-bold text-white text-sm mb-2">Type DELETE to confirm</label>
             <input 
-              className="w-full border-[4px] border-black p-4 font-black uppercase outline-none focus:bg-[#E0FF4F] transition-colors"
+              className="w-full border-2 border-white rounded-[16px] p-4 font-black uppercase outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,0.2)] bg-white/10 text-white placeholder-white/30 transition-all"
               value={deleteConfirm}
               onChange={(e) => setDeleteConfirm(e.target.value)}
               placeholder="DELETE"
@@ -397,14 +400,14 @@ export default function AccountPage() {
           </div>
 
           <div className="flex gap-4">
-            <BrutalButton color="#FFFFFF" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>Cancel</BrutalButton>
-            <BrutalButton 
-              className="flex-1 bg-black text-white hover:bg-gray-800"
+            <button className="flex-1 py-4 bg-white/20 text-white font-bold rounded-[16px] border-2 border-transparent hover:bg-white/30 transition-colors" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
+            <button 
+              className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
               disabled={deleteConfirm !== 'DELETE'}
               onClick={handleDelete}
             >
               Confirm
-            </BrutalButton>
+            </button>
           </div>
         </div>
       </Modal>

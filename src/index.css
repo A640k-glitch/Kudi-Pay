@@ -4,17 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Force Arial Rounded MT Bold on all headings & display elements */
 @layer base {
   html {
     font-size: 15px;
   }
   body {
-    @apply bg-neutral-base text-neutral-text font-sans;
+    @apply bg-[#F8FAFC] text-primary font-sans antialiased;
   }
-  h1, h2, h3, h4, h5, h6, .font-display {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
-    letter-spacing: -0.02em;
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display tracking-tight text-primary;
   }
 }
 
@@ -34,6 +32,17 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   to   { opacity: 1; transform: translateY(0); }
 }
 
+@keyframes barGrow {
+  0% { transform: scaleY(0.7); }
+  50% { transform: scaleY(1); }
+  100% { transform: scaleY(0.7); }
+}
+
+@keyframes flashCard {
+  0%, 100% { opacity: 0; transform: scale(0.95) rotate(-6deg); }
+  10%, 90% { opacity: 1; transform: scale(1) rotate(-6deg); }
+}
+
 @layer components {
   /* ── Layout ── */
   .max-container {
@@ -49,21 +58,29 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
   .flexStart   { @apply flex items-center justify-start; }
   .flexEnd     { @apply flex items-center justify-end; }
 
+  /* ── Components & Panels ── */
+  .glass-panel {
+    @apply bg-white border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[24px];
+  }
+
   /* ── Button Variants ── */
   .btn_white {
-    @apply border border-white bg-white px-6 py-2.5 text-primary rounded-xl font-semibold transition-all hover:bg-gray-50 shadow-sm;
+    @apply border border-slate-200 bg-white/90 backdrop-blur-md px-6 py-2.5 text-primary rounded-xl font-semibold transition-all hover:bg-slate-50 shadow-sm;
   }
   .btn_white_text {
-    @apply border border-white bg-white px-6 py-2.5 text-neutral-text rounded-xl font-semibold transition-all hover:bg-gray-50 shadow-sm;
+    @apply border border-slate-200 bg-transparent px-6 py-2.5 text-primary rounded-xl font-semibold transition-all hover:bg-slate-100 shadow-sm;
   }
   .btn_primary {
-    @apply bg-[#1E1B4B] border border-[#1E1B4B] px-6 py-2.5 text-white rounded-xl font-semibold transition-all hover:bg-[#111827] shadow-sm;
+    @apply bg-primary px-6 py-2.5 text-white rounded-xl font-semibold transition-all hover:bg-primary-dark shadow-[0_4px_0_#020617] active:translate-y-[4px] active:shadow-none hover:-translate-y-0.5;
   }
   .btn_dark_primary {
-    @apply bg-[#1E1B4B] px-6 py-2.5 text-white rounded-xl font-semibold transition-all hover:bg-[#111827] shadow-sm;
+    @apply bg-primary px-6 py-2.5 text-white rounded-xl font-semibold transition-all hover:bg-primary-dark shadow-[0_4px_0_#020617] active:translate-y-[4px] active:shadow-none hover:-translate-y-0.5;
   }
   .btn_dark_primary_outline {
-    @apply border border-[#E5E7EB] bg-[#1E1B4B] px-6 py-2.5 text-white rounded-xl font-semibold transition-all hover:bg-[#111827] shadow-sm;
+    @apply border border-slate-300 bg-white/80 backdrop-blur-md px-6 py-2.5 text-primary rounded-xl font-semibold transition-all hover:bg-slate-50 shadow-sm active:translate-y-[1px];
+  }
+  .btn_3d {
+    @apply relative bg-primary px-6 py-2.5 text-white rounded-xl font-semibold transition-all shadow-[0_4px_0_#020617] active:translate-y-[4px] active:shadow-none hover:-translate-y-0.5 hover:shadow-[0_6px_0_#020617];
   }
 
   /* ── Type Scale ── */
@@ -96,7 +113,20 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
+  .label-caps {
+    @apply font-display text-[10px] uppercase font-bold tracking-[0.15em] leading-[12px];
+  }
+
   .direction-reverse {
     animation-direction: reverse;
+  }
+
+  .animate-bar {
+    transform-origin: bottom;
+    animation: barGrow 3s ease-in-out infinite;
+  }
+
+  .animate-flash {
+    animation: flashCard 4s ease-in-out infinite;
   }
 }

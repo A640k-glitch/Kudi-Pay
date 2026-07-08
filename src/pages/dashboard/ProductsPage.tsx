@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, PackageX, Tag } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,13 +6,13 @@ import { Product } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { productService } from '../../lib/services/productService';
-import BrutalButton from '../../components/ui/BrutalButton';
 import { Modal } from '../../components/Modal';
 import { formatNaira } from '../../lib/utils';
 import { productSchema } from '../../lib/validation/schemas';
 import { useToast } from '../../components/Toast';
 import { getRegistry, AttributeField } from '../../lib/config/productRegistries';
 import type { Business } from '../../lib/types';
+import { Plus, MagnifyingGlass, Package, Tag, Trash } from '@phosphor-icons/react';
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -73,104 +72,108 @@ export default function ProductsPage() {
   const registry = business ? getRegistry(business.category) : null;
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-10 selection:bg-[#E0FF4F] selection:text-black">
-      <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-[4px] border-black pb-4">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-10 selection:bg-[#E0FF4F] selection:text-slate-900">
+      <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-slate-200 pb-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-black uppercase mb-1">Products</h1>
+          <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-1">Products</h1>
           {registry && (
-            <p className="text-sm md:text-base font-bold text-gray-700 uppercase flex items-center gap-2">
+            <p className="text-sm md:text-base font-bold text-slate-500 flex items-center gap-2">
               <span>{registry.icon}</span>
               <span>{registry.categoryLabel} details active</span>
             </p>
           )}
         </div>
         <div className="hidden md:block">
-          <BrutalButton onClick={openAddModal}>
-            <Plus className="w-5 h-5 mr-2 inline-block" /> ADD PRODUCT
-          </BrutalButton>
+          <button onClick={openAddModal} className="flex items-center gap-2 bg-[#E0FF4F] text-slate-900 px-6 py-3 rounded-[12px] font-bold border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+            <Plus weight="bold" className="w-5 h-5" /> Add Product
+          </button>
         </div>
       </header>
 
       {/* Floating Action Button (Mobile) */}
       <button
         onClick={openAddModal}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#E0FF4F] text-black border-[3px] border-black rounded-full shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center z-30 active:translate-y-1 active:shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#E0FF4F] border-2 border-slate-900 text-slate-900 rounded-full shadow-[4px_4px_0px_#0f172a] flex items-center justify-center z-30 active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all"
       >
-        <Plus className="w-6 h-6" strokeWidth={3} />
+        <Plus weight="bold" className="w-6 h-6" />
       </button>
 
       {isLoading ? (
         <div className="animate-pulse space-y-4">
-          <div className="h-14 bg-gray-200 border-[3px] border-black w-full max-w-md"></div>
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 border-[4px] border-black"></div>)}
+          <div className="h-12 bg-slate-200 rounded-[12px] w-full max-w-md border-2 border-slate-300"></div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-slate-200 rounded-[24px] border-2 border-slate-300"></div>)}
           </div>
         </div>
       ) : products.length === 0 ? (
-        <div className="bg-white border-[4px] border-black p-10 text-center shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <PackageX className="w-16 h-16 mx-auto mb-4" strokeWidth={1.5} />
-          <h3 className="text-2xl font-black uppercase mb-2">No products yet</h3>
-          <p className="text-sm font-bold uppercase text-gray-600 mb-6">Add your first product to start taking orders.</p>
-          <BrutalButton onClick={openAddModal}>ADD FIRST PRODUCT</BrutalButton>
+        <div className="glass-panel p-10 text-center flex flex-col items-center justify-center min-h-[400px]">
+          <div className="bg-slate-100 border-2 border-slate-900 w-24 h-24 rounded-full flex items-center justify-center mb-6 shadow-[4px_4px_0px_#0f172a]">
+            <Package weight="bold" className="w-10 h-10 text-slate-900" />
+          </div>
+          <h3 className="text-2xl font-display font-black text-slate-900 mb-2">No products yet</h3>
+          <p className="text-sm font-bold text-slate-500 mb-8 max-w-sm">Add your first product to start taking orders.</p>
+          <button onClick={openAddModal} className="bg-slate-900 text-white px-6 py-3 rounded-[12px] font-bold border-2 border-slate-900 shadow-[4px_4px_0px_#E0FF4F] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
+            Add First Product
+          </button>
         </div>
       ) : (
         <>
           <div className="mb-8 relative max-w-md">
-            <Search className="w-6 h-6 absolute left-3 top-1/2 -translate-y-1/2 text-black" strokeWidth={2.5} />
+            <MagnifyingGlass weight="bold" className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="SEARCH PRODUCTS..."
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-white border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] font-black uppercase placeholder-gray-500 focus:outline-none focus:bg-[#E0FF4F] transition-colors"
+              className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-900 rounded-[12px] shadow-[4px_4px_0px_#0f172a] font-bold placeholder-slate-400 focus:outline-none focus:bg-[#E0FF4F] transition-colors text-slate-900"
             />
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {filteredProducts.map(product => (
               <div
                 key={product.id}
-                className="bg-white border-[4px] border-black overflow-hidden shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col group cursor-pointer hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
+                className="glass-panel overflow-hidden flex flex-col group cursor-pointer hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[6px_6px_0px_#0f172a] transition-all"
                 onClick={() => openEditModal(product)}
               >
-                <div className="h-32 md:h-48 bg-gray-100 border-b-[4px] border-black relative overflow-hidden flex items-center justify-center">
+                <div className="h-32 md:h-48 bg-slate-100 border-b-2 border-slate-900 relative overflow-hidden flex items-center justify-center">
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="text-4xl select-none group-hover:scale-110 transition-transform">
+                    <div className="text-4xl select-none text-slate-300 group-hover:scale-110 transition-transform duration-500">
                       {registry?.icon ?? '📦'}
                     </div>
                   )}
                   <div className="absolute top-2 right-2 flex gap-1.5">
                     {product.stockCount !== undefined && product.stockCount <= 5 && (
-                      <span className="px-2 py-1 bg-[#FFD166] border-[2px] border-black text-[10px] md:text-xs font-black uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] select-none">
+                      <span className="px-2 py-1 bg-[#FF6666] border-2 border-slate-900 text-white rounded-[8px] text-[10px] md:text-xs font-black shadow-[2px_2px_0px_#0f172a] select-none">
                         {product.stockCount === 0 ? 'SOLD OUT' : `${product.stockCount} LEFT`}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="p-3 md:p-4 flex-1 flex flex-col bg-white">
-                  <h3 className="text-sm md:text-base font-black text-black uppercase line-clamp-1 mb-1">{product.name}</h3>
-                  <div className="text-lg md:text-xl font-black text-black mb-3">{formatNaira(product.price)}</div>
+                <div className="p-4 flex-1 flex flex-col">
+                  <h3 className="text-sm md:text-base font-bold text-slate-900 line-clamp-1 mb-1">{product.name}</h3>
+                  <div className="text-lg md:text-xl font-black text-slate-900 mb-3">{formatNaira(product.price)}</div>
 
                   {product.attributes && Object.keys(product.attributes).length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {Object.entries(product.attributes).map(([key, val]) => val && (
-                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border-[2px] border-black text-[10px] md:text-xs font-black uppercase text-black">
-                          <Tag className="w-3 h-3" />
+                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 border-2 border-slate-900 text-slate-900 rounded-[8px] text-[10px] md:text-xs font-bold shadow-[2px_2px_0px_#0f172a]">
+                          <Tag weight="fill" className="w-3 h-3" />
                           {val}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  <div className="mt-auto pt-3 border-t-[3px] border-black flex items-center justify-between" onClick={e => e.stopPropagation()}>
-                    <span className="text-xs md:text-sm font-black uppercase">Available</span>
+                  <div className="mt-auto pt-3 border-t-2 border-slate-100 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                    <span className="text-xs md:text-sm font-bold text-slate-600">Available</span>
                     <button 
-                      className={`w-12 h-6 border-[3px] border-black relative transition-colors ${product.isAvailable ? 'bg-[#E0FF4F]' : 'bg-gray-300'}`}
+                      className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${product.isAvailable ? 'bg-[#10B981]' : 'bg-slate-200'}`}
                       onClick={(e) => { e.stopPropagation(); handleToggleAvailable(product, !product.isAvailable); }}
                     >
-                      <div className={`absolute top-0.5 bottom-0.5 w-4 bg-black transition-transform ${product.isAvailable ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                      <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 bg-white border-2 border-slate-900 rounded-full transition-transform ${product.isAvailable ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
                     </button>
                   </div>
                 </div>
@@ -179,7 +182,7 @@ export default function ProductsPage() {
           </div>
 
           {filteredProducts.length === 0 && searchQuery && (
-            <div className="text-center py-12 border-[4px] border-black bg-white shadow-[8px_8px_0px_rgba(0,0,0,1)] font-black uppercase">
+            <div className="text-center py-12 rounded-[24px] border-2 border-slate-900 border-dashed bg-slate-50 font-bold text-slate-500 mt-6">
               No products found matching &ldquo;{searchQuery}&rdquo;
             </div>
           )}
@@ -199,19 +202,18 @@ export default function ProductsPage() {
       />
 
       {/* Delete Confirmation */}
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Product?">
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Product?" theme="brutal" headerClassName="bg-[#FF6666]">
         <div className="p-2 md:p-4 text-center">
-          <div className="w-16 h-16 bg-[#FF6666] border-[3px] border-black text-white flex items-center justify-center mb-4 mx-auto rotate-12 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-            <PackageX className="w-8 h-8" strokeWidth={2.5} />
+          <div className="w-16 h-16 bg-[#FF6666] border-2 border-slate-900 text-white rounded-full flex items-center justify-center mb-6 mx-auto shadow-[4px_4px_0px_#0f172a]">
+            <Trash weight="bold" className="w-8 h-8" />
           </div>
-          <p className="text-sm font-bold uppercase text-gray-700 mb-8 pb-4">
-            This action cannot be undone. Are you sure you want to delete {editingProduct?.name}?
+          <p className="text-sm font-bold text-slate-700 mb-8 pb-4">
+            This action cannot be undone. Are you sure you want to delete <span className="font-black text-slate-900">{editingProduct?.name}</span>?
           </p>
-          <div className="flex gap-4">
-            <BrutalButton variant="secondary" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>CANCEL</BrutalButton>
-            <BrutalButton
-              color="#FF6666"
-              className="flex-1 text-white"
+          <div className="flex gap-3">
+            <button className="flex-1 bg-white text-slate-900 font-bold py-3.5 rounded-[12px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
+            <button
+              className="flex-1 bg-[#FF6666] text-white font-bold py-3.5 rounded-[12px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all"
               onClick={async () => {
                 if (editingProduct) {
                   await productService.deleteProduct(editingProduct.id);
@@ -227,8 +229,8 @@ export default function ProductsPage() {
                 }
               }}
             >
-              DELETE
-            </BrutalButton>
+              Delete
+            </button>
           </div>
         </div>
       </Modal>
@@ -362,16 +364,16 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={product ? 'EDIT PRODUCT' : 'ADD PRODUCT'}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={product ? 'Edit Product' : 'Add Product'} theme="brutal" headerClassName="bg-[#FFD166]">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 py-2">
         {/* Image upload */}
-        <div className="relative w-full aspect-video sm:aspect-square max-h-48 border-[4px] border-black bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden hover:bg-[#E0FF4F] transition-colors cursor-pointer group">
+        <div className="relative w-full aspect-video sm:aspect-square max-h-48 rounded-[16px] border-4 border-slate-900 border-dashed bg-slate-50 flex items-center justify-center overflow-hidden hover:bg-[#E0FF4F] hover:border-solid transition-colors cursor-pointer group">
           {imagePreview ? (
             <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
           ) : (
-            <div className="flex flex-col items-center gap-2 text-black">
-              <span className="text-4xl group-hover:scale-110 transition-transform">{registry?.icon || '📸'}</span>
-              <span className="text-sm font-black uppercase">Tap to add photo</span>
+            <div className="flex flex-col items-center gap-2 text-slate-500">
+              <span className="text-4xl group-hover:scale-110 transition-transform group-hover:text-slate-900">{registry?.icon || '📸'}</span>
+              <span className="text-sm font-bold group-hover:text-slate-900 transition-colors">Tap to add photo</span>
             </div>
           )}
           <input type="file" accept="image/*" onChange={onImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -379,39 +381,39 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
 
         {/* Core fields */}
         <div>
-          <label className="block font-black uppercase text-xs mb-2">Product Name</label>
-          <input type="text" {...register('name')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
-          {errors.name?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.name?.message}</span>}
+          <label className="block font-bold text-slate-900 text-sm mb-1.5">Product Name</label>
+          <input type="text" {...register('name')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" placeholder="e.g. Vintage Leather Bag" />
+          {errors.name?.message && <span className="text-xs font-bold text-red-500 mt-1.5 block">{errors.name?.message}</span>}
         </div>
         
         <div>
-          <label className="block font-black uppercase text-xs mb-2">Price (₦)</label>
-          <input type="number" {...register('price', { valueAsNumber: true })} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
-          {errors.price?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.price?.message}</span>}
+          <label className="block font-bold text-slate-900 text-sm mb-1.5">Price (₦)</label>
+          <input type="number" {...register('price', { valueAsNumber: true })} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" placeholder="0.00" />
+          {errors.price?.message && <span className="text-xs font-bold text-red-500 mt-1.5 block">{errors.price?.message}</span>}
         </div>
         
         <div>
-          <label className="block font-black uppercase text-xs mb-2">Description (Optional)</label>
-          <textarea {...register('description')} className="w-full border-[3px] border-black p-3 font-bold outline-none focus:bg-[#E0FF4F] transition-colors min-h-[100px] resize-y" />
-          {errors.description?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.description?.message}</span>}
+          <label className="block font-bold text-slate-900 text-sm mb-1.5">Description (Optional)</label>
+          <textarea {...register('description')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F] min-h-[100px] resize-y" placeholder="Describe your product..." />
+          {errors.description?.message && <span className="text-xs font-bold text-red-500 mt-1.5 block">{errors.description?.message}</span>}
         </div>
 
         {/* Category-specific attribute fields */}
         {registry && registry.fields.length > 0 && (
-          <div className="border-[4px] border-black p-4 bg-gray-50 flex flex-col gap-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-            <p className="text-xs font-black uppercase border-b-[3px] border-black pb-2 text-black">
+          <div className="rounded-[16px] border-2 border-slate-900 p-5 bg-slate-50 flex flex-col gap-4 shadow-inner">
+            <p className="text-xs font-black text-slate-900 uppercase tracking-wide border-b-2 border-slate-200 pb-2 flex items-center gap-2">
               {registry.icon} {registry.categoryLabel} Details
             </p>
             {registry.fields.map((field: AttributeField) => (
               field.type === 'select' ? (
                 <div key={field.key}>
-                  <label className="block text-xs font-black uppercase mb-1">{field.label}</label>
+                  <label className="block font-bold text-slate-900 text-sm mb-1.5">{field.label}</label>
                   <select
                     value={attributes[field.key] || ''}
                     onChange={(e) => handleAttributeChange(field.key, e.target.value)}
-                    className="w-full px-3 py-3 bg-white border-[3px] border-black font-bold uppercase focus:outline-none focus:bg-[#E0FF4F] cursor-pointer appearance-none"
+                    className="w-full px-3 py-3 bg-white border-2 border-slate-200 rounded-[12px] font-bold text-slate-900 focus:outline-none focus:border-slate-900 focus:shadow-[4px_4px_0px_#E0FF4F] cursor-pointer"
                   >
-                    <option value="">SELECT {field.label.toUpperCase()}</option>
+                    <option value="">Select {field.label}</option>
                     {field.options?.map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
@@ -419,13 +421,13 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
                 </div>
               ) : (
                 <div key={field.key}>
-                  <label className="block text-xs font-black uppercase mb-1">{field.label}</label>
+                  <label className="block font-bold text-slate-900 text-sm mb-1.5">{field.label}</label>
                   <input
                     type={field.type}
-                    placeholder={field.placeholder?.toUpperCase()}
+                    placeholder={field.placeholder}
                     value={attributes[field.key] || ''}
                     onChange={(e) => handleAttributeChange(field.key, e.target.value)}
-                    className="w-full px-3 py-3 bg-white border-[3px] border-black font-bold uppercase focus:outline-none focus:bg-[#E0FF4F]"
+                    className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
                   />
                 </div>
               )
@@ -434,43 +436,43 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
         )}
 
         {/* Stock and availability toggles */}
-        <div className="border-t-[4px] border-black pt-4 flex flex-col gap-4 mt-2">
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="font-black uppercase text-sm">Available for sale</span>
+        <div className="border-t-2 border-slate-100 pt-4 flex flex-col gap-4 mt-2">
+          <label className="flex items-center justify-between cursor-pointer group">
+            <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 transition-colors">Available for sale</span>
             <input type="checkbox" className="hidden" checked={watch('isAvailable')} onChange={(e) => setValue('isAvailable', e.target.checked, { shouldDirty: true })} />
-            <div className={`w-14 h-8 border-[3px] border-black relative transition-colors ${watch('isAvailable') ? 'bg-[#E0FF4F]' : 'bg-gray-300'}`}>
-              <div className={`absolute top-0.5 bottom-0.5 w-6 bg-black transition-transform ${watch('isAvailable') ? 'translate-x-[26px]' : 'translate-x-0.5'}`} />
+            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${watch('isAvailable') ? 'bg-[#10B981]' : 'bg-slate-200'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${watch('isAvailable') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </div>
           </label>
           
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="font-black uppercase text-sm">Track stock?</span>
+          <label className="flex items-center justify-between cursor-pointer group">
+            <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 transition-colors">Track stock?</span>
             <input type="checkbox" className="hidden" checked={watch('trackStock')} onChange={(e) => setValue('trackStock', e.target.checked, { shouldDirty: true })} />
-            <div className={`w-14 h-8 border-[3px] border-black relative transition-colors ${watch('trackStock') ? 'bg-[#4D9DE0]' : 'bg-gray-300'}`}>
-              <div className={`absolute top-0.5 bottom-0.5 w-6 bg-black transition-transform ${watch('trackStock') ? 'translate-x-[26px]' : 'translate-x-0.5'}`} />
+            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${watch('trackStock') ? 'bg-[#E0FF4F]' : 'bg-slate-200'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${watch('trackStock') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </div>
           </label>
           
           {trackStock && (
-            <div className="mt-2">
-              <input type="number" placeholder="STOCK COUNT" {...register('stockCount', { valueAsNumber: true })} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
-              {errors.stockCount?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.stockCount?.message}</span>}
+            <div className="mt-1">
+              <input type="number" placeholder="Stock count" {...register('stockCount', { valueAsNumber: true })} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" />
+              {errors.stockCount?.message && <span className="text-xs font-bold text-red-500 mt-1.5 block">{errors.stockCount?.message}</span>}
             </div>
           )}
         </div>
 
         {/* Actions */}
         <div className="mt-4 flex flex-col gap-3">
-          <BrutalButton type="submit" className="w-full h-14" isLoading={isSubmitting}>
-            {product ? 'SAVE PRODUCT' : 'ADD PRODUCT'}
-          </BrutalButton>
+          <button type="submit" disabled={isSubmitting} className="w-full py-3.5 bg-slate-900 text-white font-bold rounded-[12px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50">
+            {isSubmitting ? 'Saving...' : product ? 'Save Changes' : 'Add Product'}
+          </button>
           {product && (
             <button
               type="button"
               onClick={onDelete}
-              className="font-black uppercase text-sm border-[3px] border-black bg-[#FF6666] text-white py-4 shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white hover:translate-y-[2px] hover:shadow-none transition-all"
+              className="font-bold text-sm text-red-600 bg-white hover:bg-red-50 py-3.5 rounded-[12px] transition-colors border-2 border-red-600 shadow-[2px_2px_0px_#EF4444]"
             >
-              DELETE PRODUCT
+              Delete Product
             </button>
           )}
         </div>

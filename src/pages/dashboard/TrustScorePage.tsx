@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import BrutalButton from '../../components/ui/BrutalButton';
+import { ArrowRight } from '@phosphor-icons/react';
 
 interface FactorItemProps {
   label: string;
@@ -12,23 +11,23 @@ interface FactorItemProps {
 
 function FactorItem({ label, weight, score, status }: FactorItemProps) {
   return (
-    <div className="space-y-2 border-b-[3px] border-black pb-4 last:border-b-0 last:pb-0">
-      <div className="flex justify-between text-sm uppercase font-black">
-        <span className="text-black">{label}</span>
-        <span className="text-gray-600">WT: {weight}%</span>
+    <div className="space-y-2 border-b-2 border-slate-100 pb-4 last:border-b-0 last:pb-0">
+      <div className="flex justify-between text-sm font-bold">
+        <span className="text-slate-900">{label}</span>
+        <span className="text-slate-500">WT: {weight}%</span>
       </div>
       <div className="flex items-center gap-3">
         {/* Rating Bar */}
-        <div className="flex-1 h-4 border-[3px] border-black bg-white relative overflow-hidden">
+        <div className="flex-1 h-3 bg-slate-100 rounded-full relative overflow-hidden">
           <div 
-            className="absolute top-0 bottom-0 left-0 bg-[#E0FF4F] border-r-[3px] border-black transition-all duration-1000 ease-out" 
+            className="absolute top-0 bottom-0 left-0 bg-[#E0FF4F] rounded-full transition-all duration-1000 ease-out" 
             style={{ width: `${score}%` }} 
           />
         </div>
-        <span className="text-sm font-black text-black w-12 text-right">{score}/100</span>
-        <span className={`text-[10px] uppercase font-black tracking-wider px-2 py-1 border-[2px] border-black shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]
-          ${score >= 80 ? 'bg-[#E0FF4F] text-black' : ''}
-          ${score >= 50 && score < 80 ? 'bg-[#4D9DE0] text-white' : ''}
+        <span className="text-sm font-black text-slate-900 w-12 text-right">{score}/100</span>
+        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[6px] shrink-0
+          ${score >= 80 ? 'bg-[#10B981] text-white' : ''}
+          ${score >= 50 && score < 80 ? 'bg-[#FFD166] text-slate-900' : ''}
           ${score < 50 ? 'bg-[#FF6666] text-white' : ''}
         `}>
           {status}
@@ -58,46 +57,46 @@ export default function TrustScorePage() {
   const readinessPercent = Math.round((points / 500) * 100);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 bg-[#FDFBF7] min-h-screen pb-24 selection:bg-black selection:text-white">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 pb-24 selection:bg-[#E0FF4F] selection:text-slate-900">
       {/* Title */}
-      <header className="mb-4 border-b-[4px] border-black pb-4">
-        <span className="inline-block bg-[#E0FF4F] border-[3px] border-black px-2 py-1 text-[10px] font-black uppercase tracking-widest text-black mb-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-          Credit &amp; Analytics
-        </span>
-        <h1 className="text-3xl md:text-4xl font-black text-black uppercase leading-tight mb-2">
+      <header className="mb-4 border-b-2 border-slate-200 pb-4">
+        <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 leading-tight mb-2">
           Credit Health
         </h1>
-        <p className="text-sm font-bold uppercase text-gray-700">
+        <p className="text-sm md:text-base font-bold text-slate-500">
           Your weighted rating determines loan eligibility and virtual account limits.
         </p>
       </header>
 
       {/* Main Score Board */}
-      <div className="bg-white border-[4px] border-black p-6 md:p-8 text-center space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+      <div className="glass-panel p-6 md:p-8 text-center space-y-6">
         <div>
-          <div className="text-[64px] font-black text-black leading-none uppercase">
+          <div className="text-6xl md:text-7xl font-display font-black text-slate-900 leading-none">
             640
           </div>
-          <div className="text-sm font-black uppercase text-gray-500 mt-2 tracking-widest">out of 1000 pts</div>
+          <div className="text-sm font-bold text-slate-500 mt-2 tracking-widest uppercase">out of 1000 pts</div>
         </div>
 
-        <div className="max-w-xs mx-auto text-sm font-bold uppercase text-black bg-[#E0FF4F] border-[3px] border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-1">
-          Your credit profile is rated <span className="font-black bg-black text-[#E0FF4F] px-1">Good</span>.<br/>
+        <div className="max-w-xs mx-auto text-sm font-medium text-slate-700 bg-slate-50 border-2 border-slate-200 rounded-[12px] p-4 shadow-sm">
+          Your credit profile is rated <span className="font-bold text-[#10B981]">Good</span>.<br/>
           You qualify for Tier 1 &amp; 2 loans.
         </div>
 
         <div className="pt-4">
-          <BrutalButton className="w-full text-sm flex items-center justify-center gap-2 h-14" onClick={() => navigate('/dashboard/loans')}>
-            VIEW LOAN ELIGIBILITY <ArrowRight className="w-5 h-5" />
-          </BrutalButton>
+          <button 
+            className="w-full text-sm font-bold bg-[#E0FF4F] text-slate-900 flex items-center justify-center gap-2 h-14 rounded-[12px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all" 
+            onClick={() => navigate('/dashboard/loans')}
+          >
+            View Loan Eligibility <ArrowRight className="w-5 h-5" weight="bold" />
+          </button>
         </div>
       </div>
 
       {/* Weighted Factors Breakdown */}
-      <div className="bg-white border-[4px] border-black p-6 space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-        <div className="border-b-[4px] border-black pb-4">
-          <h3 className="font-black text-black text-xl uppercase mb-1">Score Breakdown</h3>
-          <p className="text-xs font-bold uppercase text-gray-600">
+      <div className="glass-panel p-6 space-y-6">
+        <div className="border-b-2 border-slate-100 pb-4">
+          <h3 className="font-display font-black text-slate-900 text-xl mb-1">Score Breakdown</h3>
+          <p className="text-sm font-bold text-slate-500">
             Six dimensions defined by Kudi to measure transaction consistency.
           </p>
         </div>
@@ -113,19 +112,19 @@ export default function TrustScorePage() {
       </div>
 
       {/* Reward Points / Overdraft tracker */}
-      <div className="bg-white border-[4px] border-black p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+      <div className="glass-panel p-6 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900 text-white">
         <div className="space-y-3">
-          <h4 className="font-black text-black text-lg uppercase inline-block bg-[#4D9DE0] text-white px-2 py-1 border-[2px] border-black -rotate-1 shadow-[2px_2px_0px_rgba(0,0,0,1)]">Capital Readiness</h4>
-          <p className="text-xs font-bold uppercase text-gray-700 leading-relaxed">
-            Earn points by logging sales <span className="bg-[#E0FF4F] px-1 border border-black">+5pt</span> and scanning receipts <span className="bg-[#E0FF4F] px-1 border border-black">+10pt</span> to unlock Level 2 virtual accounts.
+          <h4 className="font-bold text-lg inline-block bg-slate-800 text-white px-3 py-1 rounded-[8px] border-2 border-slate-700">Capital Readiness</h4>
+          <p className="text-sm font-medium text-slate-300 leading-relaxed">
+            Earn points by logging sales <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded-[4px] text-xs font-bold border border-slate-700">+5pt</span> and scanning receipts <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded-[4px] text-xs font-bold border border-slate-700">+10pt</span> to unlock Level 2 virtual accounts.
           </p>
           <div className="flex items-center gap-3 pt-2">
-            <span className="text-sm font-black uppercase bg-black text-[#E0FF4F] px-2 py-1 border-[2px] border-black shadow-[2px_2px_0px_rgba(224,255,79,1)]">{points}/500 PTS</span>
-            <span className="text-xs font-black uppercase text-gray-500">({readinessPercent}%)</span>
+            <span className="text-sm font-black bg-[#E0FF4F] text-slate-900 px-3 py-1 rounded-[8px] border-2 border-slate-900 shadow-[2px_2px_0px_#E0FF4F]">{points}/500 PTS</span>
+            <span className="text-xs font-bold text-slate-400">({readinessPercent}%)</span>
           </div>
         </div>
         
-        <div className="w-20 h-20 bg-[#E0FF4F] border-[4px] border-black flex items-center justify-center font-black text-xl text-black shrink-0 shadow-[4px_4px_0px_rgba(0,0,0,1)] rotate-3 hover:rotate-12 transition-transform">
+        <div className="w-24 h-24 bg-[#E0FF4F] border-2 border-slate-900 rounded-full flex items-center justify-center font-display font-black text-3xl text-slate-900 shrink-0 shadow-[4px_4px_0px_#0f172a]">
           {readinessPercent}%
         </div>
       </div>

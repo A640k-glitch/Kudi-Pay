@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2 } from 'lucide-react';
-import BrutalButton from '../../components/ui/BrutalButton';
+import { CheckCircle } from '@phosphor-icons/react';
 import { ledgerService } from '../../lib/services/ledgerService';
 import { formatNaira } from '../../lib/utils';
 
@@ -132,92 +131,90 @@ export default function LoansPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 bg-[#FDFBF7] min-h-screen pb-24 selection:bg-black selection:text-white">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 pb-24 selection:bg-[#E0FF4F] selection:text-slate-900">
       {/* Title Header */}
-      <header className="mb-4 border-b-[4px] border-black pb-4">
-        <span className="inline-block bg-[#E0FF4F] border-[3px] border-black px-2 py-1 text-[10px] font-black uppercase tracking-widest text-black mb-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-          Lending Marketplace
-        </span>
-        <h1 className="text-3xl md:text-4xl font-black text-black uppercase leading-tight mb-2">
+      <header className="mb-4 border-b-2 border-slate-200 pb-4">
+
+        <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 leading-tight mb-2">
           Capital Limits
         </h1>
-        <p className="text-sm font-bold uppercase text-gray-700">
+        <p className="text-sm md:text-base font-bold text-slate-500">
           Unlock higher financing limits automatically as your credit score increases.
         </p>
       </header>
 
       {/* Success Banner */}
       {successMsg && (
-        <div className="bg-[#E0FF4F] border-[4px] border-black text-black p-4 flex gap-4 items-start shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-1">
-          <CheckCircle2 className="w-8 h-8 shrink-0 mt-0.5" strokeWidth={2.5} />
+        <div className="bg-[#E0FF4F] border-2 border-slate-900 text-slate-900 p-4 rounded-[16px] flex gap-4 items-start shadow-[4px_4px_0px_#0f172a]">
+          <CheckCircle className="w-8 h-8 shrink-0 mt-0.5" weight="fill" />
           <div>
-            <span className="font-black text-lg block uppercase">Approved!</span> 
-            <span className="font-bold text-sm uppercase">{successMsg}</span>
-            <button className="block underline decoration-[3px] font-black mt-2 hover:bg-black hover:text-[#E0FF4F] px-1" onClick={() => setSuccessMsg('')}>DISMISS</button>
+            <span className="font-black text-lg block">Approved!</span> 
+            <span className="font-bold text-sm block mb-2">{successMsg}</span>
+            <button className="text-sm font-black hover:opacity-70 transition-opacity underline decoration-2" onClick={() => setSuccessMsg('')}>Dismiss</button>
           </div>
         </div>
       )}
 
       {/* Active Loan Details */}
       {activeLoan ? (
-        <div className="bg-white border-[4px] border-black p-6 space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center justify-between border-b-[3px] border-black pb-4">
-            <span className="text-xl font-black uppercase text-black">
+        <div className="glass-panel p-6 space-y-6">
+          <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+            <span className="text-xl font-display font-black text-slate-900">
               Active Loan
             </span>
-            <span className="px-3 py-1 border-[3px] border-black text-xs font-black uppercase bg-[#FF6666] text-white shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+            <span className="px-3 py-1 border-2 border-slate-900 text-xs font-black uppercase bg-[#FF6666] text-white shadow-[2px_2px_0px_#0f172a] rounded-[8px]">
               Due {activeLoan.dueAt}
             </span>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
             <div>
-              <span className="text-xs font-black uppercase text-gray-500 block mb-1">Disbursed</span>
-              <span className="text-2xl md:text-3xl font-black text-black">{formatNaira(activeLoan.amount)}</span>
+              <span className="text-xs font-bold text-slate-500 block mb-1">Disbursed</span>
+              <span className="text-2xl md:text-3xl font-black text-slate-900">{formatNaira(activeLoan.amount)}</span>
             </div>
             <div>
-              <span className="text-xs font-black uppercase text-gray-500 block mb-1">Repayment Due</span>
-              <span className="text-2xl md:text-3xl font-black text-black">{formatNaira(activeLoan.repayment)}</span>
+              <span className="text-xs font-bold text-slate-500 block mb-1">Repayment Due</span>
+              <span className="text-2xl md:text-3xl font-black text-slate-900">{formatNaira(activeLoan.repayment)}</span>
             </div>
           </div>
 
-          <div className="pt-6 border-t-[4px] border-black flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-sm font-bold uppercase text-gray-700 bg-gray-100 border-[3px] border-black px-3 py-2">
-              Ledger Balance: <span className="font-black text-black ml-2">{formatNaira(balance)}</span>
+          <div className="pt-6 border-t-2 border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
+            <p className="text-sm font-bold text-slate-600 bg-slate-50 border-2 border-slate-200 rounded-[12px] px-4 py-3">
+              Ledger Balance: <span className="font-black text-slate-900 ml-2">{formatNaira(balance)}</span>
             </p>
-            <BrutalButton 
-              className="w-full md:w-auto h-12" 
+            <button 
+              className="w-full md:w-auto py-3.5 px-8 bg-slate-900 text-white font-bold rounded-[12px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50"
               onClick={handleRepayLoan}
-              isLoading={isSubmitting}
+              disabled={isSubmitting}
             >
-              REPAY LOAN
-            </BrutalButton>
+              {isSubmitting ? 'Processing...' : 'Repay Loan'}
+            </button>
           </div>
         </div>
       ) : null}
 
       {/* Loan Form / Application screen */}
       {applyingTier && (
-        <div className="bg-white border-[4px] border-black p-6 space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <div className="flex items-center justify-between border-b-[4px] border-black pb-4">
-            <h3 className="font-black text-xl uppercase text-black">Apply: {applyingTier.name}</h3>
-            <button className="text-xs font-black uppercase text-gray-500 hover:text-black underline decoration-[3px]" onClick={() => setApplyingTier(null)}>CANCEL</button>
+        <div className="glass-panel p-6 space-y-6">
+          <div className="flex items-center justify-between border-b-2 border-slate-100 pb-4">
+            <h3 className="font-display font-black text-xl text-slate-900">Apply: {applyingTier.name}</h3>
+            <button className="text-sm font-bold text-slate-500 hover:text-slate-900 transition-colors" onClick={() => setApplyingTier(null)}>Cancel</button>
           </div>
 
           <form onSubmit={handleApplySubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-sm font-bold bg-[#E0FF4F] border-[3px] border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <div className="grid grid-cols-2 gap-4 text-sm font-bold bg-[#E0FF4F] border-2 border-slate-900 p-4 rounded-[12px] shadow-[4px_4px_0px_#0f172a]">
               <div>
-                <span className="text-black uppercase block mb-1">Interest Rate</span>
-                <span className="font-black text-xl">{applyingTier.interest}% flat</span>
+                <span className="text-slate-800 block mb-1">Interest Rate</span>
+                <span className="font-black text-xl text-slate-900">{applyingTier.interest}% flat</span>
               </div>
               <div>
-                <span className="text-black uppercase block mb-1">Term</span>
-                <span className="font-black text-xl">{applyingTier.term}</span>
+                <span className="text-slate-800 block mb-1">Term</span>
+                <span className="font-black text-xl text-slate-900">{applyingTier.term}</span>
               </div>
             </div>
 
             <div>
-              <label className="block font-black uppercase text-xs mb-2">Amount to request (Max: ₦{applyingTier.amountMax.toLocaleString()})</label>
+              <label className="block font-bold text-slate-900 text-sm mb-2">Amount to request (Max: ₦{applyingTier.amountMax.toLocaleString()})</label>
               <input
                 type="number"
                 min={1000}
@@ -225,39 +222,39 @@ export default function LoansPage() {
                 value={inputAmount}
                 onChange={(e) => setInputAmount(e.target.value)}
                 required
-                className="w-full border-[3px] border-black p-3 font-bold text-lg outline-none focus:bg-[#E0FF4F] transition-colors"
+                className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
               />
             </div>
 
-            <BrutalButton type="submit" className="w-full h-14" isLoading={isSubmitting}>
-              SUBMIT &amp; DISBURSE
-            </BrutalButton>
+            <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-slate-900 text-white font-bold rounded-[12px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50">
+              {isSubmitting ? 'Processing...' : 'Submit & Disburse'}
+            </button>
           </form>
         </div>
       )}
 
       {/* Lending Tiers Catalog */}
-      <div className="bg-white border-[4px] border-black p-6 space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-        <div className="border-b-[4px] border-black pb-4">
-          <h3 className="font-black text-xl uppercase text-black mb-1">Available Limits</h3>
-          <p className="text-xs font-bold uppercase text-gray-600">Tiers unlock automatically.</p>
+      <div className="glass-panel p-6 space-y-6">
+        <div className="border-b-2 border-slate-100 pb-4">
+          <h3 className="font-display font-black text-xl text-slate-900 mb-1">Available Limits</h3>
+          <p className="text-sm font-bold text-slate-500">Tiers unlock automatically.</p>
         </div>
 
-        <div className="divide-y-[3px] divide-black">
+        <div className="divide-y-2 divide-slate-100">
           {LOAN_TIERS.map((tier, idx) => (
             <div key={tier.id} className="py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
-                <div className="font-black uppercase text-sm flex items-center gap-2 mb-1">
-                  <span className="bg-black text-[#E0FF4F] px-2 py-0.5">TIER {idx + 1}</span>
+                <div className="font-black text-base flex items-center gap-3 mb-1 text-slate-900">
+                  <span className="bg-slate-900 text-[#E0FF4F] px-2 py-0.5 rounded-[6px] text-[10px] uppercase tracking-wider shadow-sm">TIER {idx + 1}</span>
                   {tier.name}
                   {!tier.unlocked && (
-                    <span className="px-2 py-0.5 border-[2px] border-gray-400 text-[10px] font-black bg-gray-100 text-gray-500">
+                    <span className="px-2 py-0.5 border-2 border-slate-200 text-[10px] font-bold bg-slate-50 text-slate-500 rounded-[6px]">
                       SCORE {tier.requiredScore}+
                     </span>
                   )}
                 </div>
-                <div className="text-xs font-bold uppercase text-gray-700">
-                  Limit: {tier.amountText} • Term: {tier.term} • Interest: {tier.interest}%
+                <div className="text-sm font-medium text-slate-600 mt-1">
+                  Limit: <span className="font-bold text-slate-900">{tier.amountText}</span> • Term: <span className="font-bold text-slate-900">{tier.term}</span> • Interest: <span className="font-bold text-slate-900">{tier.interest}%</span>
                 </div>
               </div>
 
@@ -265,21 +262,21 @@ export default function LoansPage() {
                 <button
                   disabled={!!activeLoan || !!applyingTier}
                   onClick={() => handleOpenApply(tier)}
-                  className={`text-sm font-black uppercase border-[3px] border-black px-6 py-2 transition-transform select-none
+                  className={`text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 transition-all shrink-0
                     ${!!activeLoan || !!applyingTier
-                      ? 'bg-gray-100 text-gray-400'
-                      : 'bg-[#4D9DE0] text-white shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,1)] active:translate-y-1 active:shadow-none'
+                      ? 'bg-slate-100 border-slate-200 text-slate-400'
+                      : 'bg-white border-slate-900 text-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none'
                     }
                   `}
                 >
-                  APPLY
+                  Apply Now
                 </button>
               ) : (
                 <button
                   disabled
-                  className="text-xs font-black uppercase px-4 py-2 border-[3px] border-gray-300 text-gray-400 bg-gray-50 cursor-not-allowed"
+                  className="text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed shrink-0"
                 >
-                  LOCKED
+                  Locked
                 </button>
               )}
             </div>

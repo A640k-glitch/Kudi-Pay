@@ -87,9 +87,7 @@ export default function StorefrontSetupPage() {
     <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
       <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
         <Logo className="h-8" />
-        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest bg-[#E0FF4F] border-[3px] border-black px-3 py-1 shadow-[2px_2px_0px_rgba(0,0,0,1)] rotate-2">
-          Step 2 of 3
-        </div>
+
       </header>
 
       <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">

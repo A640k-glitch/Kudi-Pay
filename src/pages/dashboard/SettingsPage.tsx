@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ExternalLink } from 'lucide-react';
+import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Business } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
-import BrutalButton from '../../components/ui/BrutalButton';
 import { businessSchema, storefrontSchema } from '../../lib/validation/schemas';
 import { useToast } from '../../components/Toast';
 
@@ -102,86 +101,90 @@ export default function SettingsPage() {
   if (!business) return null;
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto pb-32 selection:bg-[#E0FF4F] selection:text-black">
-      <header className="mb-8 flex items-end justify-between border-b-[4px] border-black pb-4">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto pb-32 selection:bg-[#E0FF4F] selection:text-slate-900">
+      <header className="mb-8 flex items-end justify-between border-b-2 border-slate-200 pb-4">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-black uppercase mb-1">Settings</h1>
-          <p className="text-sm md:text-base font-bold text-gray-700 uppercase">Manage your profile & link.</p>
+          <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-1">Settings</h1>
+          <p className="text-sm md:text-base font-bold text-slate-500">Manage your profile & link.</p>
         </div>
         <a href={`/store/${business.storefrontSlug}`} target="_blank" rel="noreferrer" className="hidden sm:inline-flex">
-          <BrutalButton>
-            PREVIEW <ExternalLink className="w-4 h-4 ml-2 inline" />
-          </BrutalButton>
+          <button className="px-6 py-3 bg-white text-slate-900 font-bold rounded-[12px] shadow-[4px_4px_0px_#0f172a] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center">
+            Preview <ArrowSquareOut className="w-4 h-4 ml-2" weight="bold" />
+          </button>
         </a>
       </header>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         {/* Business Profile */}
-        <section className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-2xl font-black uppercase mb-6 border-b-[3px] border-black pb-2 text-black">Profile</h2>
-          <div className="space-y-6">
+        <section className="glass-panel p-6 md:p-8">
+          <h2 className="text-xl font-display font-black text-slate-900 mb-6 flex items-center gap-2">
+            Profile
+          </h2>
+          <div className="space-y-5">
             <div>
-              <label className="block font-black uppercase text-xs mb-2">Business Name</label>
-              <input type="text" {...register('businessName')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
-              {errors.businessName?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.businessName?.message}</span>}
-              <p className="text-xs font-black uppercase text-gray-500 mt-2">
+              <label className="block font-bold text-slate-700 text-sm mb-2">Business Name</label>
+              <input type="text" {...register('businessName')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" placeholder="Your Business Name" />
+              {errors.businessName?.message && <span className="text-xs font-bold text-[#FF6666] mt-2 block">{errors.businessName?.message}</span>}
+              <p className="text-xs font-bold text-slate-500 mt-2">
                 Note: You can only change your name once every 30 days.
               </p>
             </div>
             
             <div>
-              <label className="block font-black uppercase text-xs mb-2">Category</label>
-              <select {...register('category')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none cursor-pointer">
+              <label className="block font-bold text-slate-700 text-sm mb-2">Category</label>
+              <select {...register('category')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F] bg-white appearance-none cursor-pointer">
                 {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
               </select>
-              {errors.category?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.category?.message}</span>}
+              {errors.category?.message && <span className="text-xs font-bold text-[#FF6666] mt-2 block">{errors.category?.message}</span>}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block font-black uppercase text-xs mb-2">State</label>
-                <select {...register('state')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none cursor-pointer">
+                <label className="block font-bold text-slate-700 text-sm mb-2">State</label>
+                <select {...register('state')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F] bg-white appearance-none cursor-pointer">
                   {NIGERIAN_STATES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                 </select>
-                {errors.state?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.state?.message}</span>}
+                {errors.state?.message && <span className="text-xs font-bold text-[#FF6666] mt-2 block">{errors.state?.message}</span>}
               </div>
               <div>
-                <label className="block font-black uppercase text-xs mb-2">LGA</label>
-                <select {...register('lga')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none cursor-pointer">
-                  {selectedState ? LGAS_BY_STATE[selectedState]?.map(l => <option key={l.value} value={l.value}>{l.label}</option>) : <option value="">SELECT</option>}
+                <label className="block font-bold text-slate-700 text-sm mb-2">LGA</label>
+                <select {...register('lga')} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F] bg-white appearance-none cursor-pointer">
+                  {selectedState ? LGAS_BY_STATE[selectedState]?.map(l => <option key={l.value} value={l.value}>{l.label}</option>) : <option value="">Select LGA</option>}
                 </select>
-                {errors.lga?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.lga?.message}</span>}
+                {errors.lga?.message && <span className="text-xs font-bold text-[#FF6666] mt-2 block">{errors.lga?.message}</span>}
               </div>
             </div>
           </div>
         </section>
 
         {/* Storefront */}
-        <section className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
-          <h2 className="text-2xl font-black uppercase mb-6 border-b-[3px] border-black pb-2 text-black">Storefront Link</h2>
+        <section className="glass-panel p-6 md:p-8">
+          <h2 className="text-xl font-display font-black text-slate-900 mb-6 flex items-center gap-2">
+            Storefront Link
+          </h2>
           <div>
-            <label className="block font-black uppercase text-xs mb-2">Store Link</label>
-            <div className="flex">
-              <span className="bg-[#E0FF4F] border-[3px] border-r-0 border-black p-3 font-black uppercase">kudi.ng/store/</span>
-              <input type="text" {...register('storefrontSlug')} className="flex-1 border-[3px] border-black p-3 font-bold lowercase outline-none focus:bg-[#E0FF4F] transition-colors" />
+            <label className="block font-bold text-slate-700 text-sm mb-2">Store Link</label>
+            <div className="flex rounded-[12px] overflow-hidden border-2 border-slate-200 focus-within:border-slate-900 focus-within:shadow-[4px_4px_0px_#E0FF4F] transition-all">
+              <span className="bg-slate-50 text-slate-500 px-4 py-3 font-bold border-r-2 border-slate-200 flex items-center">kudi.ng/store/</span>
+              <input type="text" {...register('storefrontSlug')} className="flex-1 px-4 py-3 bg-white font-bold text-slate-900 lowercase outline-none w-full min-w-0" />
             </div>
-            {errors.storefrontSlug?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.storefrontSlug?.message}</span>}
-            {isAvailable === false && !errors.storefrontSlug && <span className="text-xs font-bold text-[#FF6666] mt-1 block uppercase">This link is taken</span>}
-            {isChecking && <span className="text-xs font-bold text-gray-500 mt-1 block uppercase">Checking...</span>}
-            {!isChecking && isAvailable === true && <span className="text-xs font-bold text-[#4D9DE0] mt-1 block uppercase">Available!</span>}
+            {errors.storefrontSlug?.message && <span className="text-xs font-bold text-[#FF6666] mt-2 block">{errors.storefrontSlug?.message}</span>}
+            {isAvailable === false && !errors.storefrontSlug && <span className="text-xs font-bold text-[#FF6666] mt-2 block">This link is taken</span>}
+            {isChecking && <span className="text-xs font-bold text-slate-500 mt-2 block">Checking...</span>}
+            {!isChecking && isAvailable === true && <span className="text-xs font-bold text-[#10B981] mt-2 block">Available!</span>}
           </div>
         </section>
 
         {isDirty && (
-          <div className="fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 bg-black border-[4px] border-black shadow-[8px_8px_0px_rgba(224,255,79,1)] p-4 flex flex-col md:flex-row items-center gap-4 z-40 w-[90%] max-w-md">
-            <span className="font-black uppercase text-sm text-[#E0FF4F] flex-1 text-center md:text-left">Unsaved changes!</span>
+          <div className="fixed bottom-24 md:bottom-10 left-1/2 -translate-x-1/2 glass-panel p-4 flex flex-col md:flex-row items-center gap-4 z-40 w-[90%] max-w-md">
+            <span className="font-bold text-sm text-slate-700 flex-1 text-center md:text-left">You have unsaved changes</span>
             <div className="flex gap-2 w-full md:w-auto">
-              <button type="button" onClick={() => reset()} disabled={isSubmitting} className="flex-1 font-black uppercase text-sm border-[3px] border-black bg-white text-black py-2 px-4 shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-y-[2px] hover:shadow-none transition-all">
-                CANCEL
+              <button type="button" onClick={() => reset()} disabled={isSubmitting} className="flex-1 py-3 px-6 bg-white text-slate-900 font-bold rounded-[12px] border-2 border-slate-200 hover:border-slate-900 transition-colors">
+                Cancel
               </button>
-              <BrutalButton type="submit" isLoading={isSubmitting} disabled={isAvailable === false} className="flex-1">
-                SAVE
-              </BrutalButton>
+              <button type="submit" disabled={isAvailable === false || isSubmitting} className="flex-1 py-3 px-6 bg-slate-900 text-white font-bold rounded-[12px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0">
+                {isSubmitting ? 'Saving...' : 'Save'}
+              </button>
             </div>
           </div>
         )}

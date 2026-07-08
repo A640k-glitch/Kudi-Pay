@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
 import { authService } from '../../lib/services/authService';
+import { ShieldCheck, ArrowRight, ArrowLeft } from '@phosphor-icons/react';
 
 export default function VerifyPage() {
   const navigate = useNavigate();
@@ -66,28 +66,36 @@ export default function VerifyPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#4D9DE0] items-center justify-center p-4 md:p-6 selection:bg-[#E0FF4F] selection:text-black">
-      <div className="w-full max-w-[400px]">
-        <div className="flex justify-center mb-6 md:mb-8 hover:scale-105 transition-transform">
+    <div className="min-h-screen flex flex-col bg-slate-50 items-center justify-center p-4 md:p-6 selection:bg-[#E0FF4F] selection:text-slate-900">
+      <div className="w-full max-w-[440px] relative">
+        <button 
+          type="button"
+          onClick={() => navigate(-1)}
+          className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-2 border-slate-900 rounded-full shadow-[4px_4px_0px_#0f172a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all z-10"
+          aria-label="Go back"
+        >
+          <ArrowLeft weight="bold" className="w-5 h-5 text-slate-900" />
+        </button>
+        <div className="flex justify-center mb-8 hover:scale-105 transition-transform">
           <Link to="/">
-            <Logo className="h-10" />
+            <Logo className="h-8 text-slate-900" />
           </Link>
         </div>
         
-        <div className="bg-white border-[4px] border-black p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,1)] relative">
-          <div className="absolute -top-4 -right-4 bg-[#FFD166] border-[3px] border-black font-black uppercase px-3 py-1 text-sm shadow-[2px_2px_0px_rgba(0,0,0,1)] rotate-3 text-black">
-            SECURE
+        <div className="bg-white border-2 border-slate-900 p-8 sm:p-10 shadow-[8px_8px_0px_#0f172a] rounded-[24px] relative">
+          <div className="absolute -top-4 -right-4 bg-[#E0FF4F] border-2 border-slate-900 font-bold px-4 py-2 text-sm shadow-[4px_4px_0px_#0f172a] rounded-[12px] rotate-3 text-slate-900 flex items-center gap-2">
+            <ShieldCheck weight="bold" className="w-4 h-4" /> SECURE
           </div>
 
-          <div className="mb-6 md:mb-8 text-left border-b-[4px] border-black pb-4">
-            <h1 className="text-3xl md:text-4xl font-black uppercase text-black mb-1.5 leading-none">Verify<br/>Device.</h1>
-            <p className="text-sm font-bold text-gray-700 uppercase">
-              Use <span className="bg-[#E0FF4F] px-1 border border-black">123456</span> for testing
+          <div className="mb-8 text-left border-b-2 border-slate-100 pb-6">
+            <h1 className="text-3xl font-display font-black text-slate-900 mb-2 tracking-tight">Verify Device</h1>
+            <p className="text-sm font-medium text-slate-600">
+              Use <span className="bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 font-bold text-slate-900">123456</span> for testing
             </p>
           </div>
 
           <div className="flex flex-col gap-6">
-            <div className="flex justify-between gap-2">
+            <div className="flex justify-between gap-2 sm:gap-3">
               {code.map((digit, index) => (
                 <input
                   key={index}
@@ -100,31 +108,30 @@ export default function VerifyPage() {
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   disabled={isLoading}
-                  className={`w-10 h-12 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-black border-[3px] focus:outline-none transition-transform
-                    ${error ? 'border-red-500 bg-red-100 text-red-600 shadow-[2px_2px_0px_rgba(220,38,38,1)]' : 'border-black focus:bg-[#E0FF4F] shadow-[2px_2px_0px_rgba(0,0,0,1)] focus:-translate-y-1 focus:shadow-[4px_4px_0px_rgba(0,0,0,1)]'}
+                  className={`w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-black rounded-[12px] border-2 focus:outline-none transition-all shadow-sm
+                    ${error ? 'border-red-500 bg-red-50 text-red-600 focus:shadow-[4px_4px_0px_#EF4444]' : 'border-slate-200 focus:border-slate-900 focus:shadow-[4px_4px_0px_#E0FF4F]'}
                   `}
                 />
               ))}
             </div>
 
-            {error && <div className="p-2 bg-red-100 border-[3px] border-black text-black font-bold text-sm text-center -rotate-1">Incorrect code. Please try again.</div>}
+            {error && <div className="p-4 bg-red-50 border-2 border-red-500 rounded-[12px] text-red-600 font-bold text-sm shadow-[2px_2px_0px_#EF4444]">Incorrect code. Please try again.</div>}
 
-            <BrutalButton 
-              className="w-full h-14 mt-2 text-base" 
-              isLoading={isLoading} 
-              disabled={!code.every(d => d !== '')}
+            <button 
+              className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-4 mt-2 rounded-[12px] font-bold text-lg shadow-[4px_4px_0px_#E0FF4F] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none"
+              disabled={isLoading || !code.every(d => d !== '')}
               onClick={() => verifyCode(code.join(''))}
             >
-              VERIFY NOW &rarr;
-            </BrutalButton>
+              {isLoading ? 'Verifying...' : 'Verify Now'} <ArrowRight weight="bold" />
+            </button>
 
-            <div className="text-center pt-4 border-t-[4px] border-black">
+            <div className="text-center pt-6 border-t-2 border-slate-100">
               {countdown > 0 ? (
-                <p className="text-gray-700 font-bold uppercase text-xs">Resend code in {countdown}s</p>
+                <p className="text-slate-500 font-medium text-sm">Resend code in <span className="font-bold text-slate-900">{countdown}s</span></p>
               ) : (
                 <button 
                   onClick={() => setCountdown(30)} 
-                  className="text-black font-black uppercase text-xs underline decoration-[3px] hover:bg-[#E0FF4F] transition-colors px-1"
+                  className="text-slate-900 font-bold text-sm underline decoration-2 hover:bg-[#E0FF4F] transition-colors px-2 py-1 rounded"
                 >
                   Resend Code
                 </button>

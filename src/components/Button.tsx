@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'destructive' | 'ghost';
+  variant?: 'primary' | 'accent' | 'secondary' | 'destructive' | 'ghost';
   size?: 'default' | 'small';
   isLoading?: boolean;
 }
@@ -18,10 +18,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = "inline-flex items-center justify-center rounded-xl font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98]";
     
     const variants = {
-      primary: "bg-primary text-white hover:bg-primary-dark focus:ring-primary",
-      secondary: "bg-white text-neutral-text border border-gray-200 hover:bg-gray-50 focus:ring-gray-200",
+      primary: "btn_3d",
+      accent: "relative bg-accent px-6 py-2.5 text-white rounded-xl font-semibold transition-all shadow-[0_4px_0_#047857] active:translate-y-[4px] active:shadow-none hover:-translate-y-0.5 hover:shadow-[0_6px_0_#047857]",
+      secondary: "bg-white/80 backdrop-blur-md text-primary border border-slate-200 hover:bg-slate-50 shadow-sm active:translate-y-[1px]",
       destructive: "bg-destructive text-white hover:bg-destructive-dark focus:ring-destructive",
-      ghost: "bg-transparent text-neutral-text hover:bg-gray-100 focus:ring-gray-200",
+      ghost: "bg-transparent text-primary hover:bg-slate-100",
     };
 
     const sizes = {
