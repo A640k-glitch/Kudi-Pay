@@ -67,7 +67,7 @@ export default function TrustScorePage() {
         const cacVerification = await businessVerificationService.getCACVerification(b.id) || undefined;
         
         // Products from localStorage
-        const productsStr = localStorage.getItem('aza_products');
+        const productsStr = localStorage.getItem('kudi_products');
         const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === b.id) : [];
 
         // Loans

@@ -37,7 +37,7 @@ export default function DashboardOverview() {
         setTransactions(txs);
 
         const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
-        const productsStr = localStorage.getItem('aza_products');
+        const productsStr = localStorage.getItem('kudi_products');
         const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
         setProducts(products);
         const loans = trustScoreService.getLoans(bId);
@@ -114,7 +114,7 @@ export default function DashboardOverview() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   return (
-    <div className="space-y-5 md:space-y-6 animate-fade-in pb-24">
+    <div className="max-w-4xl mx-auto space-y-5 md:space-y-6 animate-fade-in pb-24">
       {/* Header */}
       <header className="flex flex-col gap-2 pb-6 border-b-2 border-slate-200">
         <div className="flex items-center justify-between gap-4">

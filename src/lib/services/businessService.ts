@@ -28,7 +28,21 @@ export const businessService = {
     await delay(300);
     const existing = this._getAllBusinesses();
     const found = existing.find(b => b.storefrontSlug === slug);
-    return found || null;
+    if (!found) {
+      // For demo purposes: if a user scans a QR code on another device, 
+      // their localStorage won't have the business. We return a mock business
+      // so the storefront can still render properly with mock products.
+      return {
+        id: `mock_biz_${slug}`,
+        businessName: slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
+        storefrontSlug: slug,
+        ownerPhone: "08000000000",
+        kycTier: 3,
+        createdAt: new Date().toISOString(),
+        theme: 'brutal'
+      };
+    }
+    return found;
   },
 
   async updateBusiness(id: string, updates: Partial<Business>): Promise<Business | null> {

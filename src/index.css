@@ -159,3 +159,48 @@ input[type=number] { -moz-appearance: textfield; appearance: textfield; }
     scrollbar-width: none;
   }
 }
+
+/* Brutal Theme Inversions for Light Mode */
+.brutal-light-mode .bg-black { background-color: #fdfbf7 !important; }
+.brutal-light-mode .text-white { color: #000000 !important; }
+.brutal-light-mode .border-white { border-color: #000000 !important; }
+
+.brutal-light-mode .bg-white { background-color: #000000 !important; }
+.brutal-light-mode .text-black { color: #fdfbf7 !important; }
+.brutal-light-mode .border-black { border-color: #fdfbf7 !important; }
+
+/* Text & overlays */
+.brutal-light-mode .text-gray-400,
+.brutal-light-mode .text-gray-300 { color: #4b5563 !important; }
+.brutal-light-mode .bg-black\/80 { background-color: rgba(253, 251, 247, 0.8) !important; }
+.brutal-light-mode .bg-black\/40 { background-color: rgba(253, 251, 247, 0.4) !important; }
+
+/* Invert arbitrary shadows */
+.brutal-light-mode .shadow-\[2px_2px_0px_rgba\(255\,255\,255\,1\)\] { box-shadow: 2px 2px 0px rgba(0,0,0,1) !important; }
+.brutal-light-mode .shadow-\[3px_3px_0px_rgba\(255\,255\,255\,1\)\] { box-shadow: 3px 3px 0px rgba(0,0,0,1) !important; }
+.brutal-light-mode .shadow-\[4px_4px_0px_rgba\(255\,255\,255\,1\)\] { box-shadow: 4px 4px 0px rgba(0,0,0,1) !important; }
+.brutal-light-mode .shadow-\[6px_6px_0px_rgba\(255\,255\,255\,1\)\] { box-shadow: 6px 6px 0px rgba(0,0,0,1) !important; }
+.brutal-light-mode .shadow-\[8px_8px_0px_rgba\(255\,255\,255\,1\)\] { box-shadow: 8px 8px 0px rgba(0,0,0,1) !important; }
+
+.brutal-light-mode .shadow-\[2px_2px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 2px 2px 0px rgba(255,255,255,1) !important; }
+.brutal-light-mode .shadow-\[3px_3px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 3px 3px 0px rgba(255,255,255,1) !important; }
+.brutal-light-mode .shadow-\[4px_4px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 4px 4px 0px rgba(255,255,255,1) !important; }
+.brutal-light-mode .shadow-\[6px_6px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 6px 6px 0px rgba(255,255,255,1) !important; }
+.brutal-light-mode .shadow-\[8px_8px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 8px 8px 0px rgba(255,255,255,1) !important; }
+.brutal-light-mode .shadow-\[0px_4px_0px_rgba\(0\,0\,0\,1\)\] { box-shadow: 0px 4px 0px rgba(255,255,255,1) !important; }
+
+/* Modern Theme Inversions for Dark Mode */
+.modern-dark-mode .bg-white { background-color: #1e293b !important; }
+.modern-dark-mode .bg-slate-50 { background-color: #0f172a !important; }
+.modern-dark-mode .text-slate-900,
+.modern-dark-mode .text-slate-800,
+.modern-dark-mode .text-slate-700 { color: #f8fafc !important; }
+.modern-dark-mode .text-slate-600,
+.modern-dark-mode .text-slate-500 { color: #cbd5e1 !important; }
+.modern-dark-mode .border-slate-200,
+.modern-dark-mode .border-slate-100 { border-color: #334155 !important; }
+.modern-dark-mode .border-slate-200\/60 { border-color: rgba(51, 65, 85, 0.6) !important; }
+.modern-dark-mode .bg-white\/90 { background-color: rgba(30, 41, 59, 0.9) !important; }
+.modern-dark-mode .bg-white\/80 { background-color: rgba(30, 41, 59, 0.8) !important; }
+.modern-dark-mode .bg-white\/50 { background-color: rgba(30, 41, 59, 0.5) !important; }
+.modern-dark-mode .glass-panel { background-color: rgba(30, 41, 59, 0.85) !important; border-color: #334155 !important; }

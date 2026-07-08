@@ -6,6 +6,16 @@ import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { useToast } from '../../components/Toast';
 
+const getContrastYIQ = (hexcolor: string) => {
+  if (!hexcolor) return '#000000';
+  hexcolor = hexcolor.replace("#", "");
+  if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
+  const r = parseInt(hexcolor.substring(0,2),16) || 0;
+  const g = parseInt(hexcolor.substring(2,2),16) || 0;
+  const b = parseInt(hexcolor.substring(4,2),16) || 0;
+  return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#000000' : '#ffffff';
+};
+
 const THEMES = [
   { 
     id: 'brutal', 
@@ -26,8 +36,7 @@ export default function ThemesPage() {
   const [activeTheme, setActiveTheme] = useState<'brutal' | 'modern'>('brutal');
   const [config, setConfig] = useState<ThemeConfig>({
     primaryColor: '#E0FF4F',
-    secondaryColor: '#FF6666',
-    ctaText: 'Buy Now'
+    ctaText: 'BUY NOW'
   });
   const [isLoading, setIsLoading] = useState(true);
   const { addToast } = useToast();
@@ -46,8 +55,7 @@ export default function ThemesPage() {
         
         setConfig(b.themeConfig || {
           primaryColor: '#E0FF4F',
-          secondaryColor: '#FF6666',
-          ctaText: 'Buy Now'
+          ctaText: 'BUY NOW'
         });
       }
       setIsLoading(false);
@@ -145,27 +153,6 @@ export default function ThemesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-900 mb-2">Secondary / Accent Color</label>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {PRESET_COLORS.map(c => (
-                    <button 
-                      key={c} 
-                      onClick={() => setConfig({...config, secondaryColor: c})}
-                      className={`w-10 h-10 rounded-full border-2 border-slate-900 transition-transform ${config.secondaryColor === c ? 'shadow-[2px_2px_0px_#0f172a] scale-110' : 'hover:scale-105'}`}
-                      style={{ backgroundColor: c }}
-                    />
-                  ))}
-                </div>
-                <input 
-                  type="text" 
-                  value={config.secondaryColor || ''}
-                  onChange={e => setConfig({...config, secondaryColor: e.target.value})}
-                  className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
-                  placeholder="#HEX"
-                />
-              </div>
-
-              <div>
                 <label className="block text-sm font-bold text-slate-900 mb-2">Call to Action Text</label>
                 <input 
                   type="text" 
@@ -194,39 +181,39 @@ export default function ThemesPage() {
                 </div>
               </div>
 
-              {/* STOREFRONT PREVIEW BASED ON THEME */}
-              {activeTheme === 'brutal' ? (
-                <div className="flex flex-col h-full bg-[#FDFBF7] absolute inset-0 pt-8">
-                   <div className="p-4 border-b-[3px] border-slate-900 flex justify-between items-center" style={{ backgroundColor: config.primaryColor }}>
-                      <span className="font-black uppercase text-base truncate max-w-[140px]">{business.businessName}</span>
-                      <NeoStore className="w-6 h-6" strokeWidth={2.5} />
-                   </div>
+               {/* STOREFRONT PREVIEW BASED ON THEME */}
+               {activeTheme === 'brutal' ? (
+                 <div className={`flex flex-col h-full absolute inset-0 pt-8 ${getContrastYIQ(config.primaryColor || '#E0FF4F') === '#000000' ? 'bg-[#FDFBF7] text-slate-900' : 'bg-black text-white'}`}>
+                    <div className={`p-4 border-b-[3px] flex justify-between items-center ${getContrastYIQ(config.primaryColor || '#E0FF4F') === '#000000' ? 'border-slate-900' : 'border-white'}`} style={{ backgroundColor: config.primaryColor, color: getContrastYIQ(config.primaryColor || '#E0FF4F') }}>
+                       <span className="font-black uppercase text-base truncate max-w-[140px]">{business.businessName}</span>
+                       <NeoStore className="w-6 h-6" strokeWidth={2.5} />
+                    </div>
                    <div className="p-5 flex-1 flex flex-col gap-5">
-                      <div className="w-full flex-1 min-h-0 border-[3px] border-slate-900 bg-slate-100 shadow-[4px_4px_0px_#0f172a] relative overflow-hidden rounded-[12px]">
-                         <div className="absolute -bottom-2 -right-2 px-3 py-1.5 border-[3px] border-slate-900 font-black text-sm shadow-[2px_2px_0px_#0f172a]" style={{ backgroundColor: config.secondaryColor }}>
+                      <div className={`w-full flex-1 min-h-0 border-[3px] relative overflow-hidden rounded-[12px] ${getContrastYIQ(config.primaryColor || '#E0FF4F') === '#000000' ? 'border-slate-900 bg-slate-100 shadow-[4px_4px_0px_#0f172a]' : 'border-white bg-slate-900 shadow-[4px_4px_0px_rgba(255,255,255,1)]'}`}>
+                         <div className={`absolute -bottom-2 -right-2 px-3 py-1.5 border-[3px] font-black text-sm bg-[#FF6666] text-slate-900 ${getContrastYIQ(config.primaryColor || '#E0FF4F') === '#000000' ? 'border-slate-900 shadow-[2px_2px_0px_#0f172a]' : 'border-white shadow-[2px_2px_0px_rgba(255,255,255,1)]'}`}>
                            ₦15,000
                          </div>
                       </div>
                       <div>
-                        <h3 className="font-black text-xl leading-tight mb-4 text-slate-900">Awesome Product</h3>
-                        <button className="w-full py-3.5 border-2 border-slate-900 font-black uppercase text-sm shadow-[4px_4px_0px_#0f172a] rounded-[12px] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all" style={{ backgroundColor: config.primaryColor }}>
+                        <h3 className="font-black text-xl leading-tight mb-4">Awesome Product</h3>
+                        <button className={`w-full py-3.5 border-2 font-black uppercase text-sm rounded-[12px] hover:translate-y-[2px] hover:translate-x-[2px] transition-all ${getContrastYIQ(config.primaryColor || '#E0FF4F') === '#000000' ? 'border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:shadow-[2px_2px_0px_#0f172a]' : 'border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:shadow-[2px_2px_0px_rgba(255,255,255,1)]'}`} style={{ backgroundColor: config.primaryColor, color: getContrastYIQ(config.primaryColor || '#E0FF4F') }}>
                           {config.ctaText || 'Buy Now'}
                         </button>
                       </div>
                    </div>
                 </div>
               ) : (
-                <div className="flex flex-col h-full bg-white font-sans absolute inset-0 pt-8">
-                   <div className="p-5 flex justify-between items-center border-b border-slate-100">
+                <div className={`flex flex-col h-full font-sans absolute inset-0 pt-8 ${getContrastYIQ(config.primaryColor || '#10b981') === '#ffffff' ? 'bg-[#0f172a] text-white' : 'bg-[#f8fafc] text-slate-900'}`}>
+                   <div className={`p-5 flex justify-between items-center border-b ${getContrastYIQ(config.primaryColor || '#10b981') === '#ffffff' ? 'border-slate-700/50' : 'border-slate-100'}`}>
                       <span className="font-bold text-lg truncate max-w-[140px] tracking-tight">{business.businessName}</span>
-                      <NeoStore className="w-6 h-6 text-slate-400" strokeWidth={1.5} />
+                      <NeoStore className="w-6 h-6 opacity-50" strokeWidth={1.5} />
                    </div>
                    <div className="p-0 flex-1 flex flex-col">
-                      <div className="w-full flex-1 min-h-[200px] bg-slate-100 object-cover" />
-                      <div className="px-5 py-6 bg-white border-t border-slate-100">
-                        <h3 className="font-semibold text-xl text-slate-900 mb-1">Premium Product</h3>
-                        <p className="text-slate-500 text-base font-medium mb-6">₦15,000</p>
-                        <button className="w-full py-4 rounded-[12px] font-bold text-base text-white transition-opacity hover:opacity-90 shadow-sm" style={{ backgroundColor: config.primaryColor }}>
+                      <div className={`w-full flex-1 min-h-[200px] object-cover ${getContrastYIQ(config.primaryColor || '#10b981') === '#ffffff' ? 'bg-slate-800' : 'bg-slate-100'}`} />
+                      <div className={`px-5 py-6 border-t ${getContrastYIQ(config.primaryColor || '#10b981') === '#ffffff' ? 'bg-[#1e293b] border-slate-700/50' : 'bg-white border-slate-100'}`}>
+                        <h3 className="font-semibold text-xl mb-1">Premium Product</h3>
+                        <p className={`text-base font-medium mb-6 ${getContrastYIQ(config.primaryColor || '#10b981') === '#ffffff' ? 'text-slate-400' : 'text-slate-500'}`}>₦15,000</p>
+                        <button className="w-full py-4 rounded-[12px] font-bold text-base text-white transition-opacity hover:opacity-90 shadow-sm" style={{ backgroundColor: config.primaryColor, color: getContrastYIQ(config.primaryColor || '#10b981') }}>
                           {config.ctaText || 'Add to Cart'}
                         </button>
                       </div>

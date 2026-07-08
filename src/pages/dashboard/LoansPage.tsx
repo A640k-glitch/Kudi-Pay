@@ -32,7 +32,7 @@ export default function LoansPage() {
     // Compute Score to get eligibility
     const transactions = await bankAccountService.getTransactions(bId);
     const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
-    const productsStr = localStorage.getItem('aza_products');
+    const productsStr = localStorage.getItem('kudi_products');
     const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
     const loans = trustScoreService.getLoans(bId);
 

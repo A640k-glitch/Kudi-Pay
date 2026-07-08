@@ -1,7 +1,6 @@
 // ── Theme & UI ──────────────────────────────────────────────
 export interface ThemeConfig {
   primaryColor?: string;
-  secondaryColor?: string;
   heroImageUrl?: string;
   ctaText?: string;
 }

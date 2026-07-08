@@ -8,34 +8,38 @@ import { Logo } from '../../components/Logo';
 import CartDrawer from '../../components/CartDrawer';
 
 const getContrastYIQ = (hexcolor: string) => {
+  if (!hexcolor) return '#000000';
   hexcolor = hexcolor.replace("#", "");
   if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
-  const r = parseInt(hexcolor.substr(0,2),16) || 0;
-  const g = parseInt(hexcolor.substr(2,2),16) || 0;
-  const b = parseInt(hexcolor.substr(4,2),16) || 0;
+  const r = parseInt(hexcolor.substring(0,2),16) || 0;
+  const g = parseInt(hexcolor.substring(2,2),16) || 0;
+  const b = parseInt(hexcolor.substring(4,2),16) || 0;
   return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#000000' : '#ffffff';
 };
 
 // ─── Per-theme CSS variable sets ───────────────────────────────────────────
 function themeVars(theme: string, config?: any): string {
   const primary = config?.primaryColor || (theme === 'brutal' ? '#E0FF4F' : '#10b981');
-  const secondary = config?.secondaryColor || (theme === 'brutal' ? '#FF6666' : '#0f172a');
   const accentText = getContrastYIQ(primary);
-  const secondaryText = getContrastYIQ(secondary);
-
+  
   if (theme === 'brutal') {
+    const isLightMode = accentText === '#000000';
+    const bg = isLightMode ? '#fdfbf7' : '#000000';
+    const surface = isLightMode ? '#ffffff' : '#000000';
+    const text = isLightMode ? '#000000' : '#ffffff';
+    const border = isLightMode ? '#000000' : '#ffffff';
+    const textMuted = isLightMode ? '#4b5563' : '#a3a3a3';
+
     return `
       :root {
-        --s-bg: #000000;
-        --s-surface: #000000;
-        --s-card: #000000;
-        --s-border: #ffffff;
-        --s-text: #ffffff;
-        --s-text-muted: #a3a3a3;
+        --s-bg: ${bg};
+        --s-surface: ${surface};
+        --s-card: ${surface};
+        --s-border: ${border};
+        --s-text: ${text};
+        --s-text-muted: ${textMuted};
         --s-accent: ${primary};
         --s-accent-text: ${accentText};
-        --s-secondary: ${secondary};
-        --s-secondary-text: ${secondaryText};
       }
       body {
         background-color: var(--s-bg);
@@ -46,18 +50,23 @@ function themeVars(theme: string, config?: any): string {
   }
 
   // modern
+  const isDarkMode = accentText === '#ffffff';
+  const mBg = isDarkMode ? '#0f172a' : '#f8fafc';
+  const mSurface = isDarkMode ? '#1e293b' : '#ffffff';
+  const mBorder = isDarkMode ? '#334155' : '#e2e8f0';
+  const mText = isDarkMode ? '#f8fafc' : '#0f172a';
+  const mTextMuted = isDarkMode ? '#94a3b8' : '#64748b';
+
   return `
     :root {
-      --s-bg: #f8fafc;
-      --s-surface: #ffffff;
-      --s-card: #ffffff;
-      --s-border: #e2e8f0;
-      --s-text: #0f172a;
-      --s-text-muted: #64748b;
+      --s-bg: ${mBg};
+      --s-surface: ${mSurface};
+      --s-card: ${mSurface};
+      --s-border: ${mBorder};
+      --s-text: ${mText};
+      --s-text-muted: ${mTextMuted};
       --s-accent: ${primary};
       --s-accent-text: ${accentText};
-      --s-secondary: ${secondary};
-      --s-secondary-text: ${secondaryText};
     }
     body {
       background-color: var(--s-bg);
@@ -116,10 +125,14 @@ export default function StoreLayout() {
 
   const theme = business.theme || 'modern';
   const isBrutal = theme === 'brutal';
+  const primary = business.themeConfig?.primaryColor || (isBrutal ? '#E0FF4F' : '#10b981');
+  const accentText = getContrastYIQ(primary);
+  const isLightMode = isBrutal && accentText === '#000000';
+  const isDarkMode = !isBrutal && accentText === '#ffffff';
   const initial = business.businessName.charAt(0).toUpperCase();
 
   return (
-    <div className={`min-h-screen flex flex-col ${isBrutal ? 'selection:bg-[#E0FF4F] selection:text-black' : 'selection:bg-accent selection:text-white'}`}>
+    <div className={`min-h-screen flex flex-col ${isBrutal ? 'selection:bg-[var(--s-accent)] selection:text-[var(--s-accent-text)]' : 'selection:bg-accent selection:text-white'} ${isLightMode ? 'brutal-light-mode' : ''} ${isDarkMode ? 'modern-dark-mode' : ''}`}>
       <style>{themeVars(theme, business.themeConfig)}</style>
       
       {/* ── HEADER ───────────────────────────────────────────────────────── */}
