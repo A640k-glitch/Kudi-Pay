@@ -27,11 +27,9 @@ Aza OS is a premium digital storefront and embedded-finance platform tailored fo
 
 ## Run Locally
 
-**Prerequisites:**  Node.js
-
+**Prerequisites:** Node.js
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Run the application:
    `npm run dev`
