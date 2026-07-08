@@ -33,3 +33,5 @@ Aza OS is a premium digital storefront and embedded-finance platform tailored fo
    `npm install`
 2. Run the application:
    `npm run dev`
+3. View the app:
+   `http://localhost:3000`
