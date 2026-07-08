@@ -25,9 +25,9 @@ export const TrustScoreInfoPage: React.FC = () => {
                 <NeoStar className="w-5 h-5 text-white" fill="currentColor" />
                 <span className="font-bold uppercase tracking-wider text-sm text-white">Trust Score</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black leading-[1.1] uppercase tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-[1.1] uppercase tracking-tight break-words">
                 Reputation <br/>
-                <span className="bg-[#E0FF4F] px-4">Is Money.</span>
+                <span className="bg-[#E0FF4F] px-2 md:px-4 inline-block mt-2">Is Money.</span>
               </h1>
               <p className="text-xl md:text-2xl font-bold max-w-lg border-b-[4px] border-[#4D9DE0] pb-4">
                 Your Trust Score tells the world you're reliable. Higher score = more sales and bigger loans.

@@ -33,7 +33,7 @@ export default function StorefrontSetupPage() {
 
   useEffect(() => {
     // Auto-suggest slug from session
-    const stored = sessionStorage.getItem('coda_onboarding_business');
+    const stored = sessionStorage.getItem('kudi_onboarding_business');
     if (stored) {
       const { businessName } = JSON.parse(stored);
       if (businessName) {
@@ -62,7 +62,7 @@ export default function StorefrontSetupPage() {
     
     setIsSubmitting(true);
     try {
-      const stored = sessionStorage.getItem('coda_onboarding_business');
+      const stored = sessionStorage.getItem('kudi_onboarding_business');
       const businessData = stored ? JSON.parse(stored) : {};
       const phone = authService.getCurrentPhone();
       
@@ -74,7 +74,7 @@ export default function StorefrontSetupPage() {
         ownerPhone: phone,
       });
       
-      sessionStorage.removeItem('coda_onboarding_business');
+      sessionStorage.removeItem('kudi_onboarding_business');
       navigate('/onboarding/first-product');
     } catch (err) {
       console.error(err);
@@ -84,10 +84,17 @@ export default function StorefrontSetupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
-      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
+      <header className="sticky top-0 p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-50">
         <Logo className="h-8" />
-
+        <button 
+          type="button"
+          onClick={() => navigate('/')}
+          className="w-10 h-10 flex items-center justify-center bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all z-10 font-bold text-xl"
+          aria-label="Cancel"
+        >
+          X
+        </button>
       </header>
 
       <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">
@@ -103,7 +110,7 @@ export default function StorefrontSetupPage() {
               <label className="block font-black uppercase text-sm mb-2">Store Link</label>
               <div className="flex items-stretch border-[4px] border-black focus-within:bg-[#E0FF4F] transition-colors bg-white">
                 <span className="flex items-center px-4 font-black uppercase bg-gray-100 border-r-[4px] border-black shrink-0">
-                  kudi.ng/store/
+                  kudi.com/store/
                 </span>
                 <input
                   type="text"

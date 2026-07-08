@@ -23,7 +23,10 @@ const getInitialItems = (): OrderItem[] => {
     const cached = localStorage.getItem('kudi_store_cart_items');
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       } catch (e) {
         console.error('Failed to parse cached cart items', e);
       }
@@ -71,6 +74,12 @@ export const useCartStore = create<CartStore>((set, get) => ({
     saveItemsToCache([]);
     set({ items: [] });
   },
-  getTotal: () => get().items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0),
-  getItemCount: () => get().items.reduce((count, item) => count + item.quantity, 0)
+  getTotal: () => {
+    const items = get().items;
+    return Array.isArray(items) ? items.reduce((total, item) => total + (item.unitPrice * item.quantity), 0) : 0;
+  },
+  getItemCount: () => {
+    const items = get().items;
+    return Array.isArray(items) ? items.reduce((count, item) => count + item.quantity, 0) : 0;
+  }
 }));

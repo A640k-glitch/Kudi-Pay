@@ -5,17 +5,17 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 export const authService = {
   async sendOTP(phone: string): Promise<boolean> {
     await delay(800);
-    localStorage.setItem("coda_pending_phone", phone);
+    localStorage.setItem("kudi_pending_phone", phone);
     return true;
   },
 
   async verifyOTP(code: string): Promise<{ success: boolean; isNewUser?: boolean }> {
     await delay(800);
     if (code === "123456") {
-      const phone = localStorage.getItem("coda_pending_phone") || "";
-      localStorage.setItem("coda_session_phone", phone);
+      const phone = localStorage.getItem("kudi_pending_phone") || "";
+      localStorage.setItem("kudi_session_phone", phone);
       // Simulate checking if business exists
-      const businessesStr = localStorage.getItem("coda_businesses");
+      const businessesStr = localStorage.getItem("kudi_businesses");
       let isNewUser = true;
       if (businessesStr) {
         const businesses: Business[] = JSON.parse(businessesStr);
@@ -29,13 +29,13 @@ export const authService = {
   },
 
   logout() {
-    localStorage.removeItem("coda_session_phone");
-    localStorage.removeItem("coda_pending_phone");
+    localStorage.removeItem("kudi_session_phone");
+    localStorage.removeItem("kudi_pending_phone");
   },
 
   getCurrentPhone(): string | null {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("coda_session_phone");
+      return localStorage.getItem("kudi_session_phone");
     }
     return null;
   }

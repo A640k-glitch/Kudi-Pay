@@ -91,14 +91,22 @@ export default function BusinessProfilePage() {
   };
 
   const onSubmit = (data: BusinessFormValues) => {
-    sessionStorage.setItem('coda_onboarding_business', JSON.stringify(data));
+    sessionStorage.setItem('kudi_onboarding_business', JSON.stringify(data));
     navigate('/onboarding/storefront');
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
-      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
+    <div className="min-h-screen flex flex-col bg-[#F4F4F5] bg-[radial-gradient(#000000_1px,transparent_1px)] [background-size:16px_16px] text-black">
+      <header className="sticky top-0 p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-50">
         <Logo className="h-8" />
+        <button 
+          type="button"
+          onClick={() => navigate('/')}
+          className="w-10 h-10 flex items-center justify-center bg-white border-4 border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,1)] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all z-10 font-bold text-xl"
+          aria-label="Cancel"
+        >
+          X
+        </button>
       </header>
 
       <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">
@@ -139,7 +147,7 @@ export default function BusinessProfilePage() {
               />
               {errors.businessName && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.businessName.message}</p>}
               <p className="text-sm font-bold mt-2 bg-gray-100 border-[3px] border-black p-3 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
-                Your link: <span className="font-black text-[#4D9DE0]">kudi.ng/store/{liveSlug}</span>
+                Your link: <span className="font-black text-[#4D9DE0]">kudi.com/store/{liveSlug}</span>
               </p>
             </div>
 

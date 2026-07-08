@@ -10,14 +10,15 @@ import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '../../lib/utils';
 import { ArrowRight, PaintBrushBroad } from '@phosphor-icons/react';
 
+
 const NAV_ITEMS = [
-  { label: 'Home',        icon: Home,         path: '/dashboard' },
+  { label: 'Dashboard',   icon: Home,         path: '/dashboard' },
   { label: 'Orders',      icon: ShoppingBag,  path: '/dashboard/orders' },
   { label: 'Products',    icon: Package,      path: '/dashboard/products' },
   { label: 'Themes',      icon: PaintBrushBroad,  path: '/dashboard/themes' },
   { label: 'Trust Score', icon: NeoStar,      path: '/dashboard/trust' },
   { label: 'Loans',       icon: NeoCoins,     path: '/dashboard/loans' },
-  { label: 'Bot',         icon: WhatsAppIcon, path: '/dashboard/whatsapp' },
+  { label: 'Assistant',   icon: WhatsAppIcon, path: '/dashboard/whatsapp' },
   { label: 'Settings',    icon: Settings,     path: '/dashboard/settings' },
 ];
 
@@ -40,8 +41,8 @@ export default function DashboardLayout() {
       window.history.replaceState({}, '', '/dashboard');
     }
 
-    const str = localStorage.getItem('coda_businesses');
-    const phone = localStorage.getItem('coda_session_phone');
+    const str = localStorage.getItem('kudi_businesses');
+    const phone = localStorage.getItem('kudi_session_phone');
     if (str && phone) {
       const businesses = JSON.parse(str);
       const b = businesses.find((b: any) => b.ownerPhone === phone);
@@ -72,7 +73,7 @@ export default function DashboardLayout() {
   }, [isMoreMenuOpen]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900 relative overflow-x-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900 overflow-hidden">
       
       {/* ── Desktop Sidebar ── */}
       <aside className="hidden md:flex flex-col w-[260px] bg-white border-r-2 border-slate-900 h-screen sticky top-0 z-30">
@@ -137,7 +138,7 @@ export default function DashboardLayout() {
       </header>
 
       {/* ── Main Content ── */}
-      <main id="dashboard-main" className="flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto">
+      <main id="dashboard-main" className="flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto h-full relative">
         <div className="p-3 sm:p-5 md:p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
@@ -145,7 +146,7 @@ export default function DashboardLayout() {
 
       {/* ── Mobile Bottom Nav ── */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-slate-900 flex items-center justify-around px-2 pt-3 pb-safe z-40 safe-pb shadow-[0_-4px_0px_#0f172a]">
-        {NAV_ITEMS.filter(item => ['Home', 'Orders', 'Products', 'Bot'].includes(item.label)).map((item) => {
+        {NAV_ITEMS.filter(item => ['Dashboard', 'Orders', 'Products', 'Assistant'].includes(item.label)).map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
@@ -240,7 +241,7 @@ export default function DashboardLayout() {
           </div>
 
           <div className="flex justify-center mb-8 bg-white p-4 rounded-[16px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a]">
-            <QRCodeSVG value={storeLink || 'https://kudi.ng'} size={160} />
+            <QRCodeSVG value={storeLink || 'https://kudi.com'} size={160} />
           </div>
 
           <a
@@ -255,6 +256,8 @@ export default function DashboardLayout() {
           <button className="font-bold text-slate-500 hover:text-slate-900 mt-2 text-sm transition-colors underline decoration-2" onClick={() => setShowCelebration(false)}>Back to Dashboard</button>
         </div>
       </Modal>
+
+
     </div>
   );
 }

@@ -37,9 +37,9 @@ export const BusinessLoansInfoPage: React.FC = () => {
                 <NeoCoins className="w-5 h-5" />
                 <span className="font-bold uppercase tracking-wider text-sm">Business Loans</span>
               </div>
-              <h1 className="text-5xl md:text-7xl font-black leading-[1.1] uppercase tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-black leading-[1.1] uppercase tracking-tight break-words">
                 Grow Faster.<br/>
-                <span className="bg-[#E0FF4F] px-4">No Paperwork.</span>
+                <span className="bg-[#E0FF4F] px-2 md:px-4 inline-block mt-2">No Paperwork.</span>
               </h1>
               <p className="text-xl md:text-2xl font-bold max-w-lg border-b-[4px] border-[#FFD166] pb-4 ml-auto md:ml-0">
                 Get access to capital based on your Kudi sales history. Instant approval, flexible repayment.

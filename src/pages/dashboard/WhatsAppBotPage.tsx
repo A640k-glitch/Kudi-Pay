@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PaperPlaneRight, Checks, CircleNotch } from '@phosphor-icons/react';
 import { ledgerService } from '../../lib/services/ledgerService';
+import { trustScoreService } from '../../lib/services/trustScoreService';
 import { formatNaira } from '../../lib/utils';
 
 interface ChatMessage {
@@ -24,8 +25,8 @@ function getFormattedTime() {
 
 export default function WhatsAppBotPage() {
   const [businessId] = useState<string>(() => {
-    const str = localStorage.getItem('coda_businesses');
-    const phone = localStorage.getItem('coda_session_phone');
+    const str = localStorage.getItem('kudi_businesses');
+    const phone = localStorage.getItem('kudi_session_phone');
     if (str && phone) {
       const businesses = JSON.parse(str);
       const b = businesses.find((b: any) => b.ownerPhone === phone);
@@ -35,8 +36,8 @@ export default function WhatsAppBotPage() {
   });
 
   const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const str = localStorage.getItem('coda_businesses');
-    const phone = localStorage.getItem('coda_session_phone');
+    const str = localStorage.getItem('kudi_businesses');
+    const phone = localStorage.getItem('kudi_session_phone');
     if (str && phone) {
       const businesses = JSON.parse(str);
       const b = businesses.find((b: any) => b.ownerPhone === phone);
@@ -137,7 +138,7 @@ export default function WhatsAppBotPage() {
       </header>
 
       {/* Message Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMiIgZmlsbD0iI2Y4ZmFmYyIvPgo8L3N2Zz4=')] relative">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32 bg-slate-100 relative">
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
           return (
@@ -230,7 +231,9 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
           businessId: bId,
           type: 'revenue',
           amount,
-          source: 'sale',
+          source: 'order_payment',
+          verificationStatus: 'pending',
+          verificationSource: 'manual_unverified',
           metadata: { description: `WhatsApp: ${desc}` }
         });
         
@@ -254,6 +257,8 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
           type: 'expense',
           amount,
           source: 'receipt_ocr',
+          verificationStatus: 'pending',
+          verificationSource: 'manual_unverified',
           metadata: { vendor: 'WhatsApp Log', description: desc, category: 'Operations' }
         });
         
@@ -276,8 +281,11 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
 
   // Match trust score query
   if (norm.includes('score') || norm.includes('trust') || norm.includes('readiness')) {
-    const pts = localStorage.getItem(`aza_trust_points_${bId}`) || "350";
-    return `⭐️ Credit Status:\n\n• Rating: 640 / 1000\n• Capital Readiness: ${pts} / 500 PTS\n\nQualifies for Tier 1 & 2 Loans! Go to the Lending page to view funding.`;
+    const latest = trustScoreService.getLatestSnapshot(bId);
+    if (!latest) {
+      return `⭐️ Credit Status:\n\n• Rating: Fair\n• Trust Score: 0 / 1000 PTS\n\nKeep transacting to build your score!`;
+    }
+    return `⭐️ Credit Status:\n\n• Rating: ${latest.tier}\n• Trust Score: ${latest.score} / 1000 PTS\n\nGo to the Lending page to view funding eligibility.`;
   }
 
   // Fallback / instructions

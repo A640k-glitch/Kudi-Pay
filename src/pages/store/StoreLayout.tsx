@@ -7,10 +7,21 @@ import { useCartStore } from '../../lib/store';
 import { Logo } from '../../components/Logo';
 import CartDrawer from '../../components/CartDrawer';
 
+const getContrastYIQ = (hexcolor: string) => {
+  hexcolor = hexcolor.replace("#", "");
+  if (hexcolor.length === 3) hexcolor = hexcolor.split('').map(c => c + c).join('');
+  const r = parseInt(hexcolor.substr(0,2),16) || 0;
+  const g = parseInt(hexcolor.substr(2,2),16) || 0;
+  const b = parseInt(hexcolor.substr(4,2),16) || 0;
+  return (((r*299)+(g*587)+(b*114))/1000 >= 128) ? '#000000' : '#ffffff';
+};
+
 // ─── Per-theme CSS variable sets ───────────────────────────────────────────
 function themeVars(theme: string, config?: any): string {
   const primary = config?.primaryColor || (theme === 'brutal' ? '#E0FF4F' : '#10b981');
   const secondary = config?.secondaryColor || (theme === 'brutal' ? '#FF6666' : '#0f172a');
+  const accentText = getContrastYIQ(primary);
+  const secondaryText = getContrastYIQ(secondary);
 
   if (theme === 'brutal') {
     return `
@@ -22,12 +33,14 @@ function themeVars(theme: string, config?: any): string {
         --s-text: #ffffff;
         --s-text-muted: #a3a3a3;
         --s-accent: ${primary};
-        --s-accent-text: #000000;
+        --s-accent-text: ${accentText};
         --s-secondary: ${secondary};
+        --s-secondary-text: ${secondaryText};
       }
       body {
         background-color: var(--s-bg);
         color: var(--s-text);
+        font-family: 'Space Grotesk', sans-serif;
       }
     `;
   }
@@ -42,8 +55,9 @@ function themeVars(theme: string, config?: any): string {
       --s-text: #0f172a;
       --s-text-muted: #64748b;
       --s-accent: ${primary};
-      --s-accent-text: #ffffff;
+      --s-accent-text: ${accentText};
       --s-secondary: ${secondary};
+      --s-secondary-text: ${secondaryText};
     }
     body {
       background-color: var(--s-bg);
@@ -60,25 +74,22 @@ export default function StoreLayout() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [business, setBusiness] = useState<Business | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartItemCount = useCartStore(state => state.getItemCount());
 
   useEffect(() => {
-    async function load() {
-      if (!slug) return;
-      const b = await businessService.getBusinessBySlug(slug);
-      setBusiness(b);
-      setIsLoading(false);
-      if (b) {
-        document.title = `${b.businessName} — Shop Online`;
-        const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
-        if (favicon) {
-          favicon.href = b.logoUrl || '/favicon.svg';
-        }
+    const fetchBusiness = async () => {
+      try {
+        const data = await businessService.getBusinessBySlug(slug!);
+        setBusiness(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-    }
-    load();
+    };
+    fetchBusiness();
   }, [slug]);
 
   useEffect(() => {
@@ -87,88 +98,56 @@ export default function StoreLayout() {
       if (event.data.type === 'theme_changed' && event.data.slug === slug) {
         setBusiness(prev => prev ? { 
           ...prev, 
-          theme: event.data.theme, 
-          themeConfig: event.data.themeConfig 
-        } : prev);
+          theme: event.data.theme,
+          themeConfig: event.data.themeConfig
+        } : null);
       }
     };
-
-    const inventoryChannel = new BroadcastChannel('inventory_updates');
-    inventoryChannel.onmessage = (event) => {
-      if (event.data.type === 'inventory_changed' && event.data.slug === slug) {
-        window.location.reload();
-      }
-    };
-
-    return () => {
-      themeChannel.close();
-      inventoryChannel.close();
-    };
+    return () => themeChannel.close();
   }, [slug]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">
+      <div className="w-8 h-8 sm:w-12 sm:h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
+    </div>;
   }
+  
+  if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-xl sm:text-2xl uppercase">Store not found</div>;
 
-  if (!business) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center border-[8px] border-black m-4">
-        <div className="w-20 h-20 bg-[#E0FF4F] border-[4px] border-black flex items-center justify-center text-black mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-          <ShoppingBag className="w-10 h-10" strokeWidth={2.5} />
-        </div>
-        <h1 className="text-3xl font-black uppercase text-black mb-2">Store Not Found</h1>
-        <p className="text-lg font-bold uppercase text-gray-600 mb-8 max-w-sm">This store doesn't exist or has been removed.</p>
-        <Link to="/" className="bg-black text-[#E0FF4F] px-6 py-3 font-black uppercase border-[3px] border-black shadow-[4px_4px_0px_rgba(224,255,79,1)] hover:-translate-y-1 transition-transform">
-          CREATE YOUR STORE <ArrowRight className="w-5 h-5 inline-block ml-2" />
-        </Link>
-      </div>
-    );
-  }
-
-  const theme = business.theme || 'brutal';
+  const theme = business.theme || 'modern';
   const isBrutal = theme === 'brutal';
   const initial = business.businessName.charAt(0).toUpperCase();
 
   return (
-    <div style={{ background: 'var(--s-bg)', color: 'var(--s-text)' }} className={`min-h-screen flex flex-col ${isBrutal ? 'font-sans' : 'font-sans'}`}>
+    <div className={`min-h-screen flex flex-col ${isBrutal ? 'selection:bg-[#E0FF4F] selection:text-black' : 'selection:bg-accent selection:text-white'}`}>
       <style>{themeVars(theme, business.themeConfig)}</style>
-
-      {/* ── HEADER ─────────────────────────────────────────────────────── */}
-      <header
-        className={`sticky top-0 z-50 transition-colors duration-300 ${isBrutal ? 'border-b-[4px] border-white' : 'glass-panel border-b border-slate-200/60 shadow-sm'}`}
-        style={{ background: isBrutal ? '#000000' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)' }}
-      >
+      
+      {/* ── HEADER ───────────────────────────────────────────────────────── */}
+      <header className={`fixed top-0 left-0 right-0 z-40 ${isBrutal ? 'bg-black border-b-[3px] border-white' : 'glass-panel bg-white/80 border-b border-slate-200/60 shadow-sm backdrop-blur-xl'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
-          {/* Brand */}
+          
+          {/* Logo / Brand */}
           <Link to={`/store/${slug}`} className="flex items-center gap-3 shrink-0 group">
             {business.logoUrl ? (
-              <img src={business.logoUrl} alt={business.businessName} className={`w-10 h-10 sm:w-12 sm:h-12 object-cover ${isBrutal ? 'border-[3px] border-white' : 'rounded-[16px] border border-slate-200 shadow-sm'}`} />
+              <img src={business.logoUrl} alt={business.businessName} className={`w-8 h-8 sm:w-10 sm:h-10 object-cover ${isBrutal ? 'border-[2px] border-white transition-transform group-hover:-translate-y-1' : 'rounded-[10px] shadow-sm border border-slate-100 transition-all group-hover:scale-105'}`} />
             ) : (
-              <div
-                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-lg sm:text-xl ${isBrutal ? 'font-black border-[3px] border-white bg-[#E0FF4F] text-black shadow-[4px_4px_0px_rgba(255,255,255,1)] group-hover:translate-x-1 transition-transform' : 'font-display font-bold rounded-[16px] bg-accent text-white shadow-md'}`}
-              >
+              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-lg transition-transform ${isBrutal ? 'font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[2px] border-white group-hover:-translate-y-1' : 'font-display font-bold bg-accent text-white rounded-[10px] shadow-sm group-hover:scale-105 group-hover:shadow-md'}`}>
                 {initial}
               </div>
             )}
-            <span className={`${isBrutal ? 'font-black text-xl sm:text-2xl uppercase tracking-tighter' : 'font-display font-bold text-xl sm:text-2xl tracking-tight'}`} style={{ color: 'var(--s-text)' }}>
-              {business.businessName}
-            </span>
+            <span className={`hidden sm:block truncate max-w-[150px] lg:max-w-[300px] ${isBrutal ? 'font-black text-lg sm:text-xl uppercase tracking-tighter text-[var(--s-accent)]' : 'font-display font-bold text-lg sm:text-xl text-slate-800'}`}>{business.businessName}</span>
           </Link>
 
           {/* Cart */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={() => setIsCartOpen(true)}
-              className={`relative flex items-center gap-2 px-5 py-2.5 transition-all ${isBrutal ? 'border-[3px] border-white bg-[#E0FF4F] text-black font-black uppercase hover:-translate-y-1 shadow-[4px_4px_0px_rgba(255,255,255,1)]' : 'bg-slate-100 text-primary font-semibold rounded-[16px] hover:bg-slate-200 border border-slate-200/60 shadow-sm'}`}
+              className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 transition-all ${isBrutal ? 'border-[2.5px] border-white bg-[var(--s-accent)] text-[var(--s-accent-text)] font-black uppercase text-sm sm:text-base hover:-translate-y-0.5 shadow-[3px_3px_0px_rgba(255,255,255,1)]' : 'bg-slate-100 text-primary font-semibold text-sm sm:text-base rounded-xl hover:bg-slate-200 border border-slate-200/60 shadow-sm'}`}
             >
-              <ShoppingBag className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={isBrutal ? 2.5 : 2} />
               <span className="hidden sm:inline">CART</span>
               {cartItemCount > 0 && (
-                <span className={`w-6 h-6 flex items-center justify-center text-xs ${isBrutal ? 'bg-black text-[#E0FF4F] border-[2px] border-white font-black' : 'bg-accent text-white rounded-full font-bold shadow-sm'}`}>
+                <span className={`flex items-center justify-center text-[10px] sm:text-xs min-w-[20px] h-[20px] px-1 ${isBrutal ? 'bg-black text-[var(--s-accent)] border-[2px] border-white font-black' : 'bg-accent text-white rounded-full font-bold shadow-sm ml-1'}`}>
                   {cartItemCount}
                 </span>
               )}
@@ -177,36 +156,36 @@ export default function StoreLayout() {
         </div>
       </header>
 
-      {/* ── PAGE CONTENT ───────────────────────────────────────────────── */}
-      <main className="flex-1 w-full">
+      {/* ── MAIN CONTENT ───────────────────────────────────────────────── */}
+      <main className="flex-1 pt-16 sm:pt-20">
         <Outlet context={{ business }} />
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className={`${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-slate-200/60'}`} style={{ background: isBrutal ? '#000000' : '#ffffff' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+      <footer className={`${isBrutal ? 'bg-black text-white border-t-[4px] border-white' : 'bg-white border-t border-slate-200/60 text-slate-600'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8 md:mb-10">
             {/* Brand column */}
             <div>
-              <div className="flex items-center gap-3 mb-6">
+              <div className="flex items-center gap-3 mb-4">
                 {business.logoUrl ? (
-                  <img src={business.logoUrl} alt={business.businessName} className={`w-10 h-10 object-cover ${isBrutal ? 'border-[2px] border-white' : 'rounded-[12px] shadow-sm border border-slate-100'}`} />
+                  <img src={business.logoUrl} alt={business.businessName} className={`w-8 h-8 sm:w-10 sm:h-10 object-cover ${isBrutal ? 'border-[2px] border-white' : 'rounded-[10px] shadow-sm border border-slate-100'}`} />
                 ) : (
-                  <div className={`w-10 h-10 flex items-center justify-center text-lg ${isBrutal ? 'font-black bg-[#E0FF4F] text-black border-[2px] border-white' : 'font-display font-bold bg-accent text-white rounded-[12px] shadow-sm'}`}>
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base ${isBrutal ? 'font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[2px] border-white' : 'font-display font-bold bg-accent text-white rounded-[10px] shadow-sm'}`}>
                     {initial}
                   </div>
                 )}
-                <span className={`${isBrutal ? 'font-black text-xl uppercase tracking-tighter' : 'font-display font-bold text-xl'}`} style={{ color: 'var(--s-text)' }}>{business.businessName}</span>
+                <span className={`${isBrutal ? 'font-black text-lg sm:text-xl uppercase tracking-tighter' : 'font-display font-bold text-lg sm:text-xl text-slate-800'}`}>{business.businessName}</span>
               </div>
-              <p className={`${isBrutal ? 'text-sm font-bold uppercase leading-relaxed text-gray-400' : 'text-sm font-medium text-slate-500 leading-relaxed'}`}>
+              <p className={`max-w-xs ${isBrutal ? 'text-xs sm:text-sm font-bold uppercase leading-relaxed text-gray-300' : 'text-sm font-medium leading-relaxed'}`}>
                 Quality products. Secure checkout. Direct from {business.businessName}.
               </p>
             </div>
 
             {/* Quick links */}
             <div>
-              <p className={`${isBrutal ? 'font-black uppercase tracking-widest text-white mb-6 border-b-[2px] border-white pb-2 inline-block' : 'font-display font-bold text-primary mb-4'}`}>Shop</p>
-              <ul className={`flex flex-col gap-4 ${isBrutal ? 'font-bold uppercase text-sm text-gray-400' : 'font-medium text-sm text-slate-500'}`}>
+              <p className={`${isBrutal ? 'font-black uppercase tracking-widest mb-4 border-b-[2px] border-white pb-1.5 inline-block text-sm' : 'font-display font-bold text-slate-800 mb-3 text-sm'}`}>Shop</p>
+              <ul className={`flex flex-col gap-2.5 ${isBrutal ? 'font-bold uppercase text-xs sm:text-sm text-gray-300' : 'font-medium text-sm text-slate-500'}`}>
                 <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">Home</Link></li>
                 <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">All Products</Link></li>
               </ul>
@@ -214,18 +193,18 @@ export default function StoreLayout() {
 
             {/* Contact */}
             <div>
-              <p className={`${isBrutal ? 'font-black uppercase tracking-widest text-white mb-6 border-b-[2px] border-white pb-2 inline-block' : 'font-display font-bold text-primary mb-4'}`}>Contact</p>
-              <ul className={`flex flex-col gap-4 ${isBrutal ? 'font-bold uppercase text-sm text-gray-400' : 'font-medium text-sm text-slate-500'}`}>
+              <p className={`${isBrutal ? 'font-black uppercase tracking-widest mb-4 border-b-[2px] border-white pb-1.5 inline-block text-sm' : 'font-display font-bold text-slate-800 mb-3 text-sm'}`}>Contact</p>
+              <ul className={`flex flex-col gap-2.5 ${isBrutal ? 'font-bold uppercase text-xs sm:text-sm text-gray-300' : 'font-medium text-sm text-slate-500'}`}>
                 {business.ownerPhone && (
-                  <li className="flex items-center gap-3">
-                    <Phone className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
-                    <a href={`tel:${business.ownerPhone}`} className="hover:text-accent transition-colors">{business.ownerPhone}</a>
+                  <li className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 shrink-0" strokeWidth={isBrutal ? 2.5 : 2} />
+                    <a href={`tel:${business.ownerPhone}`} className="hover:text-accent transition-colors truncate">{business.ownerPhone}</a>
                   </li>
                 )}
                 {(business.lga || business.state) && (
-                  <li className="flex items-center gap-3">
-                    <MapPin className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
-                    <span>{[business.lga, business.state].filter(Boolean).join(', ')}</span>
+                  <li className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 shrink-0" strokeWidth={isBrutal ? 2.5 : 2} />
+                    <span className="truncate">{[business.lga, business.state].filter(Boolean).join(', ')}</span>
                   </li>
                 )}
               </ul>
@@ -233,13 +212,13 @@ export default function StoreLayout() {
           </div>
 
           {/* Bottom bar */}
-          <div className={`pt-8 flex flex-col md:flex-row items-center justify-between gap-4 ${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-slate-200/60'}`}>
-            <p className={`${isBrutal ? 'font-bold uppercase text-xs text-gray-400' : 'font-medium text-sm text-slate-400'}`}>
+          <div className={`pt-6 pb-6 px-4 -mx-4 sm:-mx-6 lg:-mx-8 mt-10 flex flex-col md:flex-row items-center justify-between gap-4 ${isBrutal ? 'bg-white border-t-[3px] border-black' : 'border-t border-slate-200/60'}`}>
+            <p className={`${isBrutal ? 'font-bold uppercase text-[10px] sm:text-xs text-black text-center md:text-left' : 'font-medium text-xs text-slate-400 text-center md:text-left'}`}>
               © {new Date().getFullYear()} {business.businessName}. ALL RIGHTS RESERVED.
             </p>
             <Link to="/" className="flex items-center gap-2 group">
-              <span className={`${isBrutal ? 'font-black uppercase text-xs text-white' : 'font-bold text-xs text-slate-400 tracking-wider group-hover:text-primary transition-colors'}`}>POWERED BY</span>
-              <Logo className="h-6" />
+              <span className={`${isBrutal ? 'font-black uppercase text-black text-[10px] sm:text-xs' : 'font-bold text-[10px] sm:text-xs tracking-wider group-hover:text-primary transition-colors'}`}>POWERED BY</span>
+              <Logo className="h-5 sm:h-6" />
             </Link>
           </div>
         </div>

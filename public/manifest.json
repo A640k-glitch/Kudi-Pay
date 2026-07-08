@@ -1,0 +1,17 @@
+{
+  "name": "KUDI.NG",
+  "short_name": "KUDI",
+  "description": "Kudi Operating System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#E0FF4F",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

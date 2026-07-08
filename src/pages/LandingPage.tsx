@@ -93,10 +93,9 @@ const TrustScoreCard = () => {
 
   useEffect(() => {
     let start = Date.now();
-    // 6s to fill up (even slower), 2.5s pause, then restart
-    const duration = 6000;
-    const maxScore = 420;
-    const pauseDuration = 2500;
+    const duration = 10000; // Very slow 10-second fill
+    const maxScore = 935;
+    const pauseDuration = 4000; // 4 second pause before restart
 
     let animationFrameId: number;
 
@@ -106,7 +105,6 @@ const TrustScoreCard = () => {
 
       if (elapsed < duration) {
         const progress = Math.min(1, elapsed / duration);
-        // easeOutQuad
         const easeOut = progress * (2 - progress);
         setScore(Math.floor(easeOut * maxScore));
         animationFrameId = requestAnimationFrame(update);
@@ -121,11 +119,10 @@ const TrustScoreCard = () => {
     };
 
     animationFrameId = requestAnimationFrame(update);
-
     return () => cancelAnimationFrame(animationFrameId);
   }, []);
 
-  const percentage = Math.round((score / 500) * 100);
+  const percentage = Math.round((score / 1000) * 100);
 
   const interpolateColor = (color1: string, color2: string, factor: number) => {
     const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -138,10 +135,10 @@ const TrustScoreCard = () => {
   };
 
   const getDynamicColor = (currentScore: number) => {
-    if (currentScore <= 100) return '#EF4444'; // Red
-    if (currentScore <= 200) return interpolateColor('#EF4444', '#FACC15', (currentScore - 100) / 100); // Red to Yellow
-    if (currentScore <= 300) return interpolateColor('#FACC15', '#D97706', (currentScore - 200) / 100); // Yellow to Dark Yellow
-    if (currentScore <= 400) return interpolateColor('#D97706', '#10B981', (currentScore - 300) / 100); // Dark Yellow to Green
+    if (currentScore <= 200) return '#EF4444'; // Red
+    if (currentScore <= 400) return interpolateColor('#EF4444', '#FACC15', (currentScore - 200) / 200); // Red to Yellow
+    if (currentScore <= 600) return interpolateColor('#FACC15', '#D97706', (currentScore - 400) / 200); // Yellow to Dark Yellow
+    if (currentScore <= 800) return interpolateColor('#D97706', '#10B981', (currentScore - 600) / 200); // Dark Yellow to Green
     return '#10B981'; // Green
   };
 
@@ -154,21 +151,21 @@ const TrustScoreCard = () => {
     >
       <div className="flex justify-between items-start mb-6">
         <div>
-          <div className="label-caps text-slate-500 mb-1">Capital Readiness</div>
-          <div className="text-3xl font-display font-black text-slate-900">{score}<span className="text-lg text-slate-400">/500</span></div>
+          <div className="label-caps text-slate-500 mb-1">Trust Score</div>
+          <div className="text-3xl font-display font-black text-slate-900">{score}<span className="text-lg text-slate-400">/1000</span></div>
         </div>
         <div 
-          className="w-12 h-12 rounded-full border-2 flex items-center justify-center transition-colors duration-200"
+          className="w-12 h-12 rounded-full border-2 flex items-center justify-center"
           style={{ backgroundColor: `${currentColor}33`, borderColor: currentColor }}
         >
-          <ShieldCheck weight="fill" className="w-6 h-6 transition-colors duration-200" style={{ color: currentColor }} />
+          <ShieldCheck weight="fill" className="w-6 h-6" style={{ color: currentColor }} />
         </div>
       </div>
       {/* Progress Bar */}
       <div className="w-full h-4 bg-slate-100 rounded-full border border-slate-200 overflow-hidden mb-2">
         <div className="h-full border-r border-slate-900" style={{ width: `${percentage}%`, backgroundColor: currentColor }} />
       </div>
-      <p className="text-sm font-medium text-slate-600">You're <span className="font-bold transition-colors duration-200" style={{ color: currentColor }}>{percentage}%</span> of the way to a ₦50,000 overdraft.</p>
+      <p className="text-sm font-medium text-slate-600">You're <span className="font-bold" style={{ color: currentColor }}>{percentage}%</span> of the way to unlocking Tier 1 funding.</p>
     </div>
   );
 };
@@ -352,7 +349,7 @@ export const LandingPage: React.FC = () => {
                 <div>
                   <h3 className="text-3xl sm:text-4xl font-display font-black mb-4 text-slate-900">Credit Built In</h3>
                   <p className="text-slate-800 text-base sm:text-lg leading-relaxed font-medium mb-6">
-                    Every sale builds your Trust Score. Unlock business loans and overdrafts as you grow.
+                    Every sale builds your Trust Score. Unlock business loans and capital as you grow.
                   </p>
                   <Link to="/signup?intent=eligibility" className="inline-block mb-8 bg-white text-slate-900 px-6 sm:px-8 py-3 sm:py-4 rounded-[12px] font-bold text-base border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all">
                     Check Eligibility
@@ -361,7 +358,7 @@ export const LandingPage: React.FC = () => {
                   {/* Mini UI Element: Loan Unlocked */}
                   <div className="bg-white border-2 border-slate-900 rounded-[16px] p-4 shadow-[4px_4px_0px_#0f172a]">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-slate-900 text-sm sm:text-base">Overdraft Limit</span>
+                      <span className="font-bold text-slate-900 text-sm sm:text-base">Loan Limit</span>
                     </div>
                     <div className="text-2xl sm:text-3xl font-display font-black text-slate-900">₦50,000</div>
                   </div>

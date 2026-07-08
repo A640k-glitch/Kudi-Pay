@@ -40,16 +40,17 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 items-center justify-center p-4 md:p-6 selection:bg-[#E0FF4F] selection:text-slate-900">
+    <div className="min-h-screen flex flex-col bg-slate-50 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:16px_16px] items-center justify-center p-4 md:p-6 selection:bg-[#E0FF4F] selection:text-slate-900">
       <div className="w-full max-w-[440px] relative">
         <button 
           type="button"
-          onClick={() => navigate(-1)}
-          className="absolute left-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-2 border-slate-900 rounded-full shadow-[4px_4px_0px_#0f172a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all z-10"
-          aria-label="Go back"
+          onClick={() => navigate('/')}
+          className="absolute right-0 top-0 w-10 h-10 flex items-center justify-center bg-white border-2 border-slate-900 rounded-full shadow-[4px_4px_0px_#0f172a] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-x-[4px] active:translate-y-[4px] active:shadow-none transition-all z-10 font-bold"
+          aria-label="Cancel"
         >
-          <ArrowLeft weight="bold" className="w-5 h-5 text-slate-900" />
+          X
         </button>
+
         <div className="flex justify-center mb-8 hover:scale-105 transition-transform">
           <Link to="/">
             <Logo className="h-8 text-slate-900" />

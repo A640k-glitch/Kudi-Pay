@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { authService } from './lib/services/authService';
+import { DocumentTitleUpdater } from './components/DocumentTitleUpdater';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -62,6 +63,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   return (
     <Router>
+      <DocumentTitleUpdater />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />

@@ -1,58 +1,63 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle } from '@phosphor-icons/react';
+import { CheckCircle, Info } from '@phosphor-icons/react';
 import { ledgerService } from '../../lib/services/ledgerService';
+import { trustScoreService } from '../../lib/services/trustScoreService';
+import { bankAccountService } from '../../lib/services/bankAccountService';
+import { businessVerificationService } from '../../lib/services/businessVerificationService';
 import { formatNaira } from '../../lib/utils';
-
-interface LoanTier {
-  id: string;
-  name: string;
-  amountText: string;
-  amountMax: number;
-  term: string;
-  interest: number;
-  requiredScore: number;
-  unlocked: boolean;
-}
-
-const LOAN_TIERS: LoanTier[] = [
-  { id: 't1', name: 'Micro starter', amountText: '₦10,000 - ₦20,000', amountMax: 20000, term: '7 days', interest: 3, requiredScore: 300, unlocked: true },
-  { id: 't2', name: 'Inventory booster', amountText: '₦50,000', amountMax: 50000, term: '14 days', interest: 5, requiredScore: 500, unlocked: true },
-  { id: 't3', name: 'Growth catalyst', amountText: '₦100,000', amountMax: 100000, term: '30 days', interest: 8, requiredScore: 700, unlocked: false },
-  { id: 't4', name: 'Expansion scale', amountText: '₦250,000', amountMax: 250000, term: '60 days', interest: 10, requiredScore: 800, unlocked: false },
-  { id: 't5', name: 'Custom partner', amountText: '₦500,000+', amountMax: 500000, term: 'Negotiated', interest: 12, requiredScore: 900, unlocked: false },
-];
+import type { LoanTier, ActiveLoan, TrustScoreBreakdown, Business } from '../../lib/types';
+import { authService } from '../../lib/services/authService';
+import { businessService } from '../../lib/services/businessService';
 
 export default function LoansPage() {
-  const [businessId, setBusinessId] = useState('');
-  const [balance, setBalance] = useState(86000);
-  const [activeLoan, setActiveLoan] = useState<{ amount: number; tierId: string; repayment: number; dueAt: string } | null>(null);
+  const [business, setBusiness] = useState<Business | null>(null);
+  const [balance, setBalance] = useState(0);
+  const [activeLoan, setActiveLoan] = useState<ActiveLoan | null>(null);
+  const [scoreData, setScoreData] = useState<TrustScoreBreakdown | null>(null);
   const [applyingTier, setApplyingTier] = useState<LoanTier | null>(null);
   
   const [inputAmount, setInputAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
-  const loadBalance = async (bId: string) => {
+  const loadData = async (bId: string, biz: Business) => {
+    // Ledger Balance
     const stats = await ledgerService.getStats(bId);
     setBalance(stats.balance);
+    
+    // Active Loan
+    const loan = trustScoreService.getActiveLoan(bId);
+    setActiveLoan(loan);
+
+    // Compute Score to get eligibility
+    const transactions = await bankAccountService.getTransactions(bId);
+    const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
+    const productsStr = localStorage.getItem('aza_products');
+    const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
+    const loans = trustScoreService.getLoans(bId);
+
+    const score = trustScoreService.computeScore({
+      businessId: bId,
+      businessCreatedAt: biz.createdAt,
+      cacVerification,
+      transactions,
+      products,
+      loans
+    });
+    setScoreData(score);
   };
 
   useEffect(() => {
-    const str = localStorage.getItem('coda_businesses');
-    const phone = localStorage.getItem('coda_session_phone');
-    if (str && phone) {
-      const businesses = JSON.parse(str);
-      const b = businesses.find((b: any) => b.ownerPhone === phone);
+    async function init() {
+      const phone = authService.getCurrentPhone();
+      if (!phone) return;
+      const b = await businessService.getBusinessByPhone(phone);
       if (b) {
-        setBusinessId(b.id);
-        loadBalance(b.id);
-        
-        const loanStr = localStorage.getItem(`aza_active_loan_${b.id}`);
-        if (loanStr) {
-          setActiveLoan(JSON.parse(loanStr));
-        }
+        setBusiness(b);
+        await loadData(b.id, b);
       }
     }
+    init();
   }, []);
 
   const handleOpenApply = (tier: LoanTier) => {
@@ -62,7 +67,7 @@ export default function LoansPage() {
 
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!businessId || !applyingTier) return;
+    if (!business || !applyingTier) return;
     const amt = parseFloat(inputAmount.replace(/\D/g, ''));
     if (isNaN(amt) || amt <= 0 || amt > applyingTier.amountMax) {
       alert("Invalid application amount");
@@ -74,67 +79,84 @@ export default function LoansPage() {
       const interestAmt = amt * (applyingTier.interest / 100);
       const repaymentAmt = amt + interestAmt;
       const dueDate = new Date();
-      dueDate.setDate(dueDate.getDate() + (applyingTier.id === 't1' ? 7 : 14));
+      dueDate.setDate(dueDate.getDate() + applyingTier.termDays);
       
-      const loanObj = {
-        amount: amt,
+      const loanObj: ActiveLoan = {
+        id: `loan_${Math.floor(Math.random() * 1000000)}`,
+        businessId: business.id,
         tierId: applyingTier.id,
-        repayment: repaymentAmt,
-        dueAt: dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        tierName: applyingTier.name,
+        amount: amt,
+        interestRate: applyingTier.interest,
+        repaymentAmount: repaymentAmt,
+        status: 'active',
+        disbursedAt: new Date().toISOString(),
+        dueAt: dueDate.toISOString(),
       };
 
+      // Disburse funds to ledger
       await ledgerService.addEntry({
-        businessId,
+        businessId: business.id,
         type: 'revenue',
         amount: amt,
         source: 'loan_disbursement',
+        verificationStatus: 'verified',
+        verificationSource: 'bank_api',
         metadata: { description: `Disbursement of ${applyingTier.name}` }
       });
 
-      localStorage.setItem(`aza_active_loan_${businessId}`, JSON.stringify(loanObj));
+      // Save loan
+      trustScoreService.saveLoan(loanObj);
       setActiveLoan(loanObj);
       setApplyingTier(null);
       setIsSubmitting(false);
       setSuccessMsg(`₦${amt.toLocaleString()} has been disbursed to your ledger.`);
-      await loadBalance(businessId);
+      await loadData(business.id, business);
     }, 2000);
   };
 
   const handleRepayLoan = async () => {
-    if (!businessId || !activeLoan) return;
+    if (!business || !activeLoan) return;
     
-    if (balance < activeLoan.repayment) {
+    if (balance < activeLoan.repaymentAmount) {
       alert("Insufficient ledger balance to repay this loan. Log more sales first!");
       return;
     }
 
     setIsSubmitting(true);
     setTimeout(async () => {
+      // Deduct from ledger
       await ledgerService.addEntry({
-        businessId,
+        businessId: business.id,
         type: 'expense',
-        amount: activeLoan.repayment,
+        amount: activeLoan.repaymentAmount,
         source: 'loan_repayment',
-        metadata: { description: `Repayment of Tiered Loan` }
+        verificationStatus: 'verified',
+        verificationSource: 'bank_api',
+        metadata: { description: `Repayment of ${activeLoan.tierId} Loan` }
       });
 
-      const scoreKey = `aza_trust_points_${businessId}`;
-      const curPoints = Number(localStorage.getItem(scoreKey) || "350");
-      localStorage.setItem(scoreKey, String(Math.min(500, curPoints + 100)));
-
-      localStorage.removeItem(`aza_active_loan_${businessId}`);
+      // Mark loan repaid
+      const repaidLoan: ActiveLoan = {
+        ...activeLoan,
+        status: 'repaid',
+        repaidAt: new Date().toISOString()
+      };
+      trustScoreService.saveLoan(repaidLoan);
+      
       setActiveLoan(null);
       setIsSubmitting(false);
-      alert("Loan successfully repaid! Awarded +100 Capital Readiness points!");
-      await loadBalance(businessId);
+      alert("Loan successfully repaid! Your repayment history score will improve.");
+      await loadData(business.id, business);
     }, 1500);
   };
+
+  const loanTiers = trustScoreService.getLoanTiers();
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 pb-24 selection:bg-[#E0FF4F] selection:text-slate-900">
       {/* Title Header */}
       <header className="mb-4 border-b-2 border-slate-200 pb-4">
-
         <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 leading-tight mb-2">
           Capital Limits
         </h1>
@@ -155,6 +177,17 @@ export default function LoansPage() {
         </div>
       )}
 
+      {/* Building Warning */}
+      {scoreData?.isBuilding && !activeLoan && (
+        <div className="max-w-md mx-auto text-sm font-medium text-amber-800 bg-amber-50 border-2 border-amber-200 rounded-[12px] p-4 shadow-sm flex items-start gap-3">
+          <Info className="w-5 h-5 shrink-0 text-amber-600 mt-0.5" weight="bold" />
+          <div>
+            <span className="font-bold block mb-1">Score Profile Building</span>
+            <span className="text-amber-700/80 block">Your trust score is still building. The system requires at least 4 weeks of bank data to offer full loan limits. Limits below are estimated.</span>
+          </div>
+        </div>
+      )}
+
       {/* Active Loan Details */}
       {activeLoan ? (
         <div className="glass-panel p-6 space-y-6">
@@ -162,8 +195,10 @@ export default function LoansPage() {
             <span className="text-xl font-display font-black text-slate-900">
               Active Loan
             </span>
-            <span className="px-3 py-1 border-2 border-slate-900 text-xs font-black uppercase bg-[#FF6666] text-white shadow-[2px_2px_0px_#0f172a] rounded-[8px]">
-              Due {activeLoan.dueAt}
+            <span className={`px-3 py-1 border-2 border-slate-900 text-xs font-black uppercase shadow-[2px_2px_0px_#0f172a] rounded-[8px] ${
+              activeLoan.status === 'overdue' ? 'bg-[#FF6666] text-white' : 'bg-[#FFD166] text-slate-900'
+            }`}>
+              Due {new Date(activeLoan.dueAt).toLocaleDateString()}
             </span>
           </div>
 
@@ -174,7 +209,7 @@ export default function LoansPage() {
             </div>
             <div>
               <span className="text-xs font-bold text-slate-500 block mb-1">Repayment Due</span>
-              <span className="text-2xl md:text-3xl font-black text-slate-900">{formatNaira(activeLoan.repayment)}</span>
+              <span className="text-2xl md:text-3xl font-black text-slate-900">{formatNaira(activeLoan.repaymentAmount)}</span>
             </div>
           </div>
 
@@ -235,52 +270,99 @@ export default function LoansPage() {
       <div className="glass-panel p-6 space-y-6">
         <div className="border-b-2 border-slate-100 pb-4">
           <h3 className="font-display font-black text-xl text-slate-900 mb-1">Available Limits</h3>
-          <p className="text-sm font-bold text-slate-500">Tiers unlock automatically.</p>
+          <p className="text-sm font-bold text-slate-500">Tiers unlock automatically as your trust score increases.</p>
         </div>
 
         <div className="divide-y-2 divide-slate-100">
-          {LOAN_TIERS.map((tier, idx) => (
-            <div key={tier.id} className="py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <div className="font-black text-base flex items-center gap-3 mb-1 text-slate-900">
-                  <span className="bg-slate-900 text-[#E0FF4F] px-2 py-0.5 rounded-[6px] text-[10px] uppercase tracking-wider shadow-sm">TIER {idx + 1}</span>
-                  {tier.name}
-                  {!tier.unlocked && (
-                    <span className="px-2 py-0.5 border-2 border-slate-200 text-[10px] font-bold bg-slate-50 text-slate-500 rounded-[6px]">
-                      SCORE {tier.requiredScore}+
-                    </span>
-                  )}
+          {loanTiers.map((tier, idx) => {
+            const eligibility = scoreData?.loanEligibility.find(e => e.tierId === tier.id);
+            const isUnlocked = eligibility?.eligible ?? false;
+            
+            return (
+              <div key={tier.id} className={`py-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ${!isUnlocked ? 'opacity-60 grayscale' : ''}`}>
+                <div>
+                  <div className="font-black text-base flex items-center gap-3 mb-1 text-slate-900">
+                    <span className="bg-slate-900 text-[#E0FF4F] px-2 py-0.5 rounded-[6px] text-[10px] uppercase tracking-wider shadow-sm">TIER {idx + 1}</span>
+                    {tier.name}
+                    {!isUnlocked && (
+                      <span className="px-2 py-0.5 border-2 border-slate-200 text-[10px] font-bold bg-slate-50 text-slate-500 rounded-[6px]">
+                        SCORE {tier.requiredScore}+
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-slate-600 mt-1">
+                    Limit: <span className="font-bold text-slate-900">{tier.amountText}</span> • Term: <span className="font-bold text-slate-900">{tier.term}</span> • Interest: <span className="font-bold text-slate-900">{tier.interest}%</span>
+                  </div>
                 </div>
-                <div className="text-sm font-medium text-slate-600 mt-1">
-                  Limit: <span className="font-bold text-slate-900">{tier.amountText}</span> • Term: <span className="font-bold text-slate-900">{tier.term}</span> • Interest: <span className="font-bold text-slate-900">{tier.interest}%</span>
-                </div>
-              </div>
 
-              {tier.unlocked ? (
-                <button
-                  disabled={!!activeLoan || !!applyingTier}
-                  onClick={() => handleOpenApply(tier)}
-                  className={`text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 transition-all shrink-0
-                    ${!!activeLoan || !!applyingTier
-                      ? 'bg-slate-100 border-slate-200 text-slate-400'
-                      : 'bg-white border-slate-900 text-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none'
-                    }
-                  `}
-                >
-                  Apply Now
-                </button>
-              ) : (
-                <button
-                  disabled
-                  className="text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed shrink-0"
-                >
-                  Locked
-                </button>
-              )}
-            </div>
-          ))}
+                {isUnlocked ? (
+                  <button
+                    disabled={!!activeLoan || !!applyingTier}
+                    onClick={() => handleOpenApply(tier)}
+                    className={`text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 transition-all shrink-0
+                      ${!!activeLoan || !!applyingTier
+                        ? 'bg-slate-100 border-slate-200 text-slate-400'
+                        : 'bg-white border-slate-900 text-slate-900 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none'
+                      }
+                    `}
+                  >
+                    Apply Now
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="text-sm font-bold px-6 py-2.5 rounded-[12px] border-2 border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed shrink-0 flex items-center justify-center gap-2"
+                  >
+                    Locked
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
+
+      {/* Past Loans History */}
+      {(() => {
+        const allLoans = business ? trustScoreService.getLoans(business.id) : [];
+        const pastLoans = allLoans.filter(l => l.status === 'repaid' || l.status === 'overdue');
+        if (pastLoans.length === 0) return null;
+        return (
+          <div className="glass-panel p-6 space-y-4">
+            <div className="border-b-2 border-slate-100 pb-4">
+              <h3 className="font-display font-black text-xl text-slate-900 mb-1">Loan History</h3>
+              <p className="text-sm font-bold text-slate-500">Your past loan activity and repayment record.</p>
+            </div>
+            <div className="divide-y-2 divide-slate-100">
+              {pastLoans.map(loan => (
+                <div key={loan.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-black text-slate-900 text-sm">{loan.tierName}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[6px] ${
+                        loan.status === 'repaid'
+                          ? 'bg-[#10B981] text-white'
+                          : 'bg-[#FF6666] text-white'
+                      }`}>
+                        {loan.status === 'repaid' ? 'Repaid ✓' : 'Overdue'}
+                      </span>
+                    </div>
+                    <div className="text-xs font-medium text-slate-500">
+                      Disbursed: {new Date(loan.disbursedAt).toLocaleDateString()}
+                      {loan.repaidAt && ` · Repaid: ${new Date(loan.repaidAt).toLocaleDateString()}`}
+                      {!loan.repaidAt && ` · Due: ${new Date(loan.dueAt).toLocaleDateString()}`}
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <div className="font-black text-slate-900 tabular-nums">{formatNaira(loan.amount)}</div>
+                    <div className="text-xs font-bold text-slate-500">{loan.interestRate}% interest</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

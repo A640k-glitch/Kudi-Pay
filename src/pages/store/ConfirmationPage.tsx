@@ -58,7 +58,7 @@ export default function ConfirmationPage() {
         <CheckCircle2 className="w-14 h-14" strokeWidth={isBrutal ? 3 : 2} />
       </motion.div>
 
-      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 ${isBrutal ? 'font-black uppercase text-white drop-shadow-[2px_2px_0px_rgba(224,255,79,1)]' : 'font-display font-bold text-primary'}`}>Order Successful!</h1>
+      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 ${isBrutal ? 'font-black uppercase text-white drop-shadow-[2px_2px_0px_var(--s-accent)]' : 'font-display font-bold text-primary'}`}>Order Successful!</h1>
       <p className={`mb-10 max-w-md text-lg md:text-xl leading-relaxed ${isBrutal ? 'font-bold uppercase text-gray-300' : 'font-medium text-slate-500'}`}>
         We've notified <span className={isBrutal ? 'text-[#E0FF4F]' : 'text-primary font-semibold'}>{business.businessName}</span>. They'll be in touch shortly.
       </p>
@@ -120,7 +120,7 @@ export default function ConfirmationPage() {
               <p>Customer: {order.customerName}</p>
               <p>Payment: {order.paymentMethod.replace('_', ' ')}</p>
               <div className="mt-8 pt-6 border-t-[2px] border-black text-black">
-                <span className="bg-black text-white px-2 py-1 font-black inline-block -rotate-2 shadow-[2px_2px_0px_rgba(200,200,200,1)]">POWERED BY KUDI</span>
+                <span className="bg-black text-white px-2 py-1 font-black inline-block -rotate-2 shadow-[2px_2px_0px_rgba(200,200,200,1)]">POWERED BY Kudi</span>
               </div>
             </div>
           </div>
