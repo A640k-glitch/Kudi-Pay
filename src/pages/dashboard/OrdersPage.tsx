@@ -62,14 +62,14 @@ export default function OrdersPage() {
   });
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-10 selection:bg-[#E0FF4F] selection:text-slate-900">
+    <div className="p-3 sm:p-5 md:p-6 max-w-5xl mx-auto pb-20 md:pb-10 selection:bg-[#E0FF4F] selection:text-slate-900">
       <header className="mb-6 md:mb-8 border-b-2 border-slate-200 pb-4">
         <h1 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-1">Orders</h1>
         <p className="text-sm md:text-base font-bold text-slate-500">Track and manage customer purchases.</p>
       </header>
 
       {/* Filters */}
-      <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 mb-6 no-scrollbar">
+      <div className="flex gap-2 md:gap-3 overflow-x-auto pb-4 mb-6 no-scrollbar -mx-4 md:-mx-6 px-4 md:px-6">
         {STATUS_FILTERS.map(f => {
           const count = f === 'All' ? orders.length : orders.filter(o => o.status.toLowerCase() === f.toLowerCase()).length;
           const isActive = filter === f;
@@ -77,7 +77,7 @@ export default function OrdersPage() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap text-sm font-bold transition-all border-2
+              className={`flex items-center shrink-0 gap-2 px-3 py-1.5 rounded-full whitespace-nowrap text-sm font-bold transition-all border-2
                 ${isActive 
                   ? 'bg-slate-900 text-[#E0FF4F] border-slate-900 shadow-[4px_4px_0px_#0f172a]' 
                   : 'bg-white text-slate-600 border-slate-900 hover:shadow-[4px_4px_0px_#0f172a] hover:-translate-y-[2px] hover:-translate-x-[2px]'
@@ -93,6 +93,7 @@ export default function OrdersPage() {
             </button>
           );
         })}
+        <div className="w-1 md:w-3 shrink-0" />
       </div>
 
       {isLoading ? (

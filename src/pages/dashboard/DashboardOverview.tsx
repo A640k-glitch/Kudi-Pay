@@ -159,7 +159,7 @@ export default function DashboardOverview() {
   const readinessPercent = Math.min(100, Math.round((readinessScore / 500) * 100));
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-fade-in">
+    <div className="space-y-5 md:space-y-6 animate-fade-in">
       {/* Header */}
       <header className="flex flex-col gap-2 pb-6 border-b-2 border-slate-200">
         <div className="flex items-center justify-between gap-4">
@@ -179,7 +179,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         
         {/* Readiness Score Card */}
-        <div className="lg:col-span-2 glass-panel p-6 md:p-8 flex flex-col justify-between">
+        <div className="lg:col-span-2 glass-panel p-3 sm:p-4 md:p-5 flex flex-col justify-between">
           <div className="flex flex-col md:flex-row items-start justify-between relative z-10 gap-6">
             <div className="flex-1">
 
@@ -205,7 +205,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Financial Metrics */}
-        <div className="glass-panel p-6 md:p-8 flex flex-col justify-between bg-slate-900 text-white">
+        <div className="glass-panel p-3 sm:p-4 md:p-5 flex flex-col justify-between bg-slate-900 text-white">
           <div className="relative z-10">
             <span className="bg-slate-800 border-2 border-slate-700 text-white px-3 py-1 font-bold rounded-full text-xs inline-block mb-4">
               Total Balance
@@ -229,7 +229,7 @@ export default function DashboardOverview() {
       </div>
 
       {/* Store Link Card */}
-      <div className="glass-panel p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#E0FF4F]">
+      <div className="glass-panel p-3 sm:p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#E0FF4F]">
         <div>
           <h4 className="text-xl md:text-2xl font-display font-black text-slate-900 mb-2 flex items-center gap-2">Store is LIVE! <span className="text-2xl">🚀</span></h4>
           <p className="font-bold text-slate-700">Share this unique link to start accepting orders immediately.</p>
@@ -252,7 +252,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
         
         {/* Recent Orders */}
-        <div className="lg:col-span-2 glass-panel p-6 md:p-8 flex flex-col">
+        <div className="lg:col-span-2 glass-panel p-3 sm:p-4 md:p-5 flex flex-col">
           <div className="flex items-center justify-between mb-6 pb-4 border-b-2 border-slate-100">
             <h3 className="text-2xl font-display font-black text-slate-900">Recent Orders</h3>
             <Link to="/dashboard/orders" className="font-bold text-slate-500 hover:text-slate-900 transition-colors">
@@ -294,7 +294,7 @@ export default function DashboardOverview() {
            <div className="grid grid-cols-2 gap-4">
               <button 
                 onClick={() => setShowGetPaid(true)}
-                className="glass-panel p-6 flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-transform"
+                className="glass-panel p-3 sm:p-4 flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-transform"
               >
                 <div className="bg-slate-100 p-3 rounded-full mb-3 border-2 border-slate-900">
                   <PlusCircle className="w-6 h-6 text-slate-900" strokeWidth={2} />
@@ -304,7 +304,7 @@ export default function DashboardOverview() {
               
               <button 
                 onClick={() => setShowOCRModal(true)}
-                className="glass-panel p-6 flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-transform"
+                className="glass-panel p-3 sm:p-4 flex flex-col items-center justify-center text-center hover:-translate-y-1 transition-transform"
               >
                 <div className="bg-slate-100 p-3 rounded-full mb-3 border-2 border-slate-900">
                   <Receipt className="w-6 h-6 text-slate-900" strokeWidth={2} />
@@ -322,7 +322,7 @@ export default function DashboardOverview() {
            </button>
 
            {/* WhatsApp Assistant */}
-           <div className="glass-panel p-6 flex-1 flex flex-col relative overflow-hidden bg-[#10B981] text-white">
+           <div className="glass-panel p-3 sm:p-4 flex-1 flex flex-col relative overflow-hidden bg-[#10B981] text-white">
               <h3 className="text-xl font-display font-black text-white mb-2">WhatsApp Bot</h3>
               <p className="font-medium text-white/90 text-sm mb-6">Log cash transactions and check summaries via WhatsApp text.</p>
               
@@ -386,12 +386,12 @@ export default function DashboardOverview() {
             <div>
               <label className="block font-bold text-slate-900 text-sm mb-1.5">Amount (₦)</label>
               <input
-                type="number"
+                type="text"
                 required
-                value={saleAmount}
-                onChange={(e) => setSaleAmount(e.target.value)}
+                value={saleAmount ? Number(saleAmount).toLocaleString() : ''}
+                onChange={(e) => setSaleAmount(e.target.value.replace(/\D/g, ''))}
                 className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
-                placeholder="15000"
+                placeholder="15,000"
               />
             </div>
 
@@ -472,7 +472,9 @@ export default function DashboardOverview() {
                   <div>
                     <label className="block font-bold text-slate-900 text-sm mb-1.5">Amount (₦)</label>
                     <input
-                      type="number" required value={ocrAmount} onChange={(e) => setOcrAmount(e.target.value)}
+                      type="text" required 
+                      value={ocrAmount ? Number(ocrAmount).toLocaleString() : ''} 
+                      onChange={(e) => setOcrAmount(e.target.value.replace(/\D/g, ''))}
                       className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
                     />
                   </div>

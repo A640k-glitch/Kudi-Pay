@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Twitter, Instagram, Youtube, ChevronUp } from 'lucide-react';
+import { ChevronUp } from 'lucide-react';
 import { Logo } from './Logo';
 import { Button } from './Button';
 
@@ -38,11 +38,6 @@ export const Footer: React.FC<FooterProps> = ({
             <p className="text-sm font-bold text-slate-600 max-w-xs leading-relaxed">
               Commerce and credit. Built for modern merchants. Effortless, instant, and transparent.
             </p>
-            <div className="flex items-center gap-3 mt-2">
-              <a href="#" aria-label="Twitter" className="p-2 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-full text-slate-900 hover:bg-[#E0FF4F] hover:translate-y-[1px] transition-all"><Twitter className="w-5 h-5" weight="bold" /></a>
-              <a href="#" aria-label="Instagram" className="p-2 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-full text-slate-900 hover:bg-[#E0FF4F] hover:translate-y-[1px] transition-all"><Instagram className="w-5 h-5" weight="bold" /></a>
-              <a href="#" aria-label="YouTube" className="p-2 bg-white border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a] rounded-full text-slate-900 hover:bg-[#E0FF4F] hover:translate-y-[1px] transition-all"><Youtube className="w-5 h-5" weight="bold" /></a>
-            </div>
           </div>
 
           <nav className="flex flex-col gap-4">

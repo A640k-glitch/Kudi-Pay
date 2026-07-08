@@ -388,7 +388,16 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
         
         <div>
           <label className="block font-bold text-slate-900 text-sm mb-1.5">Price (₦)</label>
-          <input type="number" {...register('price', { valueAsNumber: true })} className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" placeholder="0.00" />
+          <input 
+            type="text" 
+            value={watch('price') !== undefined && !isNaN(watch('price')) ? Number(watch('price')).toLocaleString() : ''}
+            onChange={(e) => {
+              const val = e.target.value.replace(/\D/g, '');
+              setValue('price', val ? parseInt(val, 10) : undefined as any, { shouldValidate: true, shouldDirty: true });
+            }}
+            className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]" 
+            placeholder="0" 
+          />
           {errors.price?.message && <span className="text-xs font-bold text-red-500 mt-1.5 block">{errors.price?.message}</span>}
         </div>
         

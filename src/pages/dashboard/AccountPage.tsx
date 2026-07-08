@@ -82,7 +82,7 @@ export default function AccountPage() {
   const isNinValid = /^\d{11}$/.test(nin);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto pb-24 md:pb-10 animate-fade-in text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900">
+    <div className="p-3 sm:p-5 md:p-6 max-w-2xl mx-auto pb-20 md:pb-10 animate-fade-in text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900">
       <header className="mb-8 border-b-2 border-slate-200 pb-4 flex items-center justify-between">
         <div>
           <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight mb-2">Account</h1>
@@ -95,7 +95,7 @@ export default function AccountPage() {
 
       <div className="space-y-6">
         {/* Phone card */}
-        <div className="glass-panel p-6">
+        <div className="glass-panel p-3 sm:p-4">
           <p className="font-bold text-sm mb-2 text-slate-500">Registered Phone Number</p>
           <div className="flex items-center gap-4">
             <p className="text-2xl md:text-3xl font-display font-black tracking-widest">{maskPhone(phone)}</p>
@@ -103,7 +103,7 @@ export default function AccountPage() {
         </div>
 
         {/* KYC Tier card */}
-        <div className={`p-6 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] flex flex-col md:flex-row md:items-center justify-between gap-6 ${
+        <div className={`p-3 sm:p-4 rounded-[24px] border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] flex flex-col md:flex-row md:items-center justify-between gap-4 ${
           business.kycTier === 1
             ? 'bg-[#E0FF4F]'
             : 'bg-[#FFD166]'
@@ -139,7 +139,7 @@ export default function AccountPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
           <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="glass-panel p-6 flex items-center gap-4 group hover:border-slate-400"
+            className="glass-panel p-3 sm:p-4 flex items-center gap-3 group hover:border-slate-400"
           >
             <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-slate-200 transition-colors">
               <SignOut className="w-5 h-5 text-slate-700" weight="bold" />
@@ -149,7 +149,7 @@ export default function AccountPage() {
           
           <button
             onClick={() => setIsDeleteModalOpen(true)}
-            className="bg-[#FF6666] text-white rounded-[24px] border-2 border-slate-900 p-6 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-4"
+            className="bg-[#FF6666] text-white rounded-[24px] border-2 border-slate-900 p-3 sm:p-4 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-3"
           >
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <Trash className="w-5 h-5 text-white" weight="fill" />

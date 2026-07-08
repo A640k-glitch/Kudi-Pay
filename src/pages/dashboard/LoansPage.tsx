@@ -63,7 +63,7 @@ export default function LoansPage() {
   const handleApplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!businessId || !applyingTier) return;
-    const amt = parseFloat(inputAmount);
+    const amt = parseFloat(inputAmount.replace(/\D/g, ''));
     if (isNaN(amt) || amt <= 0 || amt > applyingTier.amountMax) {
       alert("Invalid application amount");
       return;
@@ -216,11 +216,9 @@ export default function LoansPage() {
             <div>
               <label className="block font-bold text-slate-900 text-sm mb-2">Amount to request (Max: ₦{applyingTier.amountMax.toLocaleString()})</label>
               <input
-                type="number"
-                min={1000}
-                max={applyingTier.amountMax}
-                value={inputAmount}
-                onChange={(e) => setInputAmount(e.target.value)}
+                type="text"
+                value={inputAmount ? Number(inputAmount).toLocaleString() : ''}
+                onChange={(e) => setInputAmount(e.target.value.replace(/\D/g, ''))}
                 required
                 className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-bold text-slate-900 outline-none transition-all focus:shadow-[4px_4px_0px_#E0FF4F]"
               />

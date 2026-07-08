@@ -51,6 +51,26 @@ export default function DashboardLayout() {
     }
   }, [location]);
 
+  useEffect(() => {
+    if (isMoreMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = '';
+    };
+  }, [isMoreMenuOpen]);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900 relative overflow-x-hidden">
       
@@ -117,8 +137,8 @@ export default function DashboardLayout() {
       </header>
 
       {/* ── Main Content ── */}
-      <main className="flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto">
-        <div className="p-4 sm:p-6 md:p-10 max-w-7xl mx-auto">
+      <main id="dashboard-main" className="flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto">
+        <div className="p-3 sm:p-5 md:p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>
@@ -164,7 +184,7 @@ export default function DashboardLayout() {
       {/* ── Mobile More Bottom Sheet (Slide-Up Menu) ── */}
       {isMoreMenuOpen && mounted && createPortal(
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="absolute inset-0" onClick={() => setIsMoreMenuOpen(false)} />
+          <div className="absolute inset-0" onClick={() => setIsMoreMenuOpen(false)} style={{ touchAction: 'none' }} />
           <div className="bg-white rounded-t-[32px] border-t-2 border-slate-900 p-4 sm:p-6 z-10 space-y-4 sm:space-y-6 animate-in slide-in-from-bottom duration-300">
             <div className="flex items-center justify-between pb-4 border-b-2 border-slate-100">
               <span className="font-display font-black text-slate-900 text-2xl">More Options</span>
@@ -184,10 +204,10 @@ export default function DashboardLayout() {
                     to={item.path}
                     onClick={() => setIsMoreMenuOpen(false)}
                     className={cn(
-                      "flex flex-col items-center gap-2 p-3 rounded-[12px] border-2 transition-all",
+                      "flex flex-col items-center gap-2 p-3 rounded-[12px] border-2 border-slate-900 transition-all",
                       isActive 
-                        ? 'bg-[#E0FF4F] border-slate-900 text-slate-900 shadow-[2px_2px_0px_#0f172a]' 
-                        : 'bg-white border-slate-200 text-slate-600 hover:border-slate-900 hover:shadow-[2px_2px_0px_#0f172a] hover:text-slate-900'
+                        ? 'bg-[#E0FF4F] text-slate-900 shadow-[2px_2px_0px_#0f172a]' 
+                        : 'bg-white text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-none'
                     )}
                   >
                     <item.icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />

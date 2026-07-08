@@ -142,9 +142,13 @@ export default function FirstProductPage() {
             <div>
               <label className="block font-black uppercase text-sm mb-2">Price (₦)</label>
               <input
-                type="number"
+                type="text"
                 placeholder="0"
-                {...register('price', { valueAsNumber: true })}
+                value={watch('price') !== undefined && !isNaN(watch('price')) ? Number(watch('price')).toLocaleString() : ''}
+                onChange={(e) => {
+                  const val = e.target.value.replace(/\D/g, '');
+                  setValue('price', val ? parseInt(val, 10) : undefined as any, { shouldValidate: true, shouldDirty: true });
+                }}
                 className="w-full border-[4px] border-black p-4 font-black text-xl outline-none focus:bg-[#E0FF4F] transition-colors"
               />
               {errors.price && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.price.message}</p>}

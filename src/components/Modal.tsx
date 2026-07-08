@@ -28,12 +28,21 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
     };
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = 'hidden';
       document.addEventListener('keydown', handleKeyDown);
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      const mainEl = document.getElementById('dashboard-main');
+      if (mainEl) mainEl.style.overflow = '';
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen, onClose]);
@@ -51,6 +60,7 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            style={{ touchAction: 'none' }}
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
           />
           

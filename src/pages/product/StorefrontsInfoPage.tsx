@@ -4,7 +4,8 @@ import { Navbar } from '../../components/Navbar';
 import { Footer } from '../../components/Footer';
 import BrutalButton from '../../components/ui/BrutalButton';
 import { BrutalCard } from '../../components/ui/BrutalCard';
-import { Palette, Globe, Smartphone, ShieldCheck } from 'lucide-react';
+import { Globe, Smartphone, ShieldCheck } from 'lucide-react';
+import { PaintBrushBroad } from '@phosphor-icons/react';
 import { NeoStore, NeoCheckSquare } from '../../components/icons/NeoIcons';
 
 export const StorefrontsInfoPage: React.FC = () => {
@@ -59,7 +60,7 @@ export const StorefrontsInfoPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { icon: Palette, title: 'Custom Themes', color: '#E0FF4F', desc: 'Make it yours with custom colors and layouts.' },
+              { icon: (props: any) => <PaintBrushBroad weight="bold" {...props} />, title: 'Custom Themes', color: '#E0FF4F', desc: 'Make it yours with custom colors and layouts.' },
               { icon: Globe, title: 'Custom Domain', color: '#4D9DE0', desc: 'Connect your own .com or .ng domain name.' },
               { icon: Smartphone, title: 'Mobile First', color: '#FFD166', desc: 'Looks perfect on every device, every time.' },
               { icon: NeoCheckSquare, title: 'Inventory Sync', color: '#FF6666', desc: 'Auto-syncs with your WhatsApp orders.' },

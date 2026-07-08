@@ -56,20 +56,20 @@ export default function LoginPage() {
           </Link>
         </div>
         
-        <div className="bg-white border-2 border-slate-900 p-8 sm:p-10 shadow-[8px_8px_0px_#0f172a] rounded-[24px] relative">
-          <div className="mb-8 text-left border-b-2 border-slate-100 pb-6">
+        <div className="bg-white border-2 border-slate-900 p-6 sm:p-8 shadow-[8px_8px_0px_#0f172a] rounded-[24px] relative">
+          <div className="mb-6 text-left border-b-2 border-slate-100 pb-5">
             <h1 className="text-3xl font-display font-black text-slate-900 mb-2 tracking-tight">Welcome Back</h1>
             <p className="text-base font-medium text-slate-600">Access your store and ledger securely.</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
             <div>
               <label className="block font-bold text-slate-900 text-sm mb-2">Phone Number</label>
               <input
                 type="tel"
                 placeholder="08031234567"
                 {...register('phone')}
-                className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3.5 font-medium outline-none transition-colors shadow-sm focus:shadow-[4px_4px_0px_#E0FF4F]"
+                className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-medium outline-none transition-colors shadow-sm focus:shadow-[4px_4px_0px_#E0FF4F]"
               />
               {errors.phone?.message && <span className="text-sm font-bold text-red-600 mt-2 block">{errors.phone?.message}</span>}
             </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
                 type="password"
                 placeholder="••••••"
                 {...register('password')}
-                className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3.5 font-medium outline-none transition-colors shadow-sm focus:shadow-[4px_4px_0px_#E0FF4F]"
+                className="w-full border-2 border-slate-200 focus:border-slate-900 rounded-[12px] p-3 font-medium outline-none transition-colors shadow-sm focus:shadow-[4px_4px_0px_#E0FF4F]"
               />
               {errors.password?.message && <span className="text-sm font-bold text-red-600 mt-2 block">{errors.password?.message}</span>}
             </div>
@@ -94,13 +94,13 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-4 mt-2 rounded-[12px] font-bold text-lg shadow-[4px_4px_0px_#E0FF4F] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none"
+              className="w-full flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-3 mt-2 rounded-[12px] font-bold text-base shadow-[4px_4px_0px_#E0FF4F] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:pointer-events-none"
             >
               {isLoading ? 'Entering Vault...' : 'Enter Vault'} <ArrowRight weight="bold" />
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t-2 border-slate-100 text-center">
+          <div className="mt-6 pt-5 border-t-2 border-slate-100 text-center">
             <p className="text-sm font-bold text-slate-600">
               No store yet?{' '}
               <Link to="/signup" className="text-[#4F46E5] underline decoration-2 hover:bg-[#E0FF4F] hover:text-slate-900 transition-colors px-1 py-0.5 rounded">
