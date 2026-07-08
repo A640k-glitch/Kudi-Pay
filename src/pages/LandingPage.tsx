@@ -1,227 +1,261 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Store, ArrowRight, ShieldCheck, Zap, Smartphone, CheckCircle2, TrendingUp, CreditCard } from 'lucide-react';
-import { Button } from '../components/Button';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Logo } from '../components/Logo';
+import { Footer } from '../components/Footer';
 
+// ── Animated counter ───────────────────────────────────────────────────────
+function useCountUp(target: number, duration = 2000, active = false) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    let start: number | null = null;
+    const tick = (ts: number) => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - p, 3);
+      setValue(Math.floor(eased * target));
+      if (p < 1) requestAnimationFrame(tick);
+      else setValue(target);
+    };
+    requestAnimationFrame(tick);
+  }, [active, target, duration]);
+  return value;
+}
+
+// ── Data ───────────────────────────────────────────────────────────────────
+const STATS = [
+  { value: 10000, label: 'Merchants', suffix: '+', note: 'Across 36 states' },
+  { value: 84000, label: 'Orders', suffix: '+', note: 'Fulfilled on platform' },
+  { value: 9200,  label: 'Trust Scores', suffix: '+', note: 'Issued & growing' },
+  { value: 2300,  label: 'Loans Disbursed', suffix: '+', note: 'Interest-free capital' },
+];
+
+const HOW_IT_WORKS = [
+  {
+    num: '01',
+    title: 'Open your storefront',
+    body: 'Enter your business name, pick your category. Kudi generates your custom link and live product page instantly — no code, no waiting.',
+    accent: 'bg-indigo-950',
+    tag: 'Commerce',
+  },
+  {
+    num: '02',
+    title: 'Every sale is recorded',
+    body: 'Sales, expenses, and supplier invoices — Kudi captures them all automatically. Snap a receipt and our AI posts it directly to your ledger.',
+    accent: 'bg-emerald-950',
+    tag: 'Ledger',
+  },
+  {
+    num: '03',
+    title: 'Your score builds itself',
+    body: 'Consistent trading history generates your Kudi Trust Score. A verifiable, growing number that proves your business is real.',
+    accent: 'bg-violet-950',
+    tag: 'Credit',
+  },
+  {
+    num: '04',
+    title: 'Capital unlocks automatically',
+    body: 'Hit a score threshold and overdrafts, micro-loans, and extended credit become available in your dashboard — no applications, no queues.',
+    accent: 'bg-amber-950',
+    tag: 'Capital',
+  },
+];
+
+// ── Component ──────────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const [statsOn, setStatsOn] = useState<boolean>(false);
+  const statsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = statsRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setStatsOn(true); }, { threshold: 0.3 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col font-sans bg-white text-gray-900">
-      {/* Navigation */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100 transition-all">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary font-bold text-2xl tracking-tighter">
-            CODA
+    <div className="min-h-screen flex flex-col bg-white text-[#1E1B4B] overflow-x-hidden">
+
+      {/* ── FROSTED NAV ── */}
+      <header className="fixed inset-x-0 top-2 md:top-5 z-50 px-4">
+        <nav className="mx-auto flex w-full max-w-[1100px] items-center justify-between rounded-2xl border border-gray-200/80 bg-white/95 px-5 py-3 backdrop-blur-md shadow-sm">
+          <div className="flex items-center gap-8">
+            <Link to="/"><Logo className="h-8" /></Link>
+            <div className="hidden md:flex items-center gap-6">
+              {['Storefronts', 'Loans', 'Trust Score'].map(l => (
+                <Link key={l} to="/" className="text-sm font-medium text-gray-500 hover:text-[#1E1B4B] transition-colors">{l}</Link>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors hidden sm:block">
-              Log In
-            </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/login" className="hidden md:block text-sm font-medium text-gray-500 hover:text-[#1E1B4B] transition-colors px-3 py-2">Log In</Link>
             <Link to="/signup">
-              <Button className="h-11 px-6 rounded-full font-medium" variant="primary">
-                Create Store
-              </Button>
+              <button className="h-10 px-6 rounded-lg bg-[#1E1B4B] text-sm font-semibold text-white hover:bg-[#111827] transition-all shadow-sm">
+                Open Store
+              </button>
             </Link>
           </div>
-        </div>
+        </nav>
       </header>
 
       <main className="flex-1 flex flex-col">
-        {/* Hero Section */}
-        <section className="px-6 py-16 md:py-24 max-w-7xl mx-auto w-full flex flex-col lg:flex-row items-center gap-16">
-          <div className="flex-1 text-center lg:text-left">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-gray-900 mb-6 leading-[1.1]">
-              Launch your store in 5 minutes. <br className="hidden lg:block"/>
-              <span className="text-primary">Grow it with CODA Banking.</span>
-            </h1>
-            <p className="text-lg sm:text-xl text-gray-500 mb-10 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              The complete platform for Nigerian businesses. Create a storefront, accept payments, and build credit — all from your phone.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
-              <Link to="/signup" className="w-full sm:w-auto">
-                <Button className="w-full sm:w-auto text-lg h-14 px-8 rounded-full" variant="primary">
-                  Start Selling Free
-                  <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-              </Link>
-            </div>
-            
-            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-6 gap-y-3 text-sm font-medium text-gray-500">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                No coding required
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Setup in 5 mins
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" />
-                Bank-grade security
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex-1 w-full max-w-lg lg:max-w-none relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-green-100 to-amber-50 rounded-[3rem] transform rotate-3 scale-105 -z-10"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1000&q=80" 
-              alt="CODA Storefront and Payment" 
-              className="w-full h-auto rounded-[2.5rem] shadow-2xl border-4 border-white object-cover aspect-[4/3] lg:aspect-square"
-            />
-          </div>
-        </section>
 
-        {/* Trust / Stats Bar */}
-        <section className="bg-gray-900 py-12 px-6">
-          <div className="max-w-7xl mx-auto text-center">
-            <p className="text-xl md:text-2xl font-medium text-white tracking-wide">
-              Join <span className="text-primary font-bold">10,000+</span> Nigerian businesses powering their growth with CODA.
-            </p>
+        {/* ── DYNAMIC PREMIUM HERO ── */}
+        <section className="relative px-6 pt-32 pb-24 md:pt-40 md:pb-32 bg-[#1E1B4B] overflow-hidden">
+          {/* Background Elements */}
+          <div className="absolute inset-0 z-0">
+            <div className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] bg-indigo-600/20 rounded-full blur-[120px]" />
+            <div className="absolute -bottom-[20%] -left-[10%] w-[50%] h-[50%] bg-emerald-500/10 rounded-full blur-[100px]" />
           </div>
-        </section>
 
-        {/* How It Works (Bento Box Layout) */}
-        <section className="py-24 px-6 bg-gray-50">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How it works</h2>
-              <p className="text-lg text-gray-500">Everything you need to sell online, beautifully simplified.</p>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center text-primary mb-8">
-                  <Store className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">1. Create your storefront</h3>
-                <p className="text-gray-500 leading-relaxed">
-                  Sign up with your phone number and pick a name. Upload your products and set prices instantly.
-                </p>
+          <div className="relative z-10 mx-auto max-w-7xl grid lg:grid-cols-[1.2fr_1fr] gap-12 lg:gap-20 items-center">
+            <div className="flex flex-col gap-8">
+              <div className="inline-flex items-center px-3 py-1.5 rounded-md bg-white/10 border border-white/20 w-fit backdrop-blur-sm">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-indigo-200">Commerce & Credit Infrastructure</span>
               </div>
-              
-              <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 mb-8">
-                  <Smartphone className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">2. Share on WhatsApp & Social</h3>
-                <p className="text-gray-500 leading-relaxed">
-                  Get a custom link for your store. Share it on WhatsApp, Instagram, or anywhere your customers are.
-                </p>
-              </div>
-              
-              <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow md:col-span-1 sm:col-span-2">
-                <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500 mb-8">
-                  <Zap className="w-7 h-7" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">3. Receive orders & payments</h3>
-                <p className="text-gray-500 leading-relaxed">
-                  Customers can browse and check out smoothly. You receive the order details and payment directly.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* NEW SECTION: Grow Into Banking */}
-        <section className="px-6 py-24 max-w-7xl mx-auto w-full flex flex-col lg:flex-row-reverse items-center gap-16">
-          <div className="flex-1 text-center lg:text-left">
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-gray-900 mb-6">
-              More than just a store. <br />
-              <span className="text-primary">It's your financial foundation.</span>
-            </h2>
-            <p className="text-lg text-gray-500 mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
-              As you sell on CODA, you automatically build a verifiable business history. Unlock access to business loans, higher transaction limits, and premium banking features designed specifically for growing merchants.
-            </p>
-            <ul className="space-y-5 text-left max-w-md mx-auto lg:mx-0">
-              <li className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-green-100 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Build Credit Automatically</h4>
-                  <p className="text-sm text-gray-500 mt-1">Every sale counts towards your CODA credit score.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="w-8 h-8 rounded-full bg-green-100 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Business Loans</h4>
-                  <p className="text-sm text-gray-500 mt-1">Access capital to buy inventory and grow your business.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="flex-1 w-full max-w-lg lg:max-w-none relative">
-            <div className="absolute inset-0 bg-gray-100 rounded-[3rem] transform -rotate-3 scale-105 -z-10"></div>
-            <img 
-              src="https://images.unsplash.com/photo-1580519542036-ed47f3e42d0c?auto=format&fit=crop&w=1000&q=80" 
-              alt="CODA Banking and Finance" 
-              className="w-full h-auto rounded-[2.5rem] shadow-xl border-4 border-white object-cover aspect-[4/3] lg:aspect-square"
-            />
-          </div>
-        </section>
-      </main>
-
-      {/* Dark Footer */}
-      <footer className="bg-gray-950 text-gray-300 pt-20 pb-10 px-6">
-        <div className="max-w-7xl mx-auto">
-          {/* CTA Banner inside Footer */}
-          <div className="bg-primary rounded-[2.5rem] p-10 md:p-16 text-center mb-20">
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Ready to start your journey?</h2>
-            <Link to="/signup">
-              <Button className="h-14 px-10 rounded-full font-bold text-primary bg-white hover:bg-gray-50 transition-colors border-0">
-                Create Your Store
-              </Button>
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10 mb-16">
-            <div className="col-span-2 lg:col-span-2">
-              <div className="text-white font-bold text-2xl tracking-tighter mb-6">CODA</div>
-              <p className="text-gray-400 max-w-sm">
-                Empowering Nigerian small businesses with the tools to sell online and grow their financial future.
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight text-white">
+                Your business, <br className="hidden md:block" /> built to scale.
+              </h1>
+              <p className="text-lg md:text-xl text-indigo-100/80 leading-relaxed max-w-lg">
+                Nigerian merchants use Kudi to open instant storefronts, track sales automatically, and build a Trust Score that unlocks capital.
               </p>
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Link to="/signup">
+                  <button className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-white text-sm font-bold text-[#1E1B4B] hover:bg-gray-100 transition-colors shadow-xl w-full sm:w-auto">
+                    Start for free <ArrowRight className="w-4 h-4" />
+                  </button>
+                </Link>
+                <Link to="/login">
+                  <button className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl border border-white/20 bg-white/5 text-sm font-semibold text-white hover:bg-white/10 backdrop-blur-sm transition-colors w-full sm:w-auto">
+                    Log in
+                  </button>
+                </Link>
+              </div>
             </div>
-            
-            <div>
-              <h4 className="text-white font-semibold mb-4">Product</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Storefront</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Payments</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Banking</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Loans</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-white font-semibold mb-4">Company</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="text-white font-semibold mb-4">Legal</h4>
-              <ul className="space-y-3 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">KYC/AML Policy</a></li>
-              </ul>
+
+            {/* Premium App Preview Card with 3D feel */}
+            <div className="relative mt-12 lg:mt-0 perspective-1000">
+              <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-indigo-500/20 rounded-3xl blur-2xl transform translate-y-4" />
+              
+              <div className="relative bg-[#0F172A] rounded-3xl shadow-2xl border border-white/10 p-8 overflow-hidden transform md:-rotate-y-12 md:rotate-x-12 transition-transform hover:rotate-0 duration-700 ease-out">
+                {/* Simulated Dashboard Header */}
+                <div className="flex items-center justify-between mb-8 pb-6 border-b border-white/10">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-1.5">Available Balance</p>
+                    <p className="text-3xl font-bold text-white">₦148,000</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1.5">Trust Score</p>
+                    <p className="text-2xl font-bold text-emerald-500 flex items-center justify-end gap-1">
+                      <ArrowUpRight className="w-4 h-4" /> 640
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Simulated Credit Module */}
+                <div className="space-y-4 bg-white/5 p-5 rounded-2xl border border-white/10">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-semibold text-white">Unlocking ₦50k Overdraft</span>
+                    <span className="text-sm font-bold text-indigo-400">70%</span>
+                  </div>
+                  <div className="h-2.5 rounded-full bg-black/50 overflow-hidden border border-white/5">
+                    <div className="h-full w-[70%] rounded-full bg-gradient-to-r from-indigo-500 to-emerald-400" />
+                  </div>
+                  <p className="text-xs text-indigo-200/60 mt-2">Continue trading to unlock your first credit facility.</p>
+                </div>
+                
+                {/* Floating Notification */}
+                <div className="absolute -right-4 top-24 bg-emerald-500/10 backdrop-blur-md border border-emerald-500/20 text-emerald-400 p-3 rounded-xl shadow-lg flex items-center gap-3 animate-bounce shadow-emerald-500/20 hidden md:flex">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span className="text-xs font-bold uppercase tracking-wider">Sale Recorded</span>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-gray-500">
-            <p>© {new Date().getFullYear()} CODA Marketplace. All rights reserved.</p>
-            <p className="mt-4 md:mt-0">Made for Nigerian Businesses</p>
+        </section>
+
+        {/* ── STAT BAR ── */}
+        <div ref={statsRef} className="border-b border-gray-200 bg-white">
+          <div className="mx-auto max-w-7xl px-6 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+            {STATS.map((s, i) => (
+              <StatCell key={i} stat={s} active={statsOn} />
+            ))}
           </div>
         </div>
-      </footer>
+
+        {/* ── FEATURES GRID ── */}
+        <section className="py-24 bg-white">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="mb-16 max-w-2xl">
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1E1B4B] leading-tight mb-4">
+                Everything you need to run and grow your commerce business.
+              </h2>
+              <p className="text-lg text-gray-600">Built securely on robust infrastructure to give you peace of mind.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {HOW_IT_WORKS.map((item, index) => (
+                <div key={item.num} className="p-8 rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all bg-gray-50/50">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 rounded-lg bg-[#1E1B4B] flex items-center justify-center text-white font-bold text-sm">
+                      {item.num}
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-widest text-[#1E1B4B]">{item.tag}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-[#1E1B4B] mb-3">{item.title}</h3>
+                  <p className="text-gray-600 leading-relaxed text-sm md:text-base">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── FLOATING CTA — sits above footer with overlap ── */}
+        <div className="px-4 md:px-8 pb-0 -mb-8 relative z-10">
+          <div className="mx-auto max-w-[1100px]">
+            <div className="relative overflow-hidden bg-[#1E1B4B] rounded-2xl md:rounded-3xl px-8 py-10 md:px-14 md:py-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl shadow-indigo-950/30">
+              <div className="pointer-events-none absolute inset-0">
+                <div className="absolute right-0 top-0 w-72 h-72 bg-indigo-500/10 rounded-full blur-3xl translate-x-1/3 -translate-y-1/3" />
+                <div className="absolute left-0 bottom-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl -translate-x-1/2 translate-y-1/2" />
+              </div>
+              <div className="relative z-10 max-w-md">
+                <h2 className="text-2xl md:text-3xl font-bold text-white leading-tight tracking-tight mb-2">
+                  Your store is one link away.
+                </h2>
+                <p className="text-sm text-white/50">Free to start. No setup fee. Your financial record builds itself.</p>
+              </div>
+              <Link to="/signup" className="relative z-10 shrink-0">
+                <button className="flex h-11 items-center gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-[#1E1B4B] hover:bg-gray-100 transition-colors shadow-sm">
+                  Open Free Store <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      {/* ── FOOTER ── */}
+      <Footer />
     </div>
   );
 }
+
+// ── Stat Cell ──────────────────────────────────────────────────────────────
+interface StatCellProps { stat: typeof STATS[0]; active: boolean; }
+const StatCell: React.FC<StatCellProps> = ({ stat, active }) => {
+  const raw = useCountUp(stat.value, 2000, active);
+  const display = raw >= 1000 ? `${(raw / 1000).toFixed(raw >= 10000 ? 0 : 1)}k` : raw.toString();
+  return (
+    <div className="flex flex-col gap-1 px-0 md:px-8 first:pl-0 last:pr-0">
+      <span className="text-3xl md:text-4xl font-bold text-[#1E1B4B] tracking-tight tabular-nums">
+        {display}{stat.suffix}
+      </span>
+      <span className="text-sm font-semibold text-[#1E1B4B]">{stat.label}</span>
+      <span className="text-xs text-gray-400">{stat.note}</span>
+    </div>
+  );
+};

@@ -4,6 +4,12 @@ export const phoneSchema = z.string().regex(/^(080|070|090|081|091|\+234)\d{8,9}
 
 export const signupSchema = z.object({
   phone: phoneSchema,
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+export const loginSchema = z.object({
+  phone: phoneSchema,
+  password: z.string().min(6, "Password is required"),
 });
 
 export const verifySchema = z.object({
@@ -20,7 +26,7 @@ export const businessSchema = z.object({
 
 export const storefrontSchema = z.object({
   storefrontSlug: z.string().regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
-  theme: z.enum(["classic", "bold", "minimal"]),
+  theme: z.enum(["classic", "bold"]),
 });
 
 export const productSchema = z.object({
@@ -30,8 +36,10 @@ export const productSchema = z.object({
   category: z.string().optional(),
   imageUrl: z.string().optional(),
   isAvailable: z.boolean(),
-  trackStock: z.boolean().default(false),
+  trackStock: z.boolean(),
   stockCount: z.number().optional(),
+  // Dynamic category-specific fields (Fashion sizes, Food dietary, etc.)
+  attributes: z.record(z.string(), z.string()).optional(),
 }).refine(data => {
   if (data.trackStock && (data.stockCount === undefined || data.stockCount < 0)) {
     return false;

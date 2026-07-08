@@ -31,7 +31,6 @@ const CATEGORIES = [{ label: 'Fashion & Clothing', value: 'Fashion' }, { label: 
 const THEMES = [
   { id: 'classic', name: 'Classic', desc: 'Clean, simple, traditional' },
   { id: 'bold', name: 'Bold', desc: 'Dark background, high contrast' },
-  { id: 'minimal', name: 'Minimal', desc: 'Lots of whitespace, elegant' },
 ];
 
 export default function SettingsPage() {
@@ -95,6 +94,10 @@ export default function SettingsPage() {
       await businessService.updateBusiness(business.id, data);
       addToast('Settings updated successfully', 'success');
       reset(data); // Reset isDirty state
+      
+      const channel = new BroadcastChannel('theme_updates');
+      channel.postMessage({ type: 'theme_changed', slug: data.storefrontSlug || business.storefrontSlug });
+      channel.close();
     } catch (err) {
       addToast('Failed to update settings', 'error');
     } finally {
@@ -108,8 +111,8 @@ export default function SettingsPage() {
     <div className="p-3 md:p-4 max-w-2xl mx-auto pb-24 md:pb-10">
       <header className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Settings</h1>
-          <p className="text-gray-500">Manage your business profile and storefront design.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5">Settings</h1>
+          <p className="text-xs md:text-sm text-gray-500">Manage your business profile and storefront design.</p>
         </div>
         <a href={`/store/${business.storefrontSlug}`} target="_blank" rel="noreferrer" className="hidden sm:inline-flex">
           <Button variant="secondary" size="small">
@@ -121,9 +124,16 @@ export default function SettingsPage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
         {/* Business Profile */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">Business Profile</h2>
+          <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-[#1E1B4B]">Business Profile</h2>
+          </div>
           <div className="space-y-4">
-            <Input label="Business Name" {...register('businessName')} error={errors.businessName?.message} />
+            <div>
+              <Input label="Business Name" {...register('businessName')} error={errors.businessName?.message} />
+              <p className="text-xs text-amber-600 mt-1.5 font-medium">
+                Note: You can only change your business name once every 30 days.
+              </p>
+            </div>
             <Select label="Category" options={CATEGORIES} {...register('category')} error={errors.category?.message} />
             <div className="grid grid-cols-2 gap-4">
               <Select label="State" options={NIGERIAN_STATES} {...register('state')} error={errors.state?.message} />
@@ -134,41 +144,18 @@ export default function SettingsPage() {
 
         {/* Storefront */}
         <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-100">Storefront Details</h2>
+          <h2 className="text-lg font-semibold text-[#1E1B4B] mb-4 pb-2 border-b border-gray-100">Storefront Details</h2>
           <div className="space-y-6">
             <div>
               <Input
                 label="Store Link"
-                prefix="coda.ng/store/"
+                prefix="kudi.ng/store/"
                 {...register('storefrontSlug')}
                 error={errors.storefrontSlug?.message || (isAvailable === false ? "This link is already taken" : undefined)}
                 className="pl-[115px]"
               />
               {isChecking && <span className="text-sm text-gray-500 mt-1 block">Checking availability...</span>}
-              {!isChecking && isAvailable === true && <span className="text-sm text-primary mt-1 block">Available!</span>}
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 block mb-3">Theme</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {THEMES.map((t) => {
-                  const isLocked = business.kycTier < 2 && t.id !== 'classic';
-                  return (
-                    <div 
-                      key={t.id}
-                      onClick={() => !isLocked && setValue('theme', t.id as any, { shouldDirty: true })}
-                      className={`relative p-4 rounded-xl border-2 transition-all ${isLocked ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-100' : 'cursor-pointer'} ${selectedTheme === t.id && !isLocked ? 'border-primary bg-green-50' : 'border-gray-100 hover:border-gray-200'}`}
-                    >
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-semibold text-sm">{t.name}</span>
-                        {selectedTheme === t.id && !isLocked && <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center text-white"><Check className="w-3 h-3"/></div>}
-                      </div>
-                      <p className="text-xs text-gray-500">{t.desc}</p>
-                      {isLocked && <div className="mt-2 text-xs font-medium text-orange-600">Requires Tier 2</div>}
-                    </div>
-                  );
-                })}
-              </div>
+              {!isChecking && isAvailable === true && <span className="text-sm text-emerald-600 mt-1 block">Available!</span>}
             </div>
           </div>
         </section>

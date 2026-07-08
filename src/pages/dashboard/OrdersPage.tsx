@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Package, Download, Phone, MessageCircle } from 'lucide-react';
+import { PackageOpen, Download, Phone, MessageCircle } from 'lucide-react';
+import { WhatsAppIcon } from '../../components/WhatsAppIcon';
 import * as htmlToImage from 'html-to-image';
 import { Order, Business } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
@@ -64,20 +65,20 @@ export default function OrdersPage() {
 
   return (
     <div className="p-3 md:p-4 max-w-5xl mx-auto pb-24 md:pb-10">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Orders</h1>
-        <p className="text-gray-500">Track and manage customer purchases.</p>
+      <header className="mb-5 md:mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5">Orders</h1>
+        <p className="text-xs md:text-sm text-gray-500">Track and manage customer purchases.</p>
       </header>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto pb-4 mb-4 no-scrollbar">
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-4 no-scrollbar">
         {STATUS_FILTERS.map(f => {
           const count = f === 'All' ? orders.length : orders.filter(o => o.status.toLowerCase() === f.toLowerCase()).length;
           return (
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap font-medium transition-colors border
+              className={`flex items-center gap-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-full whitespace-nowrap text-xs md:text-sm font-medium transition-colors border
                 ${filter === f 
                   ? 'bg-gray-900 text-white border-gray-900' 
                   : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
@@ -85,7 +86,7 @@ export default function OrdersPage() {
               `}
             >
               {f}
-              <span className={`px-2 py-0.5 rounded-full text-xs
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] md:text-xs font-semibold
                 ${filter === f ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}
               `}>
                 {count}
@@ -101,7 +102,7 @@ export default function OrdersPage() {
         </div>
       ) : filteredOrders.length === 0 ? (
         <EmptyState
-          icon={<Package className="w-10 h-10" />}
+          icon={<PackageOpen className="w-12 h-12 text-gray-300" />}
           title={filter === 'All' ? "No orders yet" : `No ${filter.toLowerCase()} orders`}
           description={filter === 'All' ? "When customers buy from your store, their orders will appear here." : "Try changing the filter to see other orders."}
         />
@@ -111,20 +112,20 @@ export default function OrdersPage() {
             <div 
               key={order.id} 
               onClick={() => setSelectedOrder(order)}
-              className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-primary transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="bg-white p-4 md:p-5 rounded-xl border border-gray-100 shadow-sm cursor-pointer hover:border-primary transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4"
             >
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-semibold text-gray-900">{order.customerName}</span>
-                  <span className="text-gray-400 text-sm">#{order.id}</span>
+                <div className="flex items-center gap-2 mb-0.5">
+                  <span className="text-sm md:text-base font-semibold text-gray-900">{order.customerName}</span>
+                  <span className="text-gray-400 text-xs md:text-sm">#{order.id}</span>
                 </div>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs md:text-sm text-gray-500">
                   {order.items.length} item(s) • {format(new Date(order.createdAt), 'MMM d, h:mm a')}
                 </div>
               </div>
               
               <div className="flex items-center justify-between sm:justify-end gap-4 sm:min-w-[200px]">
-                <div className="font-bold text-gray-900">{formatNaira(order.totalAmount)}</div>
+                <div className="text-sm md:text-base font-bold text-gray-900">{formatNaira(order.totalAmount)}</div>
                 <StatusBadge status={order.status} />
               </div>
             </div>
@@ -169,7 +170,7 @@ export default function OrdersPage() {
                     <Phone className="w-4 h-4" /> Call
                   </a>
                   <a href={`https://wa.me/${selectedOrder.customerPhone.replace('+','')}`} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 py-2 px-3 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors text-[#25D366]">
-                    <MessageCircle className="w-4 h-4" /> WhatsApp
+                    <WhatsAppIcon className="w-4 h-4" /> WhatsApp
                   </a>
                 </div>
               </div>
@@ -255,7 +256,7 @@ export default function OrdersPage() {
               <div className="text-center text-xs text-gray-500 space-y-1">
                 <p>Status: {selectedOrder.status.toUpperCase()}</p>
                 <p>Customer: {selectedOrder.customerName}</p>
-                <p className="mt-4 pt-4 border-t border-gray-200">Powered by CODA</p>
+                <p className="mt-4 pt-4 border-t border-gray-200">Powered by Kudi</p>
               </div>
             </div>
 

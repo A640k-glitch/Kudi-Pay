@@ -59,22 +59,22 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
           >
             {/* Handle for mobile bottom sheet */}
             {!isDrawer && (
-              <div className="flex w-full justify-center pt-3 pb-1 sm:hidden">
-                <div className="h-1 w-12 rounded-full bg-gray-300" />
+              <div className="flex w-full justify-center pt-2.5 pb-0.5 sm:hidden">
+                <div className="h-1 w-10 rounded-full bg-gray-200" />
               </div>
             )}
 
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-              {title && <h2 className="text-lg font-semibold">{title}</h2>}
+            <div className="flex items-center justify-between px-4 py-2.5 sm:px-6 sm:py-4 border-b border-gray-100 shrink-0">
+              {title && <h2 className="text-sm sm:text-lg font-semibold text-[#1E1B4B]">{title}</h2>}
               <button
                 onClick={onClose}
-                className="rounded-full p-2 hover:bg-gray-100 transition-colors ml-auto"
+                className="rounded-full p-1.5 hover:bg-gray-100 transition-colors ml-auto"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4">
               {children}
             </div>
           </motion.div>

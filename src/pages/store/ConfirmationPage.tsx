@@ -113,7 +113,7 @@ export default function ConfirmationPage() {
             <div className="text-center text-xs text-gray-500 space-y-1">
               <p>Customer: {order.customerName}</p>
               <p>Payment: {order.paymentMethod.replace('_', ' ').toUpperCase()}</p>
-              <p className="mt-4 pt-4 border-t border-gray-200">Powered by CODA</p>
+              <p className="mt-4 pt-4 border-t border-gray-200">Powered by Kudi</p>
             </div>
           </div>
 

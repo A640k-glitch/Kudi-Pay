@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { User, ShieldCheck, LogOut, Trash2, ShieldAlert, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, ShieldCheck, LogOut, Trash2, ShieldAlert, CheckCircle2, Loader2, ArrowLeft, ArrowRight, CreditCard, Sparkles, Building, Landmark, ChevronRight, Lock } from 'lucide-react';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { Business } from '../../lib/types';
 import { Button } from '../../components/Button';
 import { Modal } from '../../components/Modal';
-import { Input } from '../../components/FormInputs';
+import { Input, Select } from '../../components/FormInputs';
 import { useToast } from '../../components/Toast';
+import { Logo } from '../../components/Logo';
 
 export default function AccountPage() {
   const navigate = useNavigate();
@@ -31,7 +32,9 @@ export default function AccountPage() {
     async function load() {
       if (!phone) return;
       const b = await businessService.getBusinessByPhone(phone);
-      if (b) setBusiness(b);
+      if (b) {
+        setBusiness(b);
+      }
     }
     load();
   }, [phone]);
@@ -46,7 +49,13 @@ export default function AccountPage() {
 
   const maskPhone = (p: string | null) => {
     if (!p) return '';
-    return p.replace(/(\d{3})(\d{3})(\d{4})/, '$1 *** ****');
+    // Show first 4 chars, mask middle, show last char
+    // e.g. 0901 *** ***2
+    const digits = p.replace(/\D/g, '');
+    if (digits.length < 5) return p;
+    const first = digits.slice(0, 4);
+    const last = digits.slice(-1);
+    return `${first} \u2022\u2022\u2022 \u2022\u2022\u2022${last}`;
   };
 
   const handleLogout = () => {
@@ -72,239 +81,398 @@ export default function AccountPage() {
     }, 1500);
   };
 
+
+
   if (!business) return null;
 
   const isBvnValid = /^\d{11}$/.test(bvn);
   const isNinValid = /^\d{11}$/.test(nin);
 
   return (
-    <div className="p-3 md:p-4 max-w-2xl mx-auto pb-24 md:pb-10">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">Account</h1>
-        <p className="text-gray-500">Manage your account and security.</p>
+    <div className="p-4 md:p-6 max-w-lg mx-auto pb-24 md:pb-10">
+      <header className="mb-6 md:mb-8">
+        <h1 className="text-xl md:text-2xl font-bold tracking-tight text-[#1E1B4B] mb-0.5">Account</h1>
+        <p className="text-xs md:text-sm text-gray-400 mt-0.5">Manage your account and security.</p>
       </header>
 
-      <div className="space-y-6">
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 flex items-center gap-4 shadow-sm">
-          <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
-            <User className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="text-sm text-gray-500 mb-0.5">Phone Number</div>
-            <div className="font-semibold text-gray-900 text-lg">{maskPhone(phone)}</div>
+      <div className="space-y-4">
+        {/* Phone card */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-3.5 px-4 py-3 md:px-5 md:py-4">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-[#1E1B4B]/8 flex items-center justify-center shrink-0">
+              <User className="w-4.5 h-4.5 md:w-5 h-5 text-[#1E1B4B]/50" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] md:text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-0.5">Phone Number</p>
+              <p className="text-[15px] md:text-[17px] font-semibold text-[#1E1B4B] tracking-wide font-mono">{maskPhone(phone)}</p>
+            </div>
           </div>
         </div>
 
-        <div className={`rounded-2xl border p-6 shadow-sm ${business.kycTier === 1 ? 'bg-gradient-to-br from-green-50 to-white border-green-200' : 'bg-gradient-to-br from-orange-50 to-white border-orange-200'}`}>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${business.kycTier === 1 ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
-                {business.kycTier === 1 ? <ShieldCheck className="w-5 h-5" /> : <ShieldAlert className="w-5 h-5" />}
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  {business.kycTier === 1 ? 'Tier 1 — Verified' : 'Tier 0 — Unverified'}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  {business.kycTier === 1 ? 'You can accept payments and build credit.' : 'Basic selling limits apply.'}
-                </p>
-              </div>
+        {/* KYC Tier card */}
+        <div className={`rounded-2xl border shadow-sm overflow-hidden ${
+          business.kycTier === 1
+            ? 'bg-white border-green-100'
+            : 'bg-white border-amber-100'
+        }`}>
+          <div className="flex items-center gap-3.5 px-4 py-3 md:px-5 md:py-4">
+            <div className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 ${
+              business.kycTier === 1 ? 'bg-green-50' : 'bg-amber-50'
+            }`}>
+              {business.kycTier === 1
+                ? <ShieldCheck className="w-4.5 h-4.5 md:w-5 h-5 text-green-600" />
+                : <ShieldAlert className="w-4.5 h-4.5 md:w-5 h-5 text-amber-500" />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm md:text-[15px] font-semibold text-[#1E1B4B]">
+                {business.kycTier === 1 ? 'Tier 1 — Verified' : 'Tier 0 — Unverified'}
+              </p>
+              <p className="text-xs md:text-[13px] text-gray-400 mt-0.5">
+                {business.kycTier === 1
+                  ? 'Payments and credit unlocked'
+                  : 'Basic selling limits apply'}
+              </p>
             </div>
           </div>
-          
-          {business.kycTier === 0 ? (
-            <div className="border-t border-orange-100 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-gray-600">
-                Verify your identity to unlock payments and credit features.
-              </p>
-              <Button onClick={() => setIsVerificationOpen(true)} className="w-full sm:w-auto shrink-0">Start Verification</Button>
+          {business.kycTier === 0 && (
+            <div className="border-t border-amber-50 px-4 py-2.5 md:px-5 md:py-3 flex items-center justify-between gap-4">
+              <p className="text-xs md:text-[13px] text-gray-500">Verify to unlock payments and credit.</p>
+              <button
+                onClick={() => setIsVerificationOpen(true)}
+                className="shrink-0 h-8 px-3.5 md:h-9 md:px-4 rounded-xl bg-[#312E81] text-white text-xs md:text-[13px] font-semibold hover:bg-[#1E1B4B] transition-colors"
+              >
+                Verify Now
+              </button>
             </div>
-          ) : (
-            <div className="border-t border-green-100 pt-4 flex items-center gap-2 text-sm text-green-700 font-medium">
-              <CheckCircle2 className="w-4 h-4" /> Verified
+          )}
+          {business.kycTier === 1 && (
+            <div className="border-t border-green-50 px-4 py-2.5 md:px-5 md:py-3 flex items-center gap-2 text-xs md:text-[13px] text-green-600 font-medium">
+              <CheckCircle2 className="w-4 h-4" /> Identity verified
             </div>
           )}
         </div>
 
-        <div className="pt-8 space-y-4">
-          <button 
+        {/* Actions */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-50">
+          <button
             onClick={() => setIsLogoutModalOpen(true)}
-            className="w-full flex items-center justify-between p-4 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-left font-medium shadow-sm"
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 md:px-5 md:py-4 hover:bg-gray-50 transition-colors text-left"
           >
-            <span className="flex items-center gap-3">
-              <LogOut className="w-5 h-5 text-gray-400" />
-              Log Out
-            </span>
+            <LogOut className="w-4.5 h-4.5 md:w-5 h-5 text-gray-400 shrink-0" />
+            <span className="text-sm md:text-[15px] font-medium text-[#1E1B4B]">Log Out</span>
           </button>
-
-          <button 
+          <button
             onClick={() => setIsDeleteModalOpen(true)}
-            className="w-full flex items-center justify-between p-4 bg-white border border-red-100 rounded-xl hover:bg-red-50 transition-colors text-left font-medium text-destructive shadow-sm"
+            className="w-full flex items-center gap-3.5 px-4 py-3.5 md:px-5 md:py-4 hover:bg-red-50 transition-colors text-left"
           >
-            <span className="flex items-center gap-3">
-              <Trash2 className="w-5 h-5" />
-              Delete Account
-            </span>
+            <Trash2 className="w-4.5 h-4.5 md:w-5 h-5 text-red-400 shrink-0" />
+            <span className="text-sm md:text-[15px] font-medium text-red-500">Delete Account</span>
           </button>
         </div>
       </div>
 
       {/* Verification Flow Modal */}
       {isVerificationOpen && (
-        <div className="fixed inset-0 z-50 bg-white overflow-y-auto">
-          <div className="max-w-xl mx-auto px-6 py-12 flex flex-col min-h-screen">
-            <div className="flex items-center justify-between mb-6">
-              <div className="text-primary font-bold text-2xl tracking-tight">CODA</div>
+        <div className="fixed inset-0 z-55 bg-gradient-to-br from-[#FAFAF8] via-white to-indigo-50/30 overflow-y-auto flex items-center justify-center p-3 md:p-6" style={{ zIndex: 100 }}>
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-2xl w-full max-w-xl p-5 md:p-8 flex flex-col relative overflow-hidden animate-in fade-in zoom-in-95 duration-300">
+            {/* Background design elements */}
+            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-50/40 rounded-full blur-3xl -z-10" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-50/30 rounded-full blur-3xl -z-10" />
+
+            <div className="flex items-center justify-between mb-6 pb-3 border-b border-gray-50">
+              <Logo className="h-7" />
               {verifyStep < 5 && (
-                <button onClick={() => setIsVerificationOpen(false)} className="text-gray-400 hover:text-gray-600 font-medium">Cancel</button>
+                <button 
+                  onClick={() => setIsVerificationOpen(false)} 
+                  className="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-sm font-semibold transition-colors bg-gray-50 hover:bg-gray-100 px-3 py-1.5 rounded-full"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Cancel
+                </button>
               )}
             </div>
+
+            {/* Stepper Progress Bar */}
+            {verifyStep < 5 && (
+              <div className="flex items-center justify-between mb-8 px-1 select-none">
+                {[
+                  { label: 'Start', step: 1 },
+                  { label: 'BVN', step: 2 },
+                  { label: 'NIN', step: 3 },
+                  { label: 'Consent', step: 4 }
+                ].map((s, idx, arr) => (
+                  <React.Fragment key={s.step}>
+                    <div className="flex flex-col items-center gap-1.5 z-10">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
+                        verifyStep === s.step 
+                          ? 'bg-[#312E81] text-white shadow-lg shadow-[#312E81]/25 scale-110 ring-4 ring-[#312E81]/10' 
+                          : verifyStep > s.step 
+                            ? 'bg-[#059669] text-white' 
+                            : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {verifyStep > s.step ? '✓' : s.step}
+                      </div>
+                      <span className={`text-[9px] font-bold tracking-wider uppercase ${
+                        verifyStep === s.step ? 'text-[#312E81]' : 'text-gray-400'
+                      }`}>
+                        {s.label}
+                      </span>
+                    </div>
+                    {idx < arr.length - 1 && (
+                      <div className="flex-1 h-0.5 -mt-4 mx-2 bg-gray-100 relative min-w-[20px]">
+                        <div 
+                          className="absolute inset-y-0 left-0 bg-[#059669] transition-all duration-500" 
+                          style={{ width: verifyStep > s.step ? '100%' : '0%' }}
+                        />
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
 
             <div className="flex-1 flex flex-col justify-center">
               {verifyStep === 1 && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
-                    <ShieldCheck className="w-8 h-8" />
+                  <div className="w-14 h-14 bg-indigo-50 text-[#312E81] rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                    <ShieldCheck className="w-7 h-7" />
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">Let's verify your identity</h2>
-                  <p className="text-lg text-gray-600 mb-6">To keep your money safe and unlock payments, we need to confirm who you are. This only takes a couple of minutes.</p>
-                  <ul className="space-y-4 mb-10">
-                    <li className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
-                      <span className="text-gray-700">Accept payments directly from customers</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
-                      <span className="text-gray-700">Start building your credit score</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-primary shrink-0" />
-                      <span className="text-gray-700">Get eligible for business loans as you grow</span>
-                    </li>
-                  </ul>
-                  <Button className="w-full h-12 text-lg" onClick={() => setVerifyStep(2)}>Continue</Button>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1.5 tracking-tight">Verify your identity</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed">
+                    Confirm your identity to unlock customer payments, increase selling limits, and activate credit features. This process is fully secure.
+                  </p>
+                  
+                  <div className="space-y-2.5 mb-6">
+                    {[
+                      { 
+                        icon: CreditCard, 
+                        title: 'Accept Online Payments', 
+                        desc: 'Accept card payments, bank transfers, and mobile money directly from customers.' 
+                      },
+                      { 
+                        icon: Sparkles, 
+                        title: 'Unlock Business Credit', 
+                        desc: 'Grow your business with access to easy, low-interest overdrafts and loans.' 
+                      },
+                      { 
+                        icon: Building, 
+                        title: 'Build Store Trust', 
+                        desc: 'Display a verified seller badge to build confidence and boost sales.' 
+                      }
+                    ].map((item, idx) => (
+                      <div key={idx} className="flex gap-3.5 p-3.5 rounded-2xl bg-gray-50/50 border border-gray-100 hover:bg-gray-50 transition-colors">
+                        <div className="w-9 h-9 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center shrink-0 text-indigo-600">
+                          <item.icon className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-gray-905 text-gray-900">{item.title}</h4>
+                          <p className="text-[11px] text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Button className="w-full h-12 text-xs font-bold shadow-md shadow-[#312E81]/15" onClick={() => setVerifyStep(2)}>
+                    Get Started <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
                 </div>
               )}
 
               {verifyStep === 2 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter your BVN</h2>
-                  <p className="text-gray-600 mb-6">We use this to verify your identity. It does not give us access to your bank account.</p>
+                  <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                    <Landmark className="w-7 h-7" />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1.5 tracking-tight">Enter your BVN</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed">
+                    We use your Bank Verification Number to verify your full name and date of birth. This does not grant us access to your accounts.
+                  </p>
                   
-                  <div className="space-y-6">
-                    <Input 
-                      label="Bank Verification Number" 
-                      placeholder="11-digit BVN" 
-                      value={bvn}
-                      onChange={(e) => setBvn(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                      maxLength={11}
-                    />
-                    <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      💡 Tip: You can find your BVN by dialing <strong>*565*0#</strong> from your bank-registered phone number.
-                    </p>
+                  <div className="space-y-5">
+                    <div className="relative">
+                      <Input 
+                        label="Bank Verification Number (11 Digits)" 
+                        placeholder="00000000000" 
+                        value={bvn}
+                        onChange={(e) => setBvn(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                        maxLength={11}
+                        className="text-lg font-mono tracking-[0.2em] text-center focus:tracking-[0.2em] placeholder:tracking-normal placeholder:text-center h-12"
+                      />
+                      <div className="absolute right-4 top-[38px] text-gray-300">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                    </div>
                     
-                    <Button 
-                      className="w-full h-12" 
-                      disabled={!isBvnValid || isVerifying}
-                      onClick={() => {
-                        setIsVerifying(true);
-                        setTimeout(() => {
-                          setIsVerifying(false);
-                          setVerifyStep(3);
-                        }, 1500);
-                      }}
-                    >
-                      {isVerifying ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Verifying with your bank...</> : 'Continue'}
-                    </Button>
+                    <div className="flex gap-2.5 p-3.5 rounded-2xl bg-amber-50/40 border border-amber-100/50 text-[11px] leading-relaxed text-amber-800">
+                      <span className="text-sm shrink-0">💡</span>
+                      <p>
+                        Quick Tip: You can retrieve your BVN by dialing <strong className="font-bold">*565*0#</strong> from the phone number linked to your bank account.
+                      </p>
+                    </div>
+                    
+                    <div className="flex gap-3 pt-2">
+                      <Button 
+                        variant="secondary" 
+                        className="flex-1 h-12 font-semibold text-xs"
+                        onClick={() => setVerifyStep(1)}
+                        disabled={isVerifying}
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        className="flex-[2] h-12 font-bold text-xs shadow-md shadow-[#312E81]/15" 
+                        disabled={!isBvnValid || isVerifying}
+                        onClick={() => {
+                          setIsVerifying(true);
+                          setTimeout(() => {
+                            setIsVerifying(false);
+                            setVerifyStep(3);
+                          }, 1200);
+                        }}
+                      >
+                        {isVerifying ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                          </span>
+                        ) : 'Continue'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {verifyStep === 3 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Enter your NIN</h2>
-                  <p className="text-gray-600 mb-6">Almost done. We need your National Identity Number as required by law.</p>
+                  <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                    <User className="w-7 h-7" />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1.5 tracking-tight">Enter your NIN</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed">
+                    Your National Identity Number is required as secondary verification to secure your account limit.
+                  </p>
                   
-                  <div className="space-y-6">
-                    <Input 
-                      label="National Identity Number" 
-                      placeholder="11-digit NIN" 
-                      value={nin}
-                      onChange={(e) => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                      maxLength={11}
-                    />
-                    <p className="text-sm text-gray-500 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                      💡 Tip: Found on your NIN slip or National ID card.
-                    </p>
+                  <div className="space-y-5">
+                    <div className="relative">
+                      <Input 
+                        label="National Identity Number (11 Digits)" 
+                        placeholder="00000000000" 
+                        value={nin}
+                        onChange={(e) => setNin(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                        maxLength={11}
+                        className="text-lg font-mono tracking-[0.2em] text-center focus:tracking-[0.2em] placeholder:tracking-normal placeholder:text-center h-12"
+                      />
+                      <div className="absolute right-4 top-[38px] text-gray-300">
+                        <Lock className="w-4 h-4" />
+                      </div>
+                    </div>
                     
-                    <Button 
-                      className="w-full h-12" 
-                      disabled={!isNinValid || isVerifying}
-                      onClick={() => {
-                        setIsVerifying(true);
-                        setTimeout(() => {
-                          setIsVerifying(false);
-                          setVerifyStep(4);
-                        }, 1500);
-                      }}
-                    >
-                      {isVerifying ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Confirming your identity...</> : 'Continue'}
-                    </Button>
+                    <div className="flex gap-2.5 p-3.5 rounded-2xl bg-indigo-50/40 border border-indigo-100/50 text-[11px] leading-relaxed text-indigo-800">
+                      <span className="text-sm shrink-0">💡</span>
+                      <p>
+                        Tip: You can check your NIN on your National ID Slip, ID Card, or by dialing <strong className="font-bold">*346#</strong>.
+                      </p>
+                    </div>
+                    
+                    <div className="flex gap-3 pt-2">
+                      <Button 
+                        variant="secondary" 
+                        className="flex-1 h-12 font-semibold text-xs"
+                        onClick={() => setVerifyStep(2)}
+                        disabled={isVerifying}
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        className="flex-[2] h-12 font-bold text-xs shadow-md shadow-[#312E81]/15" 
+                        disabled={!isNinValid || isVerifying}
+                        onClick={() => {
+                          setIsVerifying(true);
+                          setTimeout(() => {
+                            setIsVerifying(false);
+                            setVerifyStep(4);
+                          }, 1200);
+                        }}
+                      >
+                        {isVerifying ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                          </span>
+                        ) : 'Continue'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {verifyStep === 4 && (
                 <div className="animate-in fade-in slide-in-from-right-8 duration-300">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-2">Final Step</h2>
-                  <p className="text-gray-600 mb-6">Please review and consent to complete verification.</p>
+                  <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-5 shadow-sm">
+                    <ShieldCheck className="w-7 h-7" />
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1.5 tracking-tight">Review & Consent</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mb-5 leading-relaxed">
+                    Confirm your agreement to complete the verification process.
+                  </p>
                   
-                  <div className="space-y-8">
-                    <label className="flex items-start gap-4 p-4 rounded-xl border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors">
-                      <div className="mt-0.5">
+                  <div className="space-y-5">
+                    <label className="flex items-start gap-3.5 p-4 rounded-2xl border border-gray-150 cursor-pointer hover:bg-gray-50/50 transition-all duration-200 shadow-sm bg-white">
+                      <div className="mt-1">
                         <input 
                           type="checkbox" 
-                          className="w-5 h-5 rounded text-primary focus:ring-primary border-gray-300"
+                          className="w-5 h-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 transition-colors"
                           checked={consent}
                           onChange={(e) => setConsent(e.target.checked)}
                         />
                       </div>
-                      <div className="text-sm text-gray-700 leading-relaxed">
-                        I consent to CODA verifying my identity using my BVN and NIN for account verification and regulatory compliance purposes. I have read and agree to the <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+                      <div className="text-[11px] text-gray-600 leading-relaxed">
+                        I hereby authorize Kudi to verify my identity details against the central database using the provided BVN and NIN. I confirm that all information supplied is accurate and true. Read our <a href="#" className="text-indigo-600 hover:underline font-semibold">Privacy Policy</a>.
                       </div>
                     </label>
                     
-                    <Button 
-                      className="w-full h-12" 
-                      disabled={!consent || isVerifying}
-                      onClick={handleVerifySubmit}
-                    >
-                      {isVerifying ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Completing verification...</> : 'Complete Verification'}
-                    </Button>
+                    <div className="flex gap-3 pt-2">
+                      <Button 
+                        variant="secondary" 
+                        className="flex-1 h-12 font-semibold text-xs"
+                        onClick={() => setVerifyStep(3)}
+                        disabled={isVerifying}
+                      >
+                        Back
+                      </Button>
+                      <Button 
+                        className="flex-[2] h-12 font-bold text-xs shadow-md shadow-[#312E81]/15" 
+                        disabled={!consent || isVerifying}
+                        onClick={handleVerifySubmit}
+                      >
+                        {isVerifying ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" /> Verifying...
+                          </span>
+                        ) : 'Submit Verification'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {verifyStep === 5 && (
-                <div className="animate-in zoom-in-95 duration-500 text-center flex flex-col items-center">
-                  <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
-                    <ShieldCheck className="w-12 h-12" />
+                <div className="animate-in zoom-in-95 duration-500 text-center flex flex-col items-center py-4">
+                  <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-5 shadow-lg shadow-emerald-500/10 border border-emerald-100">
+                    <ShieldCheck className="w-10 h-10" />
                   </div>
-                  <h2 className="text-3xl font-bold text-gray-900 mb-4">You're verified!</h2>
-                  <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-50 text-green-700 font-semibold mb-6">
-                    Tier 1 — Verified
+                  <h2 className="text-xl md:text-2xl font-extrabold text-gray-900 mb-1.5 tracking-tight">Identity Verified!</h2>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider mb-5">
+                    Tier 1 Status
                   </div>
-                  <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                    Your identity has been confirmed. You are now ready to accept payments and start building your business credit.
+                  <p className="text-xs md:text-sm text-gray-500 mb-6 max-w-sm mx-auto leading-relaxed">
+                    Your details match perfectly. We have upgraded your storefront limit. You can now accept bank transfers and create loan requests.
                   </p>
                   <Button 
-                    className="w-full h-12" 
+                    className="w-full h-12 text-xs font-bold shadow-md shadow-[#312E81]/15" 
                     onClick={() => {
                       setIsVerificationOpen(false);
                       setVerifyStep(1);
                     }}
                   >
-                    Continue to Dashboard
+                    Done
                   </Button>
                 </div>
               )}
@@ -315,25 +483,25 @@ export default function AccountPage() {
 
       {/* Logout & Delete Modals */}
       <Modal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
-        <div className="py-4 text-center">
-          <h3 className="text-xl font-bold mb-2">Log out?</h3>
-          <p className="text-gray-500 mb-6">You will need to verify your phone number to log back in.</p>
-          <div className="flex gap-3">
-            <Button variant="secondary" className="flex-1" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
-            <Button variant="primary" className="flex-1" onClick={handleLogout}>Log Out</Button>
+        <div className="py-2 text-center">
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-1">Log out?</h3>
+          <p className="text-xs sm:text-sm text-gray-500 mb-5 leading-relaxed">You will need to verify your phone number to log back in.</p>
+          <div className="flex gap-2.5">
+            <Button variant="secondary" className="flex-1 h-10 text-xs font-semibold" onClick={() => setIsLogoutModalOpen(false)}>Cancel</Button>
+            <Button variant="primary" className="flex-1 h-10 text-xs font-bold bg-[#1E1B4B] hover:bg-[#111827]" onClick={handleLogout}>Log Out</Button>
           </div>
         </div>
       </Modal>
 
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
-        <div className="py-4">
-          <div className="w-12 h-12 rounded-full bg-red-100 text-destructive flex items-center justify-center mb-4 mx-auto">
-            <Trash2 className="w-6 h-6" />
+        <div className="py-2">
+          <div className="w-10 h-10 rounded-full bg-red-50 text-destructive flex items-center justify-center mb-3 mx-auto">
+            <Trash2 className="w-5 h-5" />
           </div>
-          <h3 className="text-xl font-bold text-center mb-2">Delete Account?</h3>
-          <p className="text-gray-500 text-center mb-6">This action cannot be undone. Your storefront and all products will be permanently removed.</p>
+          <h3 className="text-base sm:text-lg font-bold text-center text-gray-900 mb-1">Delete Account?</h3>
+          <p className="text-xs sm:text-sm text-gray-500 text-center mb-5 leading-relaxed">This action cannot be undone. Your storefront and all products will be permanently removed.</p>
           
-          <div className="mb-6">
+          <div className="mb-4">
             <Input 
               label="Type DELETE to confirm" 
               value={deleteConfirm}
@@ -342,11 +510,11 @@ export default function AccountPage() {
             />
           </div>
 
-          <div className="flex gap-3">
-            <Button variant="secondary" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
+          <div className="flex gap-2.5">
+            <Button variant="secondary" className="flex-1 h-10 text-xs font-semibold" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
             <Button 
               variant="destructive" 
-              className="flex-1" 
+              className="flex-1 h-10 text-xs font-bold" 
               disabled={deleteConfirm !== 'DELETE'}
               onClick={handleDelete}
             >

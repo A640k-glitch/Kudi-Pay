@@ -20,7 +20,51 @@ export const productService = {
   async getProducts(businessId: string): Promise<Product[]> {
     await delay(400);
     const existing = this._getAllProducts();
-    return existing.filter(p => p.businessId === businessId).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const filtered = existing.filter(p => p.businessId === businessId);
+    if (filtered.length === 0) {
+      const mockProducts: Product[] = [
+        {
+          id: `prod_mock1_${businessId}`,
+          businessId,
+          name: "Royal Silk Ankara Dress",
+          price: 25000,
+          isAvailable: true,
+          description: "Handcrafted premium grade Ankara fabric silk dress with custom gold lining.",
+          category: "Clothing",
+          imageUrl: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80",
+          createdAt: new Date().toISOString(),
+          stockCount: 15
+        },
+        {
+          id: `prod_mock2_${businessId}`,
+          businessId,
+          name: "Italian Suede Stiletto Heels",
+          price: 35000,
+          isAvailable: true,
+          description: "Authentic custom Italian suede dress shoes designed for extreme comfort and elegance.",
+          category: "Footwear",
+          imageUrl: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80",
+          createdAt: new Date().toISOString(),
+          stockCount: 8
+        },
+        {
+          id: `prod_mock3_${businessId}`,
+          businessId,
+          name: "Luxury Traditional Coral Beads",
+          price: 18000,
+          isAvailable: true,
+          description: "Stunning handcrafted traditional wedding coral bead accessories, imported from Edo state.",
+          category: "Accessories",
+          imageUrl: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80",
+          createdAt: new Date().toISOString(),
+          stockCount: 20
+        }
+      ];
+      const all = [...existing, ...mockProducts];
+      localStorage.setItem("coda_products", JSON.stringify(all));
+      return mockProducts;
+    }
+    return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   async getProduct(id: string): Promise<Product | null> {
@@ -30,7 +74,6 @@ export const productService = {
   },
 
   async updateProduct(id: string, updates: Partial<Product>): Promise<Product | null> {
-    await delay(500);
     let existing = this._getAllProducts();
     let updatedProduct = null;
     existing = existing.map(p => {
@@ -41,6 +84,7 @@ export const productService = {
       return p;
     });
     localStorage.setItem("coda_products", JSON.stringify(existing));
+    await delay(500);
     return updatedProduct;
   },
 

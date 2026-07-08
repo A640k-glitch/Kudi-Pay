@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useOutletContext, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,6 +9,8 @@ import { useCartStore } from '../../lib/store';
 import { formatNaira } from '../../lib/utils';
 import { checkoutSchema } from '../../lib/validation/schemas';
 import { orderService } from '../../lib/services/orderService';
+import { productService } from '../../lib/services/productService';
+import { ledgerService } from '../../lib/services/ledgerService';
 import { useToast } from '../../components/Toast';
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
@@ -21,9 +23,37 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer' | 'ussd'>('card');
 
-  const { register, handleSubmit, formState: { errors } } = useForm<CheckoutFormValues>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
+    defaultValues: (() => {
+      if (typeof window !== 'undefined') {
+        const cached = localStorage.getItem(`kudi_checkout_fields_${business.id}`);
+        if (cached) {
+          try {
+            return JSON.parse(cached);
+          } catch (e) {
+            console.error('Failed to parse cached checkout fields', e);
+          }
+        }
+      }
+      return { customerName: '', customerPhone: '', note: '' };
+    })()
   });
+
+  const watchedFields = watch();
+  
+  useEffect(() => {
+    if (business?.id && (watchedFields.customerName || watchedFields.customerPhone || watchedFields.note)) {
+      localStorage.setItem(
+        `kudi_checkout_fields_${business.id}`,
+        JSON.stringify({
+          customerName: watchedFields.customerName || '',
+          customerPhone: watchedFields.customerPhone || '',
+          note: watchedFields.note || ''
+        })
+      );
+    }
+  }, [watchedFields.customerName, watchedFields.customerPhone, watchedFields.note, business?.id]);
 
   if (items.length === 0) {
     navigate(`/store/${business.storefrontSlug}/cart`, { replace: true });
@@ -45,7 +75,31 @@ export default function CheckoutPage() {
       };
 
       const order = await orderService.createOrder(orderData);
+      
+      // Update inventory and add ledger entry dynamically
+      try {
+        await ledgerService.addEntry({
+          businessId: business.id,
+          type: 'revenue',
+          amount: total,
+          source: 'sale',
+          metadata: { description: `Storefront sale to ${data.customerName}` }
+        });
+
+        for (const item of items) {
+          const product = await productService.getProduct(item.productId);
+          if (product && product.stockCount !== undefined) {
+            await productService.updateProduct(item.productId, {
+              stockCount: Math.max(0, product.stockCount - item.quantity)
+            });
+          }
+        }
+      } catch (e) {
+        console.error("Ledger/Inventory update failed: ", e);
+      }
+
       clearCart();
+      localStorage.removeItem(`kudi_checkout_fields_${business.id}`);
       navigate(`/store/${business.storefrontSlug}/confirmation/${order.id}`);
     } catch (err) {
       addToast('Failed to process order', 'error');

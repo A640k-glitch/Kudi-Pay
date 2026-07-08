@@ -11,22 +11,22 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, helperText, prefix, ...props }, ref) => {
     return (
-      <div className="w-full flex flex-col gap-1.5">
+      <div className="w-full flex flex-col gap-1 md:gap-1.5">
         {label && (
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-xs md:text-sm font-semibold text-gray-600">
             {label}
           </label>
         )}
         <div className="relative">
           {prefix && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-xs md:text-sm text-gray-400 font-medium">
               {prefix}
             </div>
           )}
           <input
             ref={ref}
             className={cn(
-              "flex h-12 w-full rounded-xl border border-gray-300 bg-white px-4 py-2 text-base ring-offset-white transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+              "flex h-11 md:h-12 w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs md:text-sm ring-offset-white transition-colors file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
               prefix && "pl-10",
               error && "border-destructive focus:border-destructive focus:ring-destructive",
               className
@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           />
         </div>
         {(error || helperText) && (
-          <p className={cn("text-sm", error ? "text-destructive" : "text-gray-500")}>
+          <p className={cn("text-[11px] md:text-xs", error ? "text-destructive" : "text-gray-400")}>
             {error || helperText}
           </p>
         )}
@@ -83,41 +83,44 @@ export interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElemen
   label?: string;
   error?: string;
   options: { label: string; value: string }[];
+  labelClassName?: string;
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ className, label, error, options, ...props }, ref) => {
+  ({ className, label, error, options, labelClassName, ...props }, ref) => {
     return (
-      <div className="w-full flex flex-col gap-1.5">
+      <div className="w-full flex flex-col gap-1 md:gap-1.5">
         {label && (
-          <label className="text-sm font-medium text-gray-700">
+          <label className={cn("text-xs md:text-sm font-semibold text-gray-600", labelClassName)}>
             {label}
           </label>
         )}
-        <select
-          ref={ref}
-          className={cn(
-            "flex h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2 text-base ring-offset-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
-            error && "border-destructive focus:border-destructive focus:ring-destructive",
-            className
-          )}
-          {...props}
-        >
-          <option value="" disabled hidden>Select an option</option>
-          {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        {/* Custom arrow */}
-        <div className="pointer-events-none absolute right-4 top-[calc(50%+10px)] -translate-y-1/2">
-           <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+        <div className="relative">
+          <select
+            ref={ref}
+            className={cn(
+              "flex h-11 md:h-12 w-full appearance-none rounded-xl border border-gray-300 bg-white px-3.5 py-2 text-xs md:text-sm ring-offset-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50",
+              error && "border-destructive focus:border-destructive focus:ring-destructive",
+              className
+            )}
+            {...props}
+          >
+            <option value="" disabled hidden>Select an option</option>
+            {options.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          {/* Custom arrow */}
+          <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+             <svg className="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+             </svg>
+          </div>
         </div>
         {error && (
-          <p className="text-sm text-destructive">
+          <p className="text-[11px] md:text-xs text-destructive">
             {error}
           </p>
         )}

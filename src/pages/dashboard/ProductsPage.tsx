@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, MoreVertical, Edit2, PackageX } from 'lucide-react';
+import { Plus, Search, PackageX, Tag } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,17 +8,20 @@ import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { productService } from '../../lib/services/productService';
 import { Button } from '../../components/Button';
-import { Input, Textarea, Toggle } from '../../components/FormInputs';
+import { Input, Textarea, Toggle, Select } from '../../components/FormInputs';
 import { Modal } from '../../components/Modal';
 import { EmptyState } from '../../components/EmptyState';
 import { formatNaira } from '../../lib/utils';
 import { productSchema } from '../../lib/validation/schemas';
 import { useToast } from '../../components/Toast';
+import { getRegistry, AttributeField } from '../../lib/config/productRegistries';
+import type { Business } from '../../lib/types';
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [business, setBusiness] = useState<Business | null>(null);
   const [businessId, setBusinessId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +41,7 @@ export default function ProductsPage() {
     if (!phone) return;
     const b = await businessService.getBusinessByPhone(phone);
     if (b) {
+      setBusiness(b);
       setBusinessId(b.id);
       const p = await productService.getProducts(b.id);
       setProducts(p);
@@ -45,38 +49,44 @@ export default function ProductsPage() {
     setIsLoading(false);
   }
 
-  const handleToggleAvailable = async (product: Product) => {
-    // Optimistic update
-    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isAvailable: !p.isAvailable } : p));
+  const handleToggleAvailable = async (product: Product, newValue: boolean) => {
+    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isAvailable: newValue } : p));
     try {
-      await productService.updateProduct(product.id, { isAvailable: !product.isAvailable });
-    } catch (error) {
-      // Revert on error
-      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isAvailable: p.isAvailable } : p));
+      await productService.updateProduct(product.id, { isAvailable: newValue });
+      
+      // Broadcast inventory change to storefront tabs
+      if (business) {
+        const channel = new BroadcastChannel('inventory_updates');
+        channel.postMessage({ type: 'inventory_changed', slug: business.storefrontSlug });
+        channel.close();
+      }
+    } catch {
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isAvailable: product.isAvailable } : p));
       addToast('Failed to update availability', 'error');
     }
   };
 
-  const openAddModal = () => {
-    setEditingProduct(null);
-    setIsModalOpen(true);
-  };
+  const openAddModal = () => { setEditingProduct(null); setIsModalOpen(true); };
+  const openEditModal = (product: Product) => { setEditingProduct(product); setIsModalOpen(true); };
 
-  const openEditModal = (product: Product) => {
-    setEditingProduct(product);
-    setIsModalOpen(true);
-  };
-
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Get the registry for the current business category
+  const registry = business ? getRegistry(business.category) : null;
 
   return (
     <div className="p-3 md:p-4 max-w-5xl mx-auto pb-24 md:pb-10">
       <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-1">Products</h1>
-          <p className="text-gray-500">Manage what you sell.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5">Products</h1>
+          {registry && (
+            <p className="text-xs md:text-sm text-gray-500 flex items-center gap-2">
+              <span>{registry.icon}</span>
+              <span>{registry.categoryLabel} store — custom fields active</span>
+            </p>
+          )}
         </div>
         <Button onClick={openAddModal} className="hidden md:flex">
           <Plus className="w-5 h-5 mr-2" /> Add Product
@@ -84,7 +94,7 @@ export default function ProductsPage() {
       </header>
 
       {/* Floating Action Button (Mobile) */}
-      <button 
+      <button
         onClick={openAddModal}
         className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-30"
       >
@@ -95,7 +105,7 @@ export default function ProductsPage() {
         <div className="animate-pulse space-y-4">
           <div className="h-12 bg-gray-200 rounded-xl w-full max-w-md"></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1,2,3,4].map(i => <div key={i} className="h-64 bg-gray-200 rounded-2xl"></div>)}
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 rounded-2xl"></div>)}
           </div>
         </div>
       ) : products.length === 0 ? (
@@ -110,45 +120,59 @@ export default function ProductsPage() {
         <>
           <div className="mb-6 relative max-w-md">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search products..." 
+            <input
+              type="text"
+              placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {filteredProducts.map(product => (
-              <div key={product.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col group cursor-pointer" onClick={() => openEditModal(product)}>
-                <div className="h-48 bg-gray-100 relative">
+              <div
+                key={product.id}
+                className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col group cursor-pointer hover:shadow-md transition-shadow"
+                onClick={() => openEditModal(product)}
+              >
+                <div className="h-32 md:h-48 bg-gray-50 relative overflow-hidden">
                   {product.imageUrl ? (
                     <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      <PackageX className="w-8 h-8 opacity-50" />
+                    <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl select-none">
+                      {registry?.icon ?? '📦'}
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 flex gap-2">
+                  <div className="absolute top-2 right-2 flex gap-1.5">
                     {product.stockCount !== undefined && product.stockCount <= 5 && (
-                      <span className="px-2 py-1 bg-white/90 backdrop-blur text-xs font-bold text-accent-dark rounded border border-gray-200/50 shadow-sm">
+                      <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-white/90 backdrop-blur text-[10px] md:text-xs font-bold text-amber-600 rounded border border-gray-200/50 shadow-sm select-none">
                         {product.stockCount === 0 ? 'Out of stock' : `${product.stockCount} left`}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-1">
-                    <h3 className="font-semibold text-gray-900 line-clamp-1 flex-1 pr-2">{product.name}</h3>
-                  </div>
-                  <div className="font-bold text-gray-900 mb-4">{formatNaira(product.price)}</div>
-                  
-                  <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between" onClick={e => e.stopPropagation()}>
-                    <span className="text-sm font-medium text-gray-600">Available</span>
-                    <Toggle 
-                      checked={product.isAvailable} 
-                      onChange={() => handleToggleAvailable(product)} 
+                <div className="p-3 md:p-4 flex-1 flex flex-col">
+                  <h3 className="text-xs md:text-sm font-semibold text-gray-900 line-clamp-1 mb-0.5">{product.name}</h3>
+                  <div className="text-sm md:text-base font-bold text-gray-900 mb-2">{formatNaira(product.price)}</div>
+
+                  {/* Show category-specific attribute pills */}
+                  {product.attributes && Object.keys(product.attributes).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2.5">
+                      {Object.entries(product.attributes).map(([key, val]) => val && (
+                        <span key={key} className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] md:text-xs font-medium text-gray-600">
+                          <Tag className="w-2.5 h-2.5 md:w-3 h-3" />
+                          {val}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                    <span className="text-xs md:text-sm font-medium text-gray-600">Available</span>
+                    <Toggle
+                      checked={product.isAvailable}
+                      onChange={(c) => handleToggleAvailable(product, c)}
                       label=""
                     />
                   </div>
@@ -156,21 +180,23 @@ export default function ProductsPage() {
               </div>
             ))}
           </div>
-          
+
           {filteredProducts.length === 0 && searchQuery && (
             <div className="text-center py-12 text-gray-500">
-              No products found matching "{searchQuery}"
+              No products found matching &ldquo;{searchQuery}&rdquo;
             </div>
           )}
         </>
       )}
 
       {/* Add/Edit Modal */}
-      <ProductFormModal 
+      <ProductFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         product={editingProduct}
         businessId={businessId}
+        businessCategory={business?.category ?? ''}
+        storefrontSlug={business?.storefrontSlug ?? ''}
         onSaved={loadProducts}
         onDelete={() => setIsDeleteModalOpen(true)}
       />
@@ -182,16 +208,26 @@ export default function ProductsPage() {
             <PackageX className="w-6 h-6" />
           </div>
           <h3 className="text-xl font-bold text-center mb-2">Delete Product?</h3>
-          <p className="text-gray-500 text-center mb-6">This action cannot be undone. Are you sure you want to delete {editingProduct?.name}?</p>
+          <p className="text-gray-500 text-center mb-6">
+            This action cannot be undone. Are you sure you want to delete {editingProduct?.name}?
+          </p>
           <div className="flex gap-3">
             <Button variant="secondary" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               className="flex-1"
               onClick={async () => {
                 if (editingProduct) {
                   await productService.deleteProduct(editingProduct.id);
                   addToast('Product deleted', 'success');
+                  
+                  // Broadcast inventory change to storefront tabs
+                  if (business) {
+                    const channel = new BroadcastChannel('inventory_updates');
+                    channel.postMessage({ type: 'inventory_changed', slug: business.storefrontSlug });
+                    channel.close();
+                  }
+                  
                   setIsDeleteModalOpen(false);
                   setIsModalOpen(false);
                   loadProducts();
@@ -207,11 +243,26 @@ export default function ProductsPage() {
   );
 }
 
-// Subcomponent for the form modal to keep state clean
-function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDelete }: any) {
+// ─── Product Form Modal ───────────────────────────────────────────────────────
+interface ProductFormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  product: Product | null;
+  businessId: string;
+  businessCategory: string;
+  storefrontSlug: string;
+  onSaved: () => void;
+  onDelete: () => void;
+}
+
+function ProductFormModal({ isOpen, onClose, product, businessId, businessCategory, storefrontSlug, onSaved, onDelete }: ProductFormModalProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Local state for dynamic attribute fields (outside react-hook-form)
+  const [attributes, setAttributes] = useState<Record<string, string>>({});
   const { addToast } = useToast();
+
+  const registry = getRegistry(businessCategory);
 
   const { register, handleSubmit, watch, setValue, reset, formState: { errors, isDirty } } = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -227,8 +278,10 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
           isAvailable: product.isAvailable,
           trackStock: product.stockCount !== undefined,
           stockCount: product.stockCount,
+          attributes: product.attributes || {},
         });
         setImagePreview(product.imageUrl || null);
+        setAttributes(product.attributes || {});
       } else {
         reset({
           name: '',
@@ -237,8 +290,10 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
           isAvailable: true,
           trackStock: false,
           stockCount: undefined,
+          attributes: {},
         });
         setImagePreview(null);
+        setAttributes({});
       }
     }
   }, [isOpen, product, reset]);
@@ -253,31 +308,16 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 400;
-          const MAX_HEIGHT = 400;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
+          const MAX = 400;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+          else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+          canvas.width = w; canvas.height = h;
           const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, width, height);
-          
-          const base64String = canvas.toDataURL('image/jpeg', 0.7);
-          setImagePreview(base64String);
-          setValue('imageUrl', base64String, { shouldDirty: true });
+          ctx?.drawImage(img, 0, 0, w, h);
+          const b64 = canvas.toDataURL('image/jpeg', 0.7);
+          setImagePreview(b64);
+          setValue('imageUrl', b64, { shouldDirty: true });
         };
         img.src = reader.result as string;
       };
@@ -285,9 +325,15 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
     }
   };
 
+  const handleAttributeChange = (key: string, value: string) => {
+    const updated = { ...attributes, [key]: value };
+    setAttributes(updated);
+    setValue('attributes', updated, { shouldDirty: true });
+  };
+
   const handleClose = () => {
     if (isDirty) {
-      if (!window.confirm("Discard changes?")) return;
+      if (!window.confirm('Discard changes?')) return;
     }
     onClose();
   };
@@ -300,8 +346,8 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
         businessId,
         imageUrl: imagePreview || undefined,
         stockCount: data.trackStock ? data.stockCount : undefined,
+        attributes,
       };
-
       if (product) {
         await productService.updateProduct(product.id, payload);
         addToast('Product updated', 'success');
@@ -309,9 +355,15 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
         await productService.createProduct(payload);
         addToast('Product added', 'success');
       }
+      
+      // Broadcast inventory change to storefront tabs
+      const channel = new BroadcastChannel('inventory_updates');
+      channel.postMessage({ type: 'inventory_changed', slug: storefrontSlug });
+      channel.close();
+      
       onSaved();
       onClose();
-    } catch (err) {
+    } catch {
       addToast('Failed to save product', 'error');
     } finally {
       setIsSubmitting(false);
@@ -319,44 +371,65 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={product ? "Edit Product" : "Add Product"}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={product ? 'Edit Product' : 'Add Product'}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 py-2">
-        <div className="flex flex-col items-center gap-3 mb-2">
-          <div className="relative w-full aspect-video sm:aspect-square max-h-48 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
-            {imagePreview ? (
-              <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-gray-400 text-sm font-medium text-center">Tap to add photo</span>
-            )}
-            <input 
-              type="file" 
-              accept="image/*" 
-              onChange={onImageChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-          </div>
+        {/* Image upload */}
+        <div className="relative w-full aspect-video sm:aspect-square max-h-48 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+          {imagePreview ? (
+            <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover" />
+          ) : (
+            <div className="flex flex-col items-center gap-1 text-gray-400">
+              <span className="text-3xl">{registry.icon}</span>
+              <span className="text-sm font-medium">Tap to add photo</span>
+            </div>
+          )}
+          <input type="file" accept="image/*" onChange={onImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
         </div>
 
-        <Input
-          label="Product Name"
-          {...register('name')}
-          error={errors.name?.message}
-        />
+        {/* Core fields */}
+        <Input label="Product Name" {...register('name')} error={errors.name?.message} />
+        <Input label="Price (₦)" type="number" {...register('price', { valueAsNumber: true })} error={errors.price?.message} />
+        <Textarea label="Description (Optional)" {...register('description')} error={errors.description?.message} />
 
-        <Input
-          label="Price (₦)"
-          type="number"
-          {...register('price', { valueAsNumber: true })}
-          error={errors.price?.message}
-        />
+        {/* ── Category-specific attribute fields ── */}
+        {registry.fields.length > 0 && (
+          <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 flex flex-col gap-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+              {registry.icon} {registry.categoryLabel} Details
+            </p>
+            {registry.fields.map((field: AttributeField) => (
+              field.type === 'select' ? (
+                <div key={field.key}>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{field.label}</label>
+                  <select
+                    value={attributes[field.key] || ''}
+                    onChange={(e) => handleAttributeChange(field.key, e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="">Select {field.label}</option>
+                    {field.options?.map(opt => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div key={field.key}>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{field.label}</label>
+                  <input
+                    type={field.type}
+                    placeholder={field.placeholder}
+                    value={attributes[field.key] || ''}
+                    onChange={(e) => handleAttributeChange(field.key, e.target.value)}
+                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              )
+            ))}
+          </div>
+        )}
 
-        <Textarea
-          label="Description (Optional)"
-          {...register('description')}
-          error={errors.description?.message}
-        />
-
-        <div className="border-t border-gray-100 pt-4 mt-2 flex flex-col gap-2">
+        {/* Stock and availability toggles */}
+        <div className="border-t border-gray-100 pt-4 flex flex-col gap-2">
           <Toggle
             label="Available for sale"
             checked={watch('isAvailable')}
@@ -364,31 +437,26 @@ function ProductFormModal({ isOpen, onClose, product, businessId, onSaved, onDel
           />
           <Toggle
             label="Track stock?"
-            checked={trackStock}
+            checked={watch('trackStock')}
             onChange={(c) => setValue('trackStock', c, { shouldDirty: true })}
           />
           {trackStock && (
             <div className="mt-2">
-              <Input
-                type="number"
-                placeholder="Count"
-                {...register('stockCount', { valueAsNumber: true })}
-                error={errors.stockCount?.message}
-              />
+              <Input type="number" placeholder="Stock count" {...register('stockCount', { valueAsNumber: true })} error={errors.stockCount?.message} />
             </div>
           )}
         </div>
 
-        <div className="mt-6 flex flex-col gap-3">
+        {/* Actions */}
+        <div className="mt-2 flex flex-col gap-3">
           <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            {product ? "Save Product" : "Add Product"}
+            {product ? 'Save Product' : 'Add Product'}
           </Button>
-          
           {product && (
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={onDelete}
-              className="text-destructive font-medium py-3 hover:bg-red-50 rounded-xl transition-colors mt-2"
+              className="text-destructive font-medium py-3 hover:bg-red-50 rounded-xl transition-colors"
             >
               Delete Product
             </button>

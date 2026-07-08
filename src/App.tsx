@@ -1,31 +1,52 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { authService } from './lib/services/authService';
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname.startsWith('/dashboard')) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [pathname]);
+
+  return null;
+}
+
 // Auth Pages
-import LandingPage from './pages/LandingPage';
-import LoginPage from './pages/auth/LoginPage';
-import SignupPage from './pages/auth/SignupPage';
-import VerifyPage from './pages/auth/VerifyPage';
+import LandingPage from './pages/LandingPage.tsx';
+import LoginPage from './pages/auth/LoginPage.tsx';
+import SignupPage from './pages/auth/SignupPage.tsx';
+import VerifyPage from './pages/auth/VerifyPage.tsx';
 
 // Onboarding Pages
-import BusinessProfilePage from './pages/onboarding/BusinessProfilePage';
-import StorefrontSetupPage from './pages/onboarding/StorefrontSetupPage';
-import FirstProductPage from './pages/onboarding/FirstProductPage';
+import BusinessProfilePage from './pages/onboarding/BusinessProfilePage.tsx';
+import StorefrontSetupPage from './pages/onboarding/StorefrontSetupPage.tsx';
+import FirstProductPage from './pages/onboarding/FirstProductPage.tsx';
 
 // Dashboard Pages
-import DashboardLayout from './pages/dashboard/DashboardLayout';
-import DashboardOverview from './pages/dashboard/DashboardOverview';
-import ProductsPage from './pages/dashboard/ProductsPage';
-import OrdersPage from './pages/dashboard/OrdersPage';
-import SettingsPage from './pages/dashboard/SettingsPage';
-import AccountPage from './pages/dashboard/AccountPage';
+import DashboardLayout from './pages/dashboard/DashboardLayout.tsx';
+import DashboardOverview from './pages/dashboard/DashboardOverview.tsx';
+import ProductsPage from './pages/dashboard/ProductsPage.tsx';
+import OrdersPage from './pages/dashboard/OrdersPage.tsx';
+import SettingsPage from './pages/dashboard/SettingsPage.tsx';
+import AccountPage from './pages/dashboard/AccountPage.tsx';
+import TrustScorePage from './pages/dashboard/TrustScorePage.tsx';
+import LoansPage from './pages/dashboard/LoansPage.tsx';
+import WhatsAppBotPage from './pages/dashboard/WhatsAppBotPage.tsx';
+import ThemesPage from './pages/dashboard/ThemesPage.tsx';
 
 // Storefront Pages
-import StoreLayout from './pages/store/StoreLayout';
-import StoreHomePage from './pages/store/StoreHomePage';
-import CartPage from './pages/store/CartPage';
-import CheckoutPage from './pages/store/CheckoutPage';
-import ConfirmationPage from './pages/store/ConfirmationPage';
+import StoreLayout from './pages/store/StoreLayout.tsx';
+import StoreHomePage from './pages/store/StoreHomePage.tsx';
+import CartPage from './pages/store/CartPage.tsx';
+import CheckoutPage from './pages/store/CheckoutPage.tsx';
+import ConfirmationPage from './pages/store/ConfirmationPage.tsx';
+
+// Product Info Pages
+import StorefrontsInfoPage from './pages/product/StorefrontsInfoPage.tsx';
+import TrustScoreInfoPage from './pages/product/TrustScoreInfoPage.tsx';
+import BusinessLoansInfoPage from './pages/product/BusinessLoansInfoPage.tsx';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const phone = authService.getCurrentPhone();
@@ -41,8 +62,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 export default function App() {
   return (
     <Router>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        
+        {/* Product Info Pages */}
+        <Route path="/product/storefronts" element={<StorefrontsInfoPage />} />
+        <Route path="/product/trust-score" element={<TrustScoreInfoPage />} />
+        <Route path="/product/loans" element={<BusinessLoansInfoPage />} />
         
         {/* Auth */}
         <Route path="/login" element={<LoginPage />} />
@@ -59,14 +86,17 @@ export default function App() {
           <Route index element={<DashboardOverview />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="orders" element={<OrdersPage />} />
+          <Route path="themes" element={<ThemesPage />} />
           <Route path="settings" element={<SettingsPage />} />
           <Route path="account" element={<AccountPage />} />
+          <Route path="trust" element={<TrustScorePage />} />
+          <Route path="loans" element={<LoansPage />} />
+          <Route path="whatsapp" element={<WhatsAppBotPage />} />
         </Route>
 
         {/* Storefront */}
         <Route path="/store/:slug" element={<StoreLayout />}>
           <Route index element={<StoreHomePage />} />
-          <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="confirmation/:orderId" element={<ConfirmationPage />} />
         </Route>

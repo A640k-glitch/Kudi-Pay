@@ -7,7 +7,7 @@ export interface Business {
   lga: string;
   logoUrl?: string;
   storefrontSlug: string;
-  theme: 'classic' | 'bold' | 'minimal';
+  theme: 'classic' | 'bold';
   createdAt: string;
   kycTier: 0 | 1 | 2 | 3;
 }
@@ -22,6 +22,8 @@ export interface Product {
   stockCount?: number;
   isAvailable: boolean;
   category?: string;
+  // Category-specific attributes (sizes, dietary info, warranty, etc.)
+  attributes?: Record<string, string>;
   createdAt: string;
 }
 
