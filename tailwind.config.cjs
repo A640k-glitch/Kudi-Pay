@@ -35,6 +35,17 @@ module.exports = {
         '4xl': '2rem',
         '5xl': '2.5rem',
       },
+      animation: {
+        'marquee': 'marquee 25s linear infinite',
+        'marquee-fast': 'marquee 15s linear infinite',
+        'marquee-slow': 'marquee 50s linear infinite',
+      },
+      keyframes: {
+        marquee: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-100%)' },
+        }
+      }
     },
   },
   plugins: [],

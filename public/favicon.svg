@@ -1,11 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-  <path d="M32 65C23.7157 65 17 58.2843 17 50C17 41.7157 23.7157 35 32 35C40.2843 35 44 45 50 50C56 55 59.7157 65 68 65C76.2843 65 83 58.2843 83 50C83 41.7157 76.2843 35 68 35C59.7157 35 56 45 50 50C44 55 40.2843 65 32 65Z" stroke="url(#aza-logo-gradient)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="50" cy="50" r="5" fill="#059669" />
-  <defs>
-    <linearGradient id="aza-logo-gradient" x1="17" y1="50" x2="83" y2="50" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#312E81" />
-      <stop offset="0.5" stop-color="#6366F1" />
-      <stop offset="1" stop-color="#059669" />
-    </linearGradient>
-  </defs>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="4" y="4" width="24" height="24" fill="#FF6666" stroke="black" stroke-width="3"/>
+  <rect x="0" y="0" width="24" height="24" fill="#E0FF4F" stroke="black" stroke-width="3"/>
+  <text x="12" y="18" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="black" text-anchor="middle">K</text>
 </svg>

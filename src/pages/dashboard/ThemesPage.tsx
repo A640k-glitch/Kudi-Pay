@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Palette, PackageOpen } from 'lucide-react';
-import { Business } from '../../lib/types';
+import { Check, Palette } from 'lucide-react';
+import { NeoStore } from '../../components/icons/NeoIcons';
+import { Business, ThemeConfig } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { useToast } from '../../components/Toast';
@@ -8,25 +9,29 @@ import { Button } from '../../components/Button';
 
 const THEMES = [
   { 
-    id: 'classic', 
-    name: 'Classic Store', 
-    desc: 'A clean, traditional e-commerce layout with structured product grids and a light background.',
-    mockup: 'bg-gray-100',
-    colors: ['bg-white', 'bg-gray-900', 'bg-gray-100']
+    id: 'brutal', 
+    name: 'Neo-Brutal', 
+    desc: 'Vibrant, high-contrast, playful. Best for youth brands, tech, and creative products.',
   },
   { 
-    id: 'bold', 
-    name: 'Editorial (Bold)', 
-    desc: 'An ultra-premium dark mode aesthetic with large asymmetrical product displays.',
-    mockup: 'bg-[#111827]',
-    colors: ['bg-[#111827]', 'bg-amber-400', 'bg-white']
+    id: 'modern', 
+    name: 'Modern Minimal', 
+    desc: 'Clean, professional, e-commerce standard. Let your products do the talking.',
   }
 ];
 
+const PRESET_COLORS = ['#E0FF4F', '#FF6666', '#4D9DE0', '#FFD166', '#06D6A0', '#000000', '#FFFFFF'];
+
 export default function ThemesPage() {
   const [business, setBusiness] = useState<Business | null>(null);
-  const [activeTheme, setActiveTheme] = useState<string>('classic');
+  const [activeTheme, setActiveTheme] = useState<'brutal' | 'modern'>('brutal');
+  const [config, setConfig] = useState<ThemeConfig>({
+    primaryColor: '#E0FF4F',
+    secondaryColor: '#FF6666',
+    ctaText: 'Buy Now'
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -36,154 +41,203 @@ export default function ThemesPage() {
       const b = await businessService.getBusinessByPhone(phone);
       if (b) {
         setBusiness(b);
-        setActiveTheme(b.theme || 'classic');
+        
+        // Fix any weird legacy theme strings
+        const validTheme = ['brutal', 'modern'].includes(b.theme || '') ? b.theme : 'brutal';
+        setActiveTheme(validTheme as any);
+        
+        setConfig(b.themeConfig || {
+          primaryColor: '#E0FF4F',
+          secondaryColor: '#FF6666',
+          ctaText: 'Buy Now'
+        });
       }
+      setIsLoading(false);
     }
     load();
   }, []);
 
-  const handleSave = async (themeId: string) => {
-    if (!business) return;
-    setIsSaving(true);
-    try {
-      await businessService.updateBusiness(business.id, { theme: themeId as any });
-      setActiveTheme(themeId);
-      addToast('Theme updated successfully', 'success');
-      
-      const channel = new BroadcastChannel('theme_updates');
-      channel.postMessage({ type: 'theme_changed', slug: business.storefrontSlug, theme: themeId });
-      channel.close();
-    } catch {
-      addToast('Failed to update theme', 'error');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // Auto-save and broadcast changes dynamically
+  useEffect(() => {
+    if (!business || isLoading) return;
+
+    const saveChanges = async () => {
+      try {
+        await businessService.updateBusiness(business.id, { 
+          theme: activeTheme,
+          themeConfig: config
+        });
+        
+        const channel = new BroadcastChannel('theme_updates');
+        channel.postMessage({ type: 'theme_changed', slug: business.storefrontSlug, theme: activeTheme, themeConfig: config });
+        channel.close();
+      } catch (e) {
+        console.error('Failed to auto-save theme', e);
+      }
+    };
+
+    const timer = setTimeout(saveChanges, 500); // debounce auto-save
+    return () => clearTimeout(timer);
+  }, [activeTheme, config, business?.id]);
 
   if (!business) return null;
 
   return (
-    <div className="p-3 md:p-4 max-w-4xl mx-auto pb-6 md:pb-10 overflow-hidden">
-      <header className="mb-4 md:mb-6 flex items-center justify-between border-b border-gray-100 pb-3">
+    <div className="p-6 max-w-5xl mx-auto pb-10">
+      <header className="mb-8 flex items-center justify-between border-b-[3px] border-black pb-4">
         <div>
-          <h1 className="text-lg md:text-2xl font-bold text-[#1E1B4B] mb-0.5 flex items-center gap-1.5">
-            <Palette className="w-4 h-4 md:w-5 h-5 text-indigo-500" /> Storefront Themes
+          <h1 className="text-3xl font-black uppercase text-black mb-2 flex items-center gap-2">
+            <Palette className="w-8 h-8" strokeWidth={3} /> Storefront Themes
           </h1>
-          <p className="text-[10px] md:text-sm text-gray-500">Choose the look of your customer store.</p>
+          <p className="text-lg font-bold text-gray-700">Customize how your store looks to the world.</p>
         </div>
-        <a href={`/store/${business.storefrontSlug}`} target="_blank" rel="noreferrer" className="hidden xs:block">
-          <Button variant="secondary" size="small" className="h-8 text-xs py-1">View Store</Button>
+        <a href={`/store/${business.storefrontSlug}`} target="_blank" rel="noreferrer">
+          <Button className="border-[3px] border-black bg-[#E0FF4F] text-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:translate-y-1 hover:translate-x-1 hover:shadow-none transition-all font-black uppercase">
+            View Store
+          </Button>
         </a>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-        {THEMES.map((theme) => {
-          const isActive = activeTheme === theme.id;
-          
-          return (
-            <div 
-              key={theme.id}
-              className={`flex flex-col rounded-xl md:rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 bg-white ${isActive ? 'ring-2 ring-[#1E1B4B] shadow-md' : 'hover:border-gray-300'}`}
-            >
-              {/* Mockup Area: True Miniature Storefront Previews */}
-              <div className={`h-32 sm:h-36 md:h-44 ${theme.id === 'classic' ? 'bg-[#F7F6F2]' : 'bg-[#111827]'} p-2 relative flex flex-col justify-start border-b border-gray-100/10 overflow-hidden select-none`}>
-                {isActive && (
-                  <div className="absolute top-1.5 right-1.5 bg-[#1E1B4B] text-white text-[7px] md:text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full flex items-center gap-0.5 z-10 shadow-sm">
-                    <Check className="w-2 h-2 text-emerald-400" /> Active
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+        
+        {/* Left Column: Theme Selection & Config */}
+        <div className="space-y-8">
+          <section className="bg-white border-[4px] border-black p-4 sm:p-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+            <h2 className="text-xl sm:text-2xl font-black uppercase mb-4 sm:mb-6 border-b-[4px] border-black pb-4">1. Select Layout</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              {THEMES.map(theme => (
+                <button 
+                  key={theme.id}
+                  onClick={() => setActiveTheme(theme.id as any)}
+                  className={`p-4 border-[3px] border-black text-left transition-all ${activeTheme === theme.id ? 'bg-black text-white shadow-[4px_4px_0px_rgba(224,255,79,1)] scale-105' : 'bg-white hover:bg-gray-100 shadow-[4px_4px_0px_rgba(0,0,0,1)]'}`}
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-black uppercase">{theme.name}</h3>
+                    {activeTheme === theme.id && <Check className="w-5 h-5 text-[#E0FF4F]" strokeWidth={4} />}
                   </div>
-                )}
+                  <p className="text-sm font-bold opacity-90">{theme.desc}</p>
+                </button>
+              ))}
+            </div>
+          </section>
 
-                {theme.id === 'classic' ? (
-                  /* CLASSIC STOREFRONT MINI MOCKUP */
-                  <div className="flex-1 flex flex-col justify-between h-full">
-                    {/* Header */}
-                    <div className="w-full flex items-center justify-between p-1 bg-[#FAFAF8] border-b border-[#E8E6E0] rounded-t-sm">
-                      <div className="flex items-center gap-0.5">
-                        <div className="w-1.5 h-1.5 rounded-sm bg-[#059669]" />
-                        <div className="text-[5px] font-black text-gray-800 scale-90 origin-left">{business.businessName.substring(0, 8)}</div>
-                      </div>
-                      <div className="w-2 h-2 rounded-full flex items-center justify-center bg-[#059669]/10 text-[#059669]">
-                        <div className="w-1 h-1 border-t border-r border-current transform rotate-45 translate-x-[-0.5px] scale-50" />
-                      </div>
-                    </div>
-                    {/* Hero */}
-                    <div className="p-1.5 bg-white border-b border-gray-200 text-center flex flex-col items-center">
-                      <div className="w-5 h-5 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-[7px] font-bold text-gray-400 scale-95 mb-0.5">
-                        {business.businessName.charAt(0)}
-                      </div>
-                      <div className="text-[6px] font-bold text-gray-900 leading-none truncate w-full">{business.businessName}</div>
-                      <div className="text-[4px] text-gray-400 scale-90 w-full truncate mt-0.5">Authentic products direct from source.</div>
-                    </div>
-                    {/* Empty State */}
-                    <div className="p-1 bg-white border border-gray-200 rounded mx-1 mb-1 text-center flex flex-col items-center justify-center">
-                      <PackageOpen className="w-2.5 h-2.5 text-gray-300 mb-0.5" />
-                      <div className="text-[5px] font-bold text-gray-900 leading-none">No products yet</div>
-                    </div>
-                  </div>
-                ) : (
-                  /* BOLD STOREFRONT MINI MOCKUP */
-                  <div className="flex-1 flex flex-col justify-between h-full">
-                    {/* Header */}
-                    <div className="w-full flex items-center justify-between p-1 bg-[#141414] border-b border-white/5 rounded-t-sm">
-                      <div className="flex items-center gap-0.5">
-                        <div className="w-1.5 h-1.5 rounded-sm bg-amber-400" />
-                        <div className="text-[5px] font-black text-white scale-90 origin-left">{business.businessName.substring(0, 8)}</div>
-                      </div>
-                      <div className="w-2 h-2 rounded-full flex items-center justify-center bg-amber-400/10 text-amber-400">
-                        <div className="w-1 h-1 border-t border-r border-current transform rotate-45 translate-x-[-0.5px] scale-50" />
-                      </div>
-                    </div>
-                    {/* Editorial Hero */}
-                    <div className="p-1.5 text-left flex flex-col justify-start">
-                      <div className="text-[4px] font-bold text-amber-400 uppercase tracking-widest scale-90 origin-left">OFFICIAL STORE</div>
-                      <div className="text-[7px] font-black text-white leading-none uppercase truncate mt-0.5">{business.businessName}</div>
-                      <div className="text-[4.5px] text-gray-400 border-l border-white/20 pl-0.5 leading-snug mt-1 line-clamp-1 scale-95 origin-left">
-                        Curated selection. Designed for the bold.
-                      </div>
-                    </div>
-                    {/* Empty State */}
-                    <div className="p-1 bg-white/5 border border-white/10 rounded mx-1 mb-1 text-center flex items-center justify-center backdrop-blur-sm">
-                      <div className="text-[5px] font-bold text-white uppercase tracking-wider">Collection Empty</div>
-                    </div>
-                  </div>
-                )}
+          <section className="bg-white border-[3px] border-black shadow-[6px_6px_0px_rgba(0,0,0,1)] p-6">
+            <h2 className="text-xl font-black uppercase mb-6 border-b-[3px] border-black pb-2">2. Customization</h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-black uppercase mb-2">Primary Color</label>
+                <div className="flex gap-2 mb-2">
+                  {PRESET_COLORS.map(c => (
+                    <button 
+                      key={c} 
+                      onClick={() => setConfig({...config, primaryColor: c})}
+                      className={`w-8 h-8 border-[3px] border-black ${config.primaryColor === c ? 'shadow-[2px_2px_0px_rgba(0,0,0,1)] scale-110' : ''}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+                <input 
+                  type="text" 
+                  value={config.primaryColor || ''}
+                  onChange={e => setConfig({...config, primaryColor: e.target.value})}
+                  className="w-full border-[3px] border-black p-2 font-bold uppercase"
+                  placeholder="#HEX"
+                />
               </div>
 
-              {/* Theme Details */}
-              <div className="p-2.5 md:p-4 bg-white flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="flex items-center justify-between mb-1 gap-1">
-                    <h3 className="text-xs md:text-sm font-bold text-[#1E1B4B] truncate">{theme.name}</h3>
-                    <div className="flex gap-0.5 shrink-0">
-                      {theme.colors.map((color, i) => (
-                        <div key={i} className={`w-2.5 h-2.5 rounded-full border border-gray-200 ${color}`} />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-[10px] md:text-xs text-gray-500 leading-snug line-clamp-2">
-                    {theme.desc}
-                  </p>
+              <div>
+                <label className="block text-sm font-black uppercase mb-2">Secondary / Accent Color</label>
+                <div className="flex gap-2 mb-2">
+                  {PRESET_COLORS.map(c => (
+                    <button 
+                      key={c} 
+                      onClick={() => setConfig({...config, secondaryColor: c})}
+                      className={`w-8 h-8 border-[3px] border-black ${config.secondaryColor === c ? 'shadow-[2px_2px_0px_rgba(0,0,0,1)] scale-110' : ''}`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
                 </div>
+                <input 
+                  type="text" 
+                  value={config.secondaryColor || ''}
+                  onChange={e => setConfig({...config, secondaryColor: e.target.value})}
+                  className="w-full border-[3px] border-black p-2 font-bold uppercase"
+                  placeholder="#HEX"
+                />
+              </div>
 
-                <div className="mt-2 pt-2 border-t border-gray-50">
-                  {isActive ? (
-                    <Button className="w-full h-8 text-[10px] md:text-xs bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-100" disabled>
-                      <Check className="w-3.5 h-3.5 mr-1" /> Active
-                    </Button>
-                  ) : (
-                    <Button 
-                      className="w-full h-8 text-[10px] md:text-xs bg-white text-[#1E1B4B] border border-gray-200 hover:bg-gray-50 shadow-sm"
-                      onClick={() => handleSave(theme.id)}
-                      isLoading={isSaving}
-                    >
-                      Apply Theme
-                    </Button>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-black uppercase mb-2">Call to Action Text</label>
+                <input 
+                  type="text" 
+                  value={config.ctaText || ''}
+                  onChange={e => setConfig({...config, ctaText: e.target.value})}
+                  className="w-full border-[3px] border-black p-2 font-bold uppercase"
+                  placeholder="e.g. BUY NOW, ADD TO CART"
+                />
               </div>
             </div>
-          );
-        })}
+          </section>
+        </div>
+
+        {/* Right Column: Live Preview Mockup */}
+        <div className="sticky top-24">
+          <h2 className="text-xl font-black uppercase mb-4">Live Preview</h2>
+          <div className="border-[4px] border-black bg-gray-200 aspect-[9/16] max-w-[350px] mx-auto rounded-[40px] p-2 relative shadow-[10px_10px_0px_rgba(0,0,0,1)]">
+            <div className="w-full h-full bg-white rounded-[30px] overflow-hidden border-[3px] border-black relative">
+              
+              {/* Fake Mobile Header */}
+              <div className="h-6 flex justify-between items-center px-4 pt-1 mb-2">
+                <div className="text-[10px] font-bold">9:41</div>
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 bg-black rounded-full" />
+                  <div className="w-3 h-3 bg-black rounded-full" />
+                </div>
+              </div>
+
+              {/* STOREFRONT PREVIEW BASED ON THEME */}
+              {activeTheme === 'brutal' ? (
+                <div className="flex flex-col h-full bg-[#FDFBF7]">
+                   <div className="p-3 border-b-[3px] border-black flex justify-between items-center" style={{ backgroundColor: config.primaryColor }}>
+                      <span className="font-black uppercase text-sm truncate max-w-[120px]">{business.businessName}</span>
+                      <NeoStore className="w-5 h-5" strokeWidth={2.5} />
+                   </div>
+                   <div className="p-4 flex-1">
+                      <div className="w-full h-32 border-[3px] border-black bg-gray-100 mb-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] relative">
+                         <div className="absolute -bottom-3 -right-3 px-2 py-1 border-[3px] border-black font-black text-xs uppercase" style={{ backgroundColor: config.secondaryColor }}>
+                           ₦15,000
+                         </div>
+                      </div>
+                      <h3 className="font-black uppercase text-lg leading-tight mb-4">Awesome Product</h3>
+                      <button className="w-full py-2 border-[3px] border-black font-black uppercase text-sm shadow-[4px_4px_0px_rgba(0,0,0,1)]" style={{ backgroundColor: config.primaryColor }}>
+                        {config.ctaText || 'Buy Now'}
+                      </button>
+                   </div>
+                </div>
+              ) : (
+                <div className="flex flex-col h-full bg-white font-sans">
+                   <div className="p-4 flex justify-between items-center border-b border-gray-100">
+                      <span className="font-bold text-base truncate max-w-[120px] tracking-tight">{business.businessName}</span>
+                      <NeoStore className="w-5 h-5 text-gray-400" strokeWidth={1.5} />
+                   </div>
+                   <div className="p-0 flex-1">
+                      <div className="w-full h-48 bg-gray-100 mb-4 object-cover" />
+                      <div className="px-4">
+                        <h3 className="font-semibold text-lg text-gray-900 mb-1">Premium Product</h3>
+                        <p className="text-gray-500 text-sm mb-4">₦15,000</p>
+                        <button className="w-full py-3 rounded-lg font-medium text-sm text-white transition-opacity hover:opacity-90" style={{ backgroundColor: config.primaryColor }}>
+                          {config.ctaText || 'Add to Cart'}
+                        </button>
+                      </div>
+                   </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

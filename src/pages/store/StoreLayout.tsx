@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, useParams, Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Phone, MapPin, Instagram, Twitter, ArrowRight } from 'lucide-react';
+import { ShoppingBag, Phone, MapPin, ArrowRight } from 'lucide-react';
 import { businessService } from '../../lib/services/businessService';
 import { Business } from '../../lib/types';
 import { useCartStore } from '../../lib/store';
@@ -9,36 +9,40 @@ import CartDrawer from '../../components/CartDrawer';
 
 // ─── Per-theme CSS variable sets ───────────────────────────────────────────
 function themeVars(theme: string): string {
-  if (theme === 'bold') {
+  if (theme === 'brutal') {
     return `
       :root {
-        --s-bg: #0a0a0a;
-        --s-surface: #141414;
-        --s-card: #1c1c1c;
-        --s-border: #2a2a2a;
-        --s-text: #f5f5f5;
-        --s-text-muted: #737373;
-        --s-accent: #FBBF24;
-        --s-accent-soft: rgba(251,191,36,0.12);
-        --s-hero-from: #1a0a00;
-        --s-hero-to: #0a0a0a;
+        --s-bg: #000000;
+        --s-surface: #000000;
+        --s-card: #000000;
+        --s-border: #ffffff;
+        --s-text: #ffffff;
+        --s-text-muted: #a3a3a3;
+        --s-accent: #E0FF4F;
+        --s-accent-text: #000000;
+      }
+      body {
+        background-color: var(--s-bg);
+        color: var(--s-text);
       }
     `;
   }
 
-  // classic
+  // modern
   return `
     :root {
-      --s-bg: #F7F6F2;
-      --s-surface: #FAFAF8;
+      --s-bg: #ffffff;
+      --s-surface: #f9fafb;
       --s-card: #ffffff;
-      --s-border: #E8E6E0;
-      --s-text: #1A1A1A;
+      --s-border: #e5e7eb;
+      --s-text: #111827;
       --s-text-muted: #6b7280;
-      --s-accent: #059669;
-      --s-accent-soft: rgba(5,150,105,0.08);
-      --s-hero-from: #1E1B4B;
-      --s-hero-to: #059669;
+      --s-accent: #000000;
+      --s-accent-text: #ffffff;
+    }
+    body {
+      background-color: var(--s-bg);
+      color: var(--s-text);
     }
   `;
 }
@@ -48,7 +52,6 @@ export default function StoreLayout() {
   const navigate = useNavigate();
   const [business, setBusiness] = useState<Business | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartItemCount = useCartStore(state => state.getItemCount());
 
@@ -60,7 +63,6 @@ export default function StoreLayout() {
       setIsLoading(false);
       if (b) {
         document.title = `${b.businessName} — Shop Online`;
-        // Update favicon
         const favicon = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
         if (favicon) {
           favicon.href = b.logoUrl || '/favicon.svg';
@@ -70,21 +72,17 @@ export default function StoreLayout() {
     load();
   }, [slug]);
 
-  // Listen for theme changes from dashboard
   useEffect(() => {
     const themeChannel = new BroadcastChannel('theme_updates');
     themeChannel.onmessage = (event) => {
       if (event.data.type === 'theme_changed' && event.data.slug === slug) {
-        // Reload the page to apply the new theme
         window.location.reload();
       }
     };
 
-    // Listen for inventory changes from dashboard
     const inventoryChannel = new BroadcastChannel('inventory_updates');
     inventoryChannel.onmessage = (event) => {
       if (event.data.type === 'inventory_changed' && event.data.slug === slug) {
-        // Reload the page to reflect inventory changes
         window.location.reload();
       }
     };
@@ -97,80 +95,67 @@ export default function StoreLayout() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4 animate-pulse">
-          <div className="w-12 h-12 rounded-2xl bg-gray-200" />
-          <div className="h-3 w-32 bg-gray-200 rounded-full" />
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!business) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAF8] p-6 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center text-gray-400 mb-6">
-          <ShoppingBag className="w-8 h-8" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-white p-6 text-center border-[8px] border-black m-4">
+        <div className="w-20 h-20 bg-[#E0FF4F] border-[4px] border-black flex items-center justify-center text-black mb-6 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+          <ShoppingBag className="w-10 h-10" strokeWidth={2.5} />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Store Not Found</h1>
-        <p className="text-gray-500 mb-8 max-w-sm">This store doesn't exist or has been removed.</p>
-        <Link to="/" className="text-[#059669] font-semibold hover:underline flex items-center gap-1">
-          Create your own store <ArrowRight className="w-4 h-4" />
+        <h1 className="text-3xl font-black uppercase text-black mb-2">Store Not Found</h1>
+        <p className="text-lg font-bold uppercase text-gray-600 mb-8 max-w-sm">This store doesn't exist or has been removed.</p>
+        <Link to="/" className="bg-black text-[#E0FF4F] px-6 py-3 font-black uppercase border-[3px] border-black shadow-[4px_4px_0px_rgba(224,255,79,1)] hover:-translate-y-1 transition-transform">
+          CREATE YOUR STORE <ArrowRight className="w-5 h-5 inline-block ml-2" />
         </Link>
       </div>
     );
   }
 
-  const theme = business.theme || 'classic';
+  const theme = business.theme || 'brutal';
+  const isBrutal = theme === 'brutal';
   const initial = business.businessName.charAt(0).toUpperCase();
 
   return (
-    <div style={{ background: 'var(--s-bg)', color: 'var(--s-text)' }} className="min-h-screen flex flex-col font-sans">
+    <div style={{ background: 'var(--s-bg)', color: 'var(--s-text)' }} className={`min-h-screen flex flex-col ${isBrutal ? 'font-sans' : 'font-sans'}`}>
       <style>{themeVars(theme)}</style>
 
       {/* ── HEADER ─────────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-50 border-b"
-        style={{ borderColor: 'var(--s-border)', background: theme === 'bold' ? 'rgba(10,10,10,0.92)' : theme === 'minimal' ? 'rgba(255,255,255,0.92)' : 'rgba(247,246,242,0.92)', backdropFilter: 'blur(16px)' }}
+        className={`sticky top-0 z-50 transition-colors duration-300 ${isBrutal ? 'border-b-[4px] border-white' : 'border-b border-gray-200'}`}
+        style={{ background: isBrutal ? '#000000' : 'rgba(255,255,255,0.95)', backdropFilter: 'blur(8px)' }}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
           {/* Brand */}
-          <Link to={`/store/${slug}`} className="flex items-center gap-3 shrink-0">
+          <Link to={`/store/${slug}`} className="flex items-center gap-3 shrink-0 group">
             {business.logoUrl ? (
-              <img src={business.logoUrl} alt={business.businessName} className="w-9 h-9 rounded-xl object-cover" />
+              <img src={business.logoUrl} alt={business.businessName} className={`w-10 h-10 sm:w-12 sm:h-12 object-cover ${isBrutal ? 'border-[3px] border-white' : 'rounded-full border border-gray-200'}`} />
             ) : (
               <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black"
-                style={{ background: 'var(--s-accent)', color: theme === 'minimal' ? '#fff' : theme === 'bold' ? '#000' : '#fff' }}
+                className={`w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-lg sm:text-xl font-black ${isBrutal ? 'border-[3px] border-white bg-[#E0FF4F] text-black shadow-[4px_4px_0px_rgba(255,255,255,1)] group-hover:translate-x-1 transition-transform' : 'rounded-full bg-black text-white'}`}
               >
                 {initial}
               </div>
             )}
-            <span
-              className="font-black text-lg tracking-tight"
-              style={{ color: 'var(--s-text)' }}
-            >
+            <span className={`${isBrutal ? 'font-black text-xl sm:text-2xl uppercase tracking-tighter' : 'font-bold text-lg sm:text-xl tracking-tight'}`} style={{ color: 'var(--s-text)' }}>
               {business.businessName}
             </span>
           </Link>
-
-          {/* Nav links (desktop) */}
-          <nav className="hidden md:flex items-center gap-6 text-[14px] font-medium" style={{ color: 'var(--s-text-muted)' }}>
-            <Link to={`/store/${slug}`} className="hover:opacity-70 transition-opacity" style={{ color: 'var(--s-text)' }}>Shop</Link>
-            <a href={`tel:${business.ownerPhone}`} className="hover:opacity-70 transition-opacity">Contact</a>
-          </nav>
 
           {/* Cart */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsCartOpen(true)}
-              className="relative flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all"
-              style={{ background: 'var(--s-accent)', color: theme === 'minimal' ? '#fff' : theme === 'bold' ? '#000' : '#fff' }}
+              className={`relative flex items-center gap-2 px-5 py-2.5 transition-all ${isBrutal ? 'border-[3px] border-white bg-[#E0FF4F] text-black font-black uppercase hover:-translate-y-1 shadow-[4px_4px_0px_rgba(255,255,255,1)]' : 'bg-black text-white font-medium rounded-full hover:bg-gray-800'}`}
             >
-              <ShoppingBag className="w-4 h-4" />
-              <span className="hidden sm:inline">Cart</span>
+              <ShoppingBag className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
+              <span className="hidden sm:inline">CART</span>
               {cartItemCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-white text-[10px] font-black flex items-center justify-center" style={{ color: 'var(--s-accent)' }}>
+                <span className={`w-6 h-6 flex items-center justify-center text-xs ${isBrutal ? 'bg-black text-[#E0FF4F] border-[2px] border-white font-black' : 'bg-white text-black rounded-full font-bold'}`}>
                   {cartItemCount}
                 </span>
               )}
@@ -185,48 +170,48 @@ export default function StoreLayout() {
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className="border-t mt-20" style={{ borderColor: 'var(--s-border)', background: theme === 'bold' ? '#0a0a0a' : theme === 'minimal' ? '#f9fafb' : '#F7F6F2' }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-10">
+      <footer className={`${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-gray-200'}`} style={{ background: isBrutal ? '#000000' : '#f9fafb' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
             {/* Brand column */}
-            <div className="sm:col-span-1">
-              <div className="flex items-center gap-3 mb-4">
+            <div>
+              <div className="flex items-center gap-3 mb-6">
                 {business.logoUrl ? (
-                  <img src={business.logoUrl} alt={business.businessName} className="w-10 h-10 rounded-xl object-cover" />
+                  <img src={business.logoUrl} alt={business.businessName} className={`w-10 h-10 object-cover ${isBrutal ? 'border-[2px] border-white' : 'rounded-full'}`} />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-base" style={{ background: 'var(--s-accent)', color: theme === 'bold' ? '#000' : '#fff' }}>
+                  <div className={`w-10 h-10 flex items-center justify-center font-black text-lg ${isBrutal ? 'bg-[#E0FF4F] text-black border-[2px] border-white' : 'bg-black text-white rounded-full'}`}>
                     {initial}
                   </div>
                 )}
-                <span className="font-black text-base tracking-tight" style={{ color: 'var(--s-text)' }}>{business.businessName}</span>
+                <span className={`${isBrutal ? 'font-black text-xl uppercase tracking-tighter' : 'font-bold text-lg'}`} style={{ color: 'var(--s-text)' }}>{business.businessName}</span>
               </div>
-              <p className="text-[13px] leading-relaxed" style={{ color: 'var(--s-text-muted)' }}>
-                Your trusted {business.category.toLowerCase()} store. Quality products, secure checkout.
+              <p className={`${isBrutal ? 'text-sm font-bold uppercase leading-relaxed text-gray-400' : 'text-gray-500 leading-relaxed'}`}>
+                Quality products. Secure checkout. Direct from {business.businessName}.
               </p>
             </div>
 
             {/* Quick links */}
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--s-text-muted)' }}>Quick Links</p>
-              <ul className="flex flex-col gap-3 text-[13px]" style={{ color: 'var(--s-text)' }}>
-                <li><Link to={`/store/${slug}`} className="hover:opacity-70 transition-opacity">Home</Link></li>
-                <li><Link to={`/store/${slug}`} className="hover:opacity-70 transition-opacity">All Products</Link></li>
+              <p className={`${isBrutal ? 'font-black uppercase tracking-widest text-white mb-6 border-b-[2px] border-white pb-2 inline-block' : 'font-semibold text-gray-900 mb-4'}`}>Shop</p>
+              <ul className={`flex flex-col gap-4 ${isBrutal ? 'font-bold uppercase text-sm text-gray-400' : 'text-gray-500'}`}>
+                <li><Link to={`/store/${slug}`} className="hover:text-[var(--s-text)] transition-colors">Home</Link></li>
+                <li><Link to={`/store/${slug}`} className="hover:text-[var(--s-text)] transition-colors">All Products</Link></li>
               </ul>
             </div>
 
             {/* Contact */}
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--s-text-muted)' }}>Contact</p>
-              <ul className="flex flex-col gap-3 text-[13px]" style={{ color: 'var(--s-text-muted)' }}>
+              <p className={`${isBrutal ? 'font-black uppercase tracking-widest text-white mb-6 border-b-[2px] border-white pb-2 inline-block' : 'font-semibold text-gray-900 mb-4'}`}>Contact</p>
+              <ul className={`flex flex-col gap-4 ${isBrutal ? 'font-bold uppercase text-sm text-gray-400' : 'text-gray-500'}`}>
                 {business.ownerPhone && (
-                  <li className="flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5 shrink-0" />
-                    <a href={`tel:${business.ownerPhone}`} className="hover:opacity-70 transition-opacity">{business.ownerPhone}</a>
+                  <li className="flex items-center gap-3">
+                    <Phone className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
+                    <a href={`tel:${business.ownerPhone}`} className="hover:text-[var(--s-text)] transition-colors">{business.ownerPhone}</a>
                   </li>
                 )}
                 {(business.lga || business.state) && (
-                  <li className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 shrink-0" />
+                  <li className="flex items-center gap-3">
+                    <MapPin className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
                     <span>{[business.lga, business.state].filter(Boolean).join(', ')}</span>
                   </li>
                 )}
@@ -235,12 +220,13 @@ export default function StoreLayout() {
           </div>
 
           {/* Bottom bar */}
-          <div className="pt-6 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: 'var(--s-border)' }}>
-            <p className="text-[12px]" style={{ color: 'var(--s-text-muted)' }}>
-              © {new Date().getFullYear()} {business.businessName}. All rights reserved.
+          <div className={`pt-8 flex flex-col md:flex-row items-center justify-between gap-4 ${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-gray-200'}`}>
+            <p className={`${isBrutal ? 'font-bold uppercase text-xs text-gray-400' : 'text-sm text-gray-500'}`}>
+              © {new Date().getFullYear()} {business.businessName}. ALL RIGHTS RESERVED.
             </p>
-            <Link to="/" className="flex items-center gap-1.5">
-              <Logo className="h-5" />
+            <Link to="/" className="flex items-center gap-2">
+              <span className={`${isBrutal ? 'font-black uppercase text-xs text-white' : 'text-sm text-gray-400 font-medium'}`}>POWERED BY</span>
+              <Logo className="h-6" />
             </Link>
           </div>
         </div>

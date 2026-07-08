@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '../../components/Button';
+import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
-import { Input, Textarea, Toggle } from '../../components/FormInputs';
 import { useToast } from '../../components/Toast';
 import { productSchema } from '../../lib/validation/schemas';
 import { productService } from '../../lib/services/productService';
 import { businessService } from '../../lib/services/businessService';
 import { authService } from '../../lib/services/authService';
+import { Check } from 'lucide-react';
 
 type ProductFormValues = z.infer<typeof productSchema>;
 
@@ -68,7 +68,6 @@ export default function FirstProductPage() {
   };
 
   const finishOnboarding = () => {
-    // We navigate to dashboard and trigger celebration modal via query param or state
     navigate('/dashboard?celebrate=true');
     addToast("Your store is live!", 'success');
   };
@@ -96,25 +95,32 @@ export default function FirstProductPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-[#1E1B4B]">
-      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-center shrink-0 select-none">
-        <Logo className="h-7 md:h-8" />
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
+      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
+        <Logo className="h-8" />
+        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest bg-[#4D9DE0] text-white border-[3px] border-black px-3 py-1 shadow-[2px_2px_0px_rgba(0,0,0,1)] -rotate-2">
+          Step 2 of 2
+        </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center px-4 max-w-md mx-auto w-full py-4 md:py-12">
-        <div className="bg-white p-5 md:p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-xl md:text-2xl font-bold text-[#1E1B4B] mb-1.5">Add your first product</h1>
-            <p className="text-xs md:text-sm text-gray-500">You can always edit this or add more later.</p>
+      <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">
+        <div className="bg-white p-6 md:p-10 border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] relative">
+          <div className="absolute -top-4 -right-4 w-10 h-10 bg-[#06D6A0] border-[3px] border-black rotate-12 flex items-center justify-center shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+             <Check className="w-6 h-6" strokeWidth={3} />
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
+          <div className="mb-8 border-b-[4px] border-black pb-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">First Product</h1>
+            <p className="font-bold text-gray-600 uppercase text-sm">You can always edit this or add more later.</p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-3 mb-2">
-              <div className="relative w-full aspect-square max-h-48 rounded-xl bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:bg-gray-100 transition-colors">
+              <div className="relative w-full aspect-square max-h-48 bg-[#FFD166] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden hover:translate-y-1 hover:shadow-none transition-all cursor-pointer">
                 {imagePreview ? (
                   <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-gray-400 text-sm font-medium text-center">Tap to add photo</span>
+                  <span className="text-black font-black uppercase text-sm text-center px-4">Tap to add photo</span>
                 )}
                 <input 
                   type="file" 
@@ -125,54 +131,71 @@ export default function FirstProductPage() {
               </div>
             </div>
 
-            <Input
-              label="Product Name"
-              placeholder="e.g. Vintage Denim Jacket"
-              {...register('name')}
-              error={errors.name?.message}
-            />
-
-            <Input
-              label="Price (₦)"
-              type="number"
-              placeholder="0"
-              {...register('price', { valueAsNumber: true })}
-              error={errors.price?.message}
-            />
-
-            <Textarea
-              label="Description (Optional)"
-              placeholder="Tell customers about this product..."
-              {...register('description')}
-              error={errors.description?.message}
-            />
-
-            <div className="border-t border-gray-100 pt-4 mt-2">
-              <Toggle
-                label="Track stock?"
-                checked={trackStock}
-                onChange={(c) => setValue('trackStock', c)}
+            <div>
+              <label className="block font-black uppercase text-sm mb-2">Product Name</label>
+              <input
+                type="text"
+                placeholder="e.g. Vintage Denim Jacket"
+                {...register('name')}
+                className="w-full border-[4px] border-black p-4 font-bold outline-none focus:bg-[#E0FF4F] transition-colors"
               />
+              {errors.name && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.name.message}</p>}
+            </div>
+
+            <div>
+              <label className="block font-black uppercase text-sm mb-2">Price (₦)</label>
+              <input
+                type="number"
+                placeholder="0"
+                {...register('price', { valueAsNumber: true })}
+                className="w-full border-[4px] border-black p-4 font-black text-xl outline-none focus:bg-[#E0FF4F] transition-colors"
+              />
+              {errors.price && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.price.message}</p>}
+            </div>
+
+            <div>
+              <label className="block font-black uppercase text-sm mb-2">Description (Optional)</label>
+              <textarea
+                placeholder="Tell customers about this product..."
+                {...register('description')}
+                className="w-full border-[4px] border-black p-4 font-bold outline-none focus:bg-[#E0FF4F] transition-colors resize-none h-24"
+              />
+              {errors.description && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.description.message}</p>}
+            </div>
+
+            <div className="border-t-[4px] border-black pt-4">
+              <label className="flex items-center gap-4 cursor-pointer mb-4">
+                <input 
+                  type="checkbox" 
+                  checked={trackStock}
+                  onChange={(e) => setValue('trackStock', e.target.checked)}
+                  className="w-6 h-6 border-[3px] border-black accent-black"
+                />
+                <span className="font-black uppercase">Track Stock?</span>
+              </label>
+
               {trackStock && (
-                <div className="mt-3">
-                  <Input
+                <div>
+                  <label className="block font-black uppercase text-sm mb-2">Stock Count</label>
+                  <input
                     type="number"
                     placeholder="How many do you have?"
                     {...register('stockCount', { valueAsNumber: true })}
-                    error={errors.stockCount?.message}
+                    className="w-full border-[4px] border-black p-4 font-bold outline-none focus:bg-[#E0FF4F] transition-colors"
                   />
+                  {errors.stockCount && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.stockCount.message}</p>}
                 </div>
               )}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3">
-              <Button type="submit" className="w-full h-12 text-sm font-semibold rounded-xl bg-[#1E1B4B] text-white hover:bg-[#111827] transition-colors shadow-sm" isLoading={isSubmitting}>
+            <div className="mt-4 flex flex-col gap-4">
+              <BrutalButton type="submit" className="w-full h-16 text-xl" isLoading={isSubmitting}>
                 Add Product & Finish
-              </Button>
+              </BrutalButton>
               <button 
                 type="button" 
                 onClick={finishOnboarding}
-                className="text-sm font-medium text-gray-500 py-2 hover:text-[#1E1B4B] transition-colors"
+                className="text-sm font-black uppercase py-4 border-[3px] border-black bg-white hover:bg-black hover:text-white transition-colors shadow-[2px_2px_0px_rgba(0,0,0,1)]"
               >
                 Skip for now
               </button>

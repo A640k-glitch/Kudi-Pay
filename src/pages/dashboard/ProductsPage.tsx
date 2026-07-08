@@ -7,10 +7,8 @@ import { Product } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
 import { productService } from '../../lib/services/productService';
-import { Button } from '../../components/Button';
-import { Input, Textarea, Toggle, Select } from '../../components/FormInputs';
+import BrutalButton from '../../components/ui/BrutalButton';
 import { Modal } from '../../components/Modal';
-import { EmptyState } from '../../components/EmptyState';
 import { formatNaira } from '../../lib/utils';
 import { productSchema } from '../../lib/validation/schemas';
 import { useToast } from '../../components/Toast';
@@ -54,7 +52,6 @@ export default function ProductsPage() {
     try {
       await productService.updateProduct(product.id, { isAvailable: newValue });
       
-      // Broadcast inventory change to storefront tabs
       if (business) {
         const channel = new BroadcastChannel('inventory_updates');
         channel.postMessage({ type: 'inventory_changed', slug: business.storefrontSlug });
@@ -73,108 +70,108 @@ export default function ProductsPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get the registry for the current business category
   const registry = business ? getRegistry(business.category) : null;
 
   return (
-    <div className="p-3 md:p-4 max-w-5xl mx-auto pb-24 md:pb-10">
-      <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="p-4 md:p-6 max-w-5xl mx-auto pb-24 md:pb-10 selection:bg-[#E0FF4F] selection:text-black">
+      <header className="mb-6 md:mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-[4px] border-black pb-4">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-0.5">Products</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-black uppercase mb-1">Products</h1>
           {registry && (
-            <p className="text-xs md:text-sm text-gray-500 flex items-center gap-2">
+            <p className="text-sm md:text-base font-bold text-gray-700 uppercase flex items-center gap-2">
               <span>{registry.icon}</span>
-              <span>{registry.categoryLabel} store — custom fields active</span>
+              <span>{registry.categoryLabel} details active</span>
             </p>
           )}
         </div>
-        <Button onClick={openAddModal} className="hidden md:flex">
-          <Plus className="w-5 h-5 mr-2" /> Add Product
-        </Button>
+        <div className="hidden md:block">
+          <BrutalButton onClick={openAddModal}>
+            <Plus className="w-5 h-5 mr-2 inline-block" /> ADD PRODUCT
+          </BrutalButton>
+        </div>
       </header>
 
       {/* Floating Action Button (Mobile) */}
       <button
         onClick={openAddModal}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center z-30"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-[#E0FF4F] text-black border-[3px] border-black rounded-full shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center z-30 active:translate-y-1 active:shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all"
       >
-        <Plus className="w-6 h-6" />
+        <Plus className="w-6 h-6" strokeWidth={3} />
       </button>
 
       {isLoading ? (
         <div className="animate-pulse space-y-4">
-          <div className="h-12 bg-gray-200 rounded-xl w-full max-w-md"></div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 rounded-2xl"></div>)}
+          <div className="h-14 bg-gray-200 border-[3px] border-black w-full max-w-md"></div>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1, 2, 3, 4].map(i => <div key={i} className="h-64 bg-gray-200 border-[4px] border-black"></div>)}
           </div>
         </div>
       ) : products.length === 0 ? (
-        <EmptyState
-          icon={<PackageX className="w-10 h-10" />}
-          title="No products yet"
-          description="Add your first product to start taking orders."
-          actionLabel="Add Your First Product"
-          onAction={openAddModal}
-        />
+        <div className="bg-white border-[4px] border-black p-10 text-center shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+          <PackageX className="w-16 h-16 mx-auto mb-4" strokeWidth={1.5} />
+          <h3 className="text-2xl font-black uppercase mb-2">No products yet</h3>
+          <p className="text-sm font-bold uppercase text-gray-600 mb-6">Add your first product to start taking orders.</p>
+          <BrutalButton onClick={openAddModal}>ADD FIRST PRODUCT</BrutalButton>
+        </div>
       ) : (
         <>
-          <div className="mb-6 relative max-w-md">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <div className="mb-8 relative max-w-md">
+            <Search className="w-6 h-6 absolute left-3 top-1/2 -translate-y-1/2 text-black" strokeWidth={2.5} />
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="SEARCH PRODUCTS..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+              className="w-full pl-12 pr-4 py-3 bg-white border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] font-black uppercase placeholder-gray-500 focus:outline-none focus:bg-[#E0FF4F] transition-colors"
             />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredProducts.map(product => (
               <div
                 key={product.id}
-                className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm flex flex-col group cursor-pointer hover:shadow-md transition-shadow"
+                className="bg-white border-[4px] border-black overflow-hidden shadow-[4px_4px_0px_rgba(0,0,0,1)] flex flex-col group cursor-pointer hover:shadow-[8px_8px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all"
                 onClick={() => openEditModal(product)}
               >
-                <div className="h-32 md:h-48 bg-gray-50 relative overflow-hidden">
+                <div className="h-32 md:h-48 bg-gray-100 border-b-[4px] border-black relative overflow-hidden flex items-center justify-center">
                   {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-3xl md:text-4xl select-none">
+                    <div className="text-4xl select-none group-hover:scale-110 transition-transform">
                       {registry?.icon ?? '📦'}
                     </div>
                   )}
                   <div className="absolute top-2 right-2 flex gap-1.5">
                     {product.stockCount !== undefined && product.stockCount <= 5 && (
-                      <span className="px-1.5 py-0.5 md:px-2 md:py-1 bg-white/90 backdrop-blur text-[10px] md:text-xs font-bold text-amber-600 rounded border border-gray-200/50 shadow-sm select-none">
-                        {product.stockCount === 0 ? 'Out of stock' : `${product.stockCount} left`}
+                      <span className="px-2 py-1 bg-[#FFD166] border-[2px] border-black text-[10px] md:text-xs font-black uppercase shadow-[2px_2px_0px_rgba(0,0,0,1)] select-none">
+                        {product.stockCount === 0 ? 'SOLD OUT' : `${product.stockCount} LEFT`}
                       </span>
                     )}
                   </div>
                 </div>
-                <div className="p-3 md:p-4 flex-1 flex flex-col">
-                  <h3 className="text-xs md:text-sm font-semibold text-gray-900 line-clamp-1 mb-0.5">{product.name}</h3>
-                  <div className="text-sm md:text-base font-bold text-gray-900 mb-2">{formatNaira(product.price)}</div>
+                <div className="p-3 md:p-4 flex-1 flex flex-col bg-white">
+                  <h3 className="text-sm md:text-base font-black text-black uppercase line-clamp-1 mb-1">{product.name}</h3>
+                  <div className="text-lg md:text-xl font-black text-black mb-3">{formatNaira(product.price)}</div>
 
-                  {/* Show category-specific attribute pills */}
                   {product.attributes && Object.keys(product.attributes).length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2.5">
+                    <div className="flex flex-wrap gap-2 mb-4">
                       {Object.entries(product.attributes).map(([key, val]) => val && (
-                        <span key={key} className="inline-flex items-center gap-0.5 md:gap-1 px-1.5 py-0.5 bg-gray-100 rounded-full text-[10px] md:text-xs font-medium text-gray-600">
-                          <Tag className="w-2.5 h-2.5 md:w-3 h-3" />
+                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 border-[2px] border-black text-[10px] md:text-xs font-black uppercase text-black">
+                          <Tag className="w-3 h-3" />
                           {val}
                         </span>
                       ))}
                     </div>
                   )}
 
-                  <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between" onClick={e => e.stopPropagation()}>
-                    <span className="text-xs md:text-sm font-medium text-gray-600">Available</span>
-                    <Toggle
-                      checked={product.isAvailable}
-                      onChange={(c) => handleToggleAvailable(product, c)}
-                      label=""
-                    />
+                  <div className="mt-auto pt-3 border-t-[3px] border-black flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                    <span className="text-xs md:text-sm font-black uppercase">Available</span>
+                    <button 
+                      className={`w-12 h-6 border-[3px] border-black relative transition-colors ${product.isAvailable ? 'bg-[#E0FF4F]' : 'bg-gray-300'}`}
+                      onClick={(e) => { e.stopPropagation(); handleToggleAvailable(product, !product.isAvailable); }}
+                    >
+                      <div className={`absolute top-0.5 bottom-0.5 w-4 bg-black transition-transform ${product.isAvailable ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -182,7 +179,7 @@ export default function ProductsPage() {
           </div>
 
           {filteredProducts.length === 0 && searchQuery && (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 border-[4px] border-black bg-white shadow-[8px_8px_0px_rgba(0,0,0,1)] font-black uppercase">
               No products found matching &ldquo;{searchQuery}&rdquo;
             </div>
           )}
@@ -202,40 +199,36 @@ export default function ProductsPage() {
       />
 
       {/* Delete Confirmation */}
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
-        <div className="py-4">
-          <div className="w-12 h-12 rounded-full bg-red-100 text-destructive flex items-center justify-center mb-4 mx-auto">
-            <PackageX className="w-6 h-6" />
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} title="Delete Product?">
+        <div className="p-2 md:p-4 text-center">
+          <div className="w-16 h-16 bg-[#FF6666] border-[3px] border-black text-white flex items-center justify-center mb-4 mx-auto rotate-12 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <PackageX className="w-8 h-8" strokeWidth={2.5} />
           </div>
-          <h3 className="text-xl font-bold text-center mb-2">Delete Product?</h3>
-          <p className="text-gray-500 text-center mb-6">
+          <p className="text-sm font-bold uppercase text-gray-700 mb-8 pb-4">
             This action cannot be undone. Are you sure you want to delete {editingProduct?.name}?
           </p>
-          <div className="flex gap-3">
-            <Button variant="secondary" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>Cancel</Button>
-            <Button
-              variant="destructive"
-              className="flex-1"
+          <div className="flex gap-4">
+            <BrutalButton variant="secondary" className="flex-1" onClick={() => setIsDeleteModalOpen(false)}>CANCEL</BrutalButton>
+            <BrutalButton
+              color="#FF6666"
+              className="flex-1 text-white"
               onClick={async () => {
                 if (editingProduct) {
                   await productService.deleteProduct(editingProduct.id);
                   addToast('Product deleted', 'success');
-                  
-                  // Broadcast inventory change to storefront tabs
                   if (business) {
                     const channel = new BroadcastChannel('inventory_updates');
                     channel.postMessage({ type: 'inventory_changed', slug: business.storefrontSlug });
                     channel.close();
                   }
-                  
                   setIsDeleteModalOpen(false);
                   setIsModalOpen(false);
                   loadProducts();
                 }
               }}
             >
-              Delete
-            </Button>
+              DELETE
+            </BrutalButton>
           </div>
         </div>
       </Modal>
@@ -258,7 +251,6 @@ interface ProductFormModalProps {
 function ProductFormModal({ isOpen, onClose, product, businessId, businessCategory, storefrontSlug, onSaved, onDelete }: ProductFormModalProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // Local state for dynamic attribute fields (outside react-hook-form)
   const [attributes, setAttributes] = useState<Record<string, string>>({});
   const { addToast } = useToast();
 
@@ -356,7 +348,6 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
         addToast('Product added', 'success');
       }
       
-      // Broadcast inventory change to storefront tabs
       const channel = new BroadcastChannel('inventory_updates');
       channel.postMessage({ type: 'inventory_changed', slug: storefrontSlug });
       channel.close();
@@ -371,42 +362,56 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title={product ? 'Edit Product' : 'Add Product'}>
+    <Modal isOpen={isOpen} onClose={handleClose} title={product ? 'EDIT PRODUCT' : 'ADD PRODUCT'}>
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 py-2">
         {/* Image upload */}
-        <div className="relative w-full aspect-video sm:aspect-square max-h-48 rounded-xl bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+        <div className="relative w-full aspect-video sm:aspect-square max-h-48 border-[4px] border-black bg-white shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden hover:bg-[#E0FF4F] transition-colors cursor-pointer group">
           {imagePreview ? (
-            <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover" />
+            <img src={imagePreview} alt="Product preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
           ) : (
-            <div className="flex flex-col items-center gap-1 text-gray-400">
-              <span className="text-3xl">{registry.icon}</span>
-              <span className="text-sm font-medium">Tap to add photo</span>
+            <div className="flex flex-col items-center gap-2 text-black">
+              <span className="text-4xl group-hover:scale-110 transition-transform">{registry?.icon || '📸'}</span>
+              <span className="text-sm font-black uppercase">Tap to add photo</span>
             </div>
           )}
           <input type="file" accept="image/*" onChange={onImageChange} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
         </div>
 
         {/* Core fields */}
-        <Input label="Product Name" {...register('name')} error={errors.name?.message} />
-        <Input label="Price (₦)" type="number" {...register('price', { valueAsNumber: true })} error={errors.price?.message} />
-        <Textarea label="Description (Optional)" {...register('description')} error={errors.description?.message} />
+        <div>
+          <label className="block font-black uppercase text-xs mb-2">Product Name</label>
+          <input type="text" {...register('name')} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
+          {errors.name?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.name?.message}</span>}
+        </div>
+        
+        <div>
+          <label className="block font-black uppercase text-xs mb-2">Price (₦)</label>
+          <input type="number" {...register('price', { valueAsNumber: true })} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
+          {errors.price?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.price?.message}</span>}
+        </div>
+        
+        <div>
+          <label className="block font-black uppercase text-xs mb-2">Description (Optional)</label>
+          <textarea {...register('description')} className="w-full border-[3px] border-black p-3 font-bold outline-none focus:bg-[#E0FF4F] transition-colors min-h-[100px] resize-y" />
+          {errors.description?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.description?.message}</span>}
+        </div>
 
-        {/* ── Category-specific attribute fields ── */}
-        {registry.fields.length > 0 && (
-          <div className="border border-gray-100 rounded-xl p-4 bg-gray-50 flex flex-col gap-4">
-            <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+        {/* Category-specific attribute fields */}
+        {registry && registry.fields.length > 0 && (
+          <div className="border-[4px] border-black p-4 bg-gray-50 flex flex-col gap-4 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+            <p className="text-xs font-black uppercase border-b-[3px] border-black pb-2 text-black">
               {registry.icon} {registry.categoryLabel} Details
             </p>
             {registry.fields.map((field: AttributeField) => (
               field.type === 'select' ? (
                 <div key={field.key}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">{field.label}</label>
+                  <label className="block text-xs font-black uppercase mb-1">{field.label}</label>
                   <select
                     value={attributes[field.key] || ''}
                     onChange={(e) => handleAttributeChange(field.key, e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-full px-3 py-3 bg-white border-[3px] border-black font-bold uppercase focus:outline-none focus:bg-[#E0FF4F] cursor-pointer appearance-none"
                   >
-                    <option value="">Select {field.label}</option>
+                    <option value="">SELECT {field.label.toUpperCase()}</option>
                     {field.options?.map(opt => (
                       <option key={opt} value={opt}>{opt}</option>
                     ))}
@@ -414,13 +419,13 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
                 </div>
               ) : (
                 <div key={field.key}>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">{field.label}</label>
+                  <label className="block text-xs font-black uppercase mb-1">{field.label}</label>
                   <input
                     type={field.type}
-                    placeholder={field.placeholder}
+                    placeholder={field.placeholder?.toUpperCase()}
                     value={attributes[field.key] || ''}
                     onChange={(e) => handleAttributeChange(field.key, e.target.value)}
-                    className="w-full px-3 py-2.5 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                    className="w-full px-3 py-3 bg-white border-[3px] border-black font-bold uppercase focus:outline-none focus:bg-[#E0FF4F]"
                   />
                 </div>
               )
@@ -429,36 +434,43 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
         )}
 
         {/* Stock and availability toggles */}
-        <div className="border-t border-gray-100 pt-4 flex flex-col gap-2">
-          <Toggle
-            label="Available for sale"
-            checked={watch('isAvailable')}
-            onChange={(c) => setValue('isAvailable', c, { shouldDirty: true })}
-          />
-          <Toggle
-            label="Track stock?"
-            checked={watch('trackStock')}
-            onChange={(c) => setValue('trackStock', c, { shouldDirty: true })}
-          />
+        <div className="border-t-[4px] border-black pt-4 flex flex-col gap-4 mt-2">
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="font-black uppercase text-sm">Available for sale</span>
+            <input type="checkbox" className="hidden" checked={watch('isAvailable')} onChange={(e) => setValue('isAvailable', e.target.checked, { shouldDirty: true })} />
+            <div className={`w-14 h-8 border-[3px] border-black relative transition-colors ${watch('isAvailable') ? 'bg-[#E0FF4F]' : 'bg-gray-300'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-6 bg-black transition-transform ${watch('isAvailable') ? 'translate-x-[26px]' : 'translate-x-0.5'}`} />
+            </div>
+          </label>
+          
+          <label className="flex items-center justify-between cursor-pointer">
+            <span className="font-black uppercase text-sm">Track stock?</span>
+            <input type="checkbox" className="hidden" checked={watch('trackStock')} onChange={(e) => setValue('trackStock', e.target.checked, { shouldDirty: true })} />
+            <div className={`w-14 h-8 border-[3px] border-black relative transition-colors ${watch('trackStock') ? 'bg-[#4D9DE0]' : 'bg-gray-300'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-6 bg-black transition-transform ${watch('trackStock') ? 'translate-x-[26px]' : 'translate-x-0.5'}`} />
+            </div>
+          </label>
+          
           {trackStock && (
             <div className="mt-2">
-              <Input type="number" placeholder="Stock count" {...register('stockCount', { valueAsNumber: true })} error={errors.stockCount?.message} />
+              <input type="number" placeholder="STOCK COUNT" {...register('stockCount', { valueAsNumber: true })} className="w-full border-[3px] border-black p-3 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors" />
+              {errors.stockCount?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.stockCount?.message}</span>}
             </div>
           )}
         </div>
 
         {/* Actions */}
-        <div className="mt-2 flex flex-col gap-3">
-          <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            {product ? 'Save Product' : 'Add Product'}
-          </Button>
+        <div className="mt-4 flex flex-col gap-3">
+          <BrutalButton type="submit" className="w-full h-14" isLoading={isSubmitting}>
+            {product ? 'SAVE PRODUCT' : 'ADD PRODUCT'}
+          </BrutalButton>
           {product && (
             <button
               type="button"
               onClick={onDelete}
-              className="text-destructive font-medium py-3 hover:bg-red-50 rounded-xl transition-colors"
+              className="font-black uppercase text-sm border-[3px] border-black bg-[#FF6666] text-white py-4 shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:bg-black hover:text-white hover:translate-y-[2px] hover:shadow-none transition-all"
             >
-              Delete Product
+              DELETE PRODUCT
             </button>
           )}
         </div>

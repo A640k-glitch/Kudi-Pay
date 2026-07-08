@@ -4,8 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Check, Loader2 } from 'lucide-react';
-import { Button } from '../../components/Button';
-import { Input } from '../../components/FormInputs';
+import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
 import { storefrontSchema } from '../../lib/validation/schemas';
 import { businessService } from '../../lib/services/businessService';
@@ -14,8 +13,8 @@ import { authService } from '../../lib/services/authService';
 type StorefrontFormValues = z.infer<typeof storefrontSchema>;
 
 const THEMES = [
-  { id: 'classic', name: 'Classic', desc: 'Clean, simple, traditional e-commerce' },
-  { id: 'bold', name: 'Editorial', desc: 'Dark background, high contrast, premium streetwear' },
+  { id: 'brutal', name: 'Neo-Brutalism', desc: 'High contrast, bold fonts, raw aesthetic' },
+  { id: 'modern', name: 'Modern Minimal', desc: 'Clean, sleek, Shopify-like experience' },
 ];
 
 export default function StorefrontSetupPage() {
@@ -26,7 +25,7 @@ export default function StorefrontSetupPage() {
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<StorefrontFormValues>({
     resolver: zodResolver(storefrontSchema),
-    defaultValues: { theme: 'classic' }
+    defaultValues: { theme: 'brutal' }
   });
 
   const slug = watch('storefrontSlug');
@@ -85,62 +84,71 @@ export default function StorefrontSetupPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-[#1E1B4B]">
-      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none">
-        <Logo className="h-7 md:h-8" />
-        <div className="flex items-center gap-3 text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          <span>Step 2 of 2</span>
-          <div className="flex gap-1">
-            <div className="w-5 h-1.5 rounded-sm bg-[#1E1B4B]" />
-            <div className="w-5 h-1.5 rounded-sm bg-[#1E1B4B]" />
-          </div>
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
+      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
+        <Logo className="h-8" />
+        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest bg-[#E0FF4F] border-[3px] border-black px-3 py-1 shadow-[2px_2px_0px_rgba(0,0,0,1)] rotate-2">
+          Step 2 of 3
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center px-4 max-w-md mx-auto w-full py-4 md:py-12">
-        <div className="bg-white p-5 md:p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-xl md:text-2xl font-bold text-[#1E1B4B] mb-1.5">Set up storefront</h1>
-            <p className="text-xs md:text-sm text-gray-500">Choose your unique link and design theme.</p>
+      <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">
+        <div className="bg-white p-6 md:p-10 border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] relative">
+          
+          <div className="mb-8 border-b-[4px] border-black pb-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">Setup Store</h1>
+            <p className="font-bold text-gray-600 uppercase text-sm">Choose your unique link and design theme.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
             <div>
-              <Input
-                label="Store Link"
-                prefix="kudi.ng/store/"
-                {...register('storefrontSlug')}
-                error={errors.storefrontSlug?.message || (isAvailable === false ? "This link is already taken" : undefined)}
-                className="pl-[115px] text-[15px]"
-              />
-              <div className="mt-3 text-sm">
-                {isChecking && <span className="flex items-center text-gray-500"><Loader2 className="w-4 h-4 mr-1.5 animate-spin"/> Checking availability...</span>}
-                {!isChecking && isAvailable === true && <span className="flex items-center text-[#059669] font-bold"><Check className="w-4 h-4 mr-1.5"/> Available!</span>}
+              <label className="block font-black uppercase text-sm mb-2">Store Link</label>
+              <div className="flex items-stretch border-[4px] border-black focus-within:bg-[#E0FF4F] transition-colors bg-white">
+                <span className="flex items-center px-4 font-black uppercase bg-gray-100 border-r-[4px] border-black shrink-0">
+                  kudi.ng/store/
+                </span>
+                <input
+                  type="text"
+                  {...register('storefrontSlug')}
+                  className="w-full p-4 font-bold outline-none bg-transparent"
+                />
+              </div>
+              
+              {errors.storefrontSlug && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.storefrontSlug.message}</p>}
+              {!errors.storefrontSlug && isAvailable === false && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">This link is already taken</p>}
+              
+              <div className="mt-2 text-sm font-black uppercase">
+                {isChecking && <span className="flex items-center text-gray-500"><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Checking...</span>}
+                {!isChecking && isAvailable === true && <span className="flex items-center text-[#06D6A0]"><Check className="w-5 h-5 mr-1" strokeWidth={3}/> Available!</span>}
               </div>
             </div>
 
             <div>
-              <label className="text-[13px] font-bold text-[#1E1B4B] block mb-3 uppercase tracking-widest">Select Theme</label>
-              <div className="grid grid-cols-1 gap-3">
+              <label className="block font-black uppercase text-sm mb-2">Select Theme</label>
+              <div className="grid grid-cols-1 gap-4">
                 {THEMES.map((t) => (
                   <div 
                     key={t.id}
                     onClick={() => setValue('theme', t.id as any)}
-                    className={`relative p-5 rounded-xl border cursor-pointer transition-all ${selectedTheme === t.id ? 'border-[#1E1B4B] bg-indigo-50/30 shadow-sm' : 'border-gray-200 hover:border-gray-300 bg-gray-50'}`}
+                    className={`relative p-5 border-[4px] border-black cursor-pointer transition-all ${selectedTheme === t.id ? 'bg-[#E0FF4F] shadow-[4px_4px_0px_rgba(0,0,0,1)] -translate-y-1' : 'bg-white hover:bg-gray-100'}`}
                   >
                     <div className="flex justify-between items-center mb-1">
-                      <span className="font-bold text-[#1E1B4B] text-[15px]">{t.name}</span>
-                      {selectedTheme === t.id && <div className="w-5 h-5 rounded-full bg-[#1E1B4B] flex items-center justify-center text-white"><Check className="w-3 h-3"/></div>}
+                      <span className="font-black uppercase text-lg">{t.name}</span>
+                      {selectedTheme === t.id && (
+                        <div className="w-8 h-8 rounded-full bg-black flex items-center justify-center text-white border-[2px] border-white shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                          <Check className="w-5 h-5" strokeWidth={3}/>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-500">{t.desc}</p>
+                    <p className="font-bold text-gray-700">{t.desc}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <Button type="submit" className="w-full mt-4 h-12 text-sm font-semibold rounded-xl bg-[#1E1B4B] text-white hover:bg-[#111827] transition-colors shadow-sm" disabled={isAvailable === false} isLoading={isSubmitting}>
+            <BrutalButton type="submit" className="w-full mt-4 h-16 text-xl" disabled={isAvailable === false} isLoading={isSubmitting}>
               Create storefront &rarr;
-            </Button>
+            </BrutalButton>
           </form>
         </div>
       </main>

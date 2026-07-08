@@ -14,7 +14,7 @@ function ScrollToTop() {
 }
 
 // Auth Pages
-import LandingPage from './pages/LandingPage.tsx';
+import { LandingPage } from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage.tsx';
 import SignupPage from './pages/auth/SignupPage.tsx';
 import VerifyPage from './pages/auth/VerifyPage.tsx';
@@ -44,9 +44,9 @@ import CheckoutPage from './pages/store/CheckoutPage.tsx';
 import ConfirmationPage from './pages/store/ConfirmationPage.tsx';
 
 // Product Info Pages
-import StorefrontsInfoPage from './pages/product/StorefrontsInfoPage.tsx';
-import TrustScoreInfoPage from './pages/product/TrustScoreInfoPage.tsx';
-import BusinessLoansInfoPage from './pages/product/BusinessLoansInfoPage.tsx';
+import { StorefrontsInfoPage } from './pages/product/StorefrontsInfoPage';
+import { TrustScoreInfoPage } from './pages/product/TrustScoreInfoPage';
+import { BusinessLoansInfoPage } from './pages/product/BusinessLoansInfoPage';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const phone = authService.getCurrentPhone();

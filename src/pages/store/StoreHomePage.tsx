@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag, X, Plus, Minus, Package, Zap, ArrowRight, Twitter, Instagram, Mail } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { ShoppingBag, X, Plus, Minus, Package, ArrowRight } from 'lucide-react';
 import { Business, Product } from '../../lib/types';
 import { productService } from '../../lib/services/productService';
 import { businessService } from '../../lib/services/businessService';
@@ -11,17 +11,20 @@ const formatNaira = (amount: number) => {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
 };
 
-//  SHARED: Product Detail Modal (used by all themes)
+// ─── SHARED: Product Detail Modal ──────────────────────────────────────────────
 function ProductModal({
   product,
   onClose,
-  onAdd
+  onAdd,
+  theme
 }: {
   product: Product | null;
   onClose: () => void;
   onAdd: (p: Product, qty: number) => void;
+  theme: string;
 }) {
   const [quantity, setQuantity] = useState(1);
+  const isBrutal = theme === 'brutal';
 
   useEffect(() => {
     if (product) setQuantity(1);
@@ -31,63 +34,61 @@ function ProductModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white w-full max-w-4xl rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[90vh]">
+      <div className={`absolute inset-0 ${isBrutal ? 'bg-black/80' : 'bg-black/60'} backdrop-blur-sm`} onClick={onClose} />
+      <div className={`relative w-full max-w-4xl flex flex-col md:flex-row max-h-[90vh] overflow-hidden ${isBrutal ? 'bg-black border-[4px] border-white shadow-[8px_8px_0px_rgba(255,255,255,1)]' : 'bg-white rounded-3xl shadow-2xl'}`}>
         
-        <button onClick={onClose} className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-gray-900 shadow-sm hover:bg-white transition-colors">
-          <X className="w-5 h-5" />
+        <button onClick={onClose} className={`absolute top-4 right-4 z-10 w-12 h-12 flex items-center justify-center transition-transform ${isBrutal ? 'bg-white text-black border-[3px] border-black hover:-translate-y-1 shadow-[4px_4px_0px_rgba(0,0,0,1)]' : 'bg-white/80 backdrop-blur-md rounded-full text-gray-900 shadow-sm hover:bg-white'}`}>
+          <X className="w-6 h-6" strokeWidth={isBrutal ? 3 : 2} />
         </button>
 
-        <div className="w-full md:w-1/2 bg-gray-50 aspect-square md:aspect-auto relative">
+        <div className={`w-full md:w-1/2 aspect-square md:aspect-auto relative flex items-center justify-center ${isBrutal ? 'bg-[#E0FF4F] border-b-[4px] md:border-b-0 md:border-r-[4px] border-white' : 'bg-gray-50'}`}>
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-300">
-              <Package className="w-20 h-20" />
-            </div>
+            <Package className={`w-24 h-24 ${isBrutal ? 'text-black' : 'text-gray-300'}`} strokeWidth={isBrutal ? 1.5 : 2} />
           )}
         </div>
 
-        <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col overflow-y-auto">
+        <div className={`w-full md:w-1/2 p-6 md:p-10 flex flex-col overflow-y-auto ${isBrutal ? 'bg-black text-white' : 'bg-white text-gray-900'}`}>
           <div className="flex-1">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className={`${isBrutal ? 'text-3xl md:text-5xl font-black uppercase mb-4 tracking-tighter' : 'text-3xl font-bold mb-2'}`}>
               {product.name}
             </h2>
-            <p className="text-2xl font-black text-indigo-600 mb-6">
+            <p className={`${isBrutal ? 'text-4xl font-black text-[#E0FF4F] mb-6' : 'text-2xl font-black text-black mb-6'}`}>
               {formatNaira(product.price)}
             </p>
 
             {product.description && (
-              <div className="prose prose-sm text-gray-600 mb-8">
+              <div className={`${isBrutal ? 'text-lg font-bold uppercase text-gray-400 mb-8 leading-relaxed' : 'prose prose-sm text-gray-600 mb-8'}`}>
                 {product.description}
               </div>
             )}
 
             {!product.isAvailable && (
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg font-semibold text-sm mb-6">
-                Currently Out of Stock
+              <div className={`inline-flex items-center px-4 py-2 mb-6 ${isBrutal ? 'bg-[#FF6666] text-white border-[3px] border-white font-black uppercase text-lg shadow-[4px_4px_0px_rgba(255,255,255,1)]' : 'bg-red-50 text-red-700 rounded-lg font-semibold text-sm'}`}>
+                Sold Out
               </div>
             )}
           </div>
 
-          <div className="pt-8 border-t border-gray-100 mt-auto">
-            <div className="flex items-center gap-4 mb-6">
-              <span className="font-semibold text-gray-900">Quantity</span>
-              <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-1">
+          <div className={`pt-8 mt-auto ${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-gray-100'}`}>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-6">
+              <span className={`${isBrutal ? 'font-black uppercase text-xl' : 'font-semibold text-gray-900'}`}>Quantity</span>
+              <div className={`flex items-center gap-2 ${isBrutal ? 'bg-white p-2 border-[3px] border-black shadow-[4px_4px_0px_rgba(255,255,255,1)]' : 'bg-gray-50 border border-gray-200 rounded-xl p-1'}`}>
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!product.isAvailable || quantity <= 1}
-                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg disabled:opacity-50 transition-colors"
+                  className={`w-12 h-12 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[#E0FF4F] disabled:opacity-50 hover:bg-gray-900' : 'text-gray-600 hover:bg-white rounded-lg disabled:opacity-50'}`}
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
                 </button>
-                <span className="font-bold text-gray-900 w-6 text-center">{quantity}</span>
+                <span className={`w-12 text-center ${isBrutal ? 'text-black font-black text-2xl' : 'font-bold text-gray-900'}`}>{quantity}</span>
                 <button 
                   onClick={() => { if (product.isAvailable) setQuantity(quantity + 1); }}
                   disabled={!product.isAvailable}
-                  className="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg disabled:opacity-50 transition-colors"
+                  className={`w-12 h-12 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[#E0FF4F] disabled:opacity-50 hover:bg-gray-900' : 'text-gray-600 hover:bg-white rounded-lg disabled:opacity-50'}`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
                 </button>
               </div>
             </div>
@@ -95,9 +96,9 @@ function ProductModal({
             <button
               onClick={() => onAdd(product, quantity)}
               disabled={!product.isAvailable}
-              className="w-full h-14 bg-[#1E1B4B] text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 hover:bg-[#111827] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className={`w-full h-16 flex items-center justify-center transition-all ${isBrutal ? 'bg-[#E0FF4F] text-black font-black uppercase text-xl border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] active:translate-y-1 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed' : 'bg-black text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed'}`}
             >
-              {product.isAvailable ? `Add to Cart • ${formatNaira(product.price * quantity)}` : 'Sold Out'}
+              {product.isAvailable ? `ADD TO CART • ${formatNaira(product.price * quantity)}` : 'SOLD OUT'}
             </button>
           </div>
         </div>
@@ -106,72 +107,69 @@ function ProductModal({
   );
 }
 
-//  Classic, Shopify-like, clean white, clear borders
-function ClassicStorefront({ business, products, onOpenProduct }: { business: Business; products: Product[]; onOpenProduct: (p: Product) => void }) {
+// ─── MODERN STOREFRONT ──────────────────────────────────────────────────────────
+function ModernStorefront({ business, products, onOpenProduct }: { business: Business; products: Product[]; onOpenProduct: (p: Product) => void }) {
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-white pb-20 selection:bg-black selection:text-white">
       {/* Hero Banner */}
-      <div className="bg-white border-b border-gray-200 pt-16 pb-12 px-4 sm:px-6 lg:px-8 text-center">
+      <div className="bg-[#f9fafb] border-b border-gray-100 pt-20 pb-16 px-4 sm:px-6 lg:px-8 text-center">
         <div className="max-w-3xl mx-auto">
-          <div className="w-20 h-20 mx-auto bg-gray-100 rounded-full flex items-center justify-center border border-gray-200 mb-6 shadow-sm">
-            <span className="text-2xl font-bold text-gray-400">{business.businessName.charAt(0)}</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-4">{business.businessName}</h1>
-          <p className="text-lg text-gray-500 max-w-xl mx-auto leading-relaxed">
-            Authentic products direct from {business.businessName}. Secure checkout and fast delivery to your door.
+          <h1 className="text-4xl md:text-6xl font-extrabold text-black tracking-tight mb-6">{business.businessName}</h1>
+          <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
+            Curated premium products from {business.businessName}. Secure checkout and fast delivery to your door.
           </p>
         </div>
       </div>
 
       {/* Products Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">All Products</h2>
-          <span className="text-sm font-medium text-gray-500 bg-white px-3 py-1 border border-gray-200 rounded-full shadow-sm">{products.length} items</span>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+        <div className="flex items-center justify-between mb-10 pb-4 border-b border-gray-100">
+          <h2 className="text-2xl font-bold text-black">Shop All</h2>
+          <span className="text-sm font-medium text-gray-500">{products.length} products</span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10">
           {products.map(product => (
             <div 
               key={product.id}
               onClick={() => onOpenProduct(product)}
-              className="group cursor-pointer bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-gray-300 transition-all duration-300"
+              className="group cursor-pointer flex flex-col"
             >
-              <div className="aspect-[4/5] bg-gray-100 relative overflow-hidden">
+              <div className="aspect-[4/5] bg-gray-50 relative overflow-hidden mb-4 rounded-xl">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${!product.isAvailable ? 'opacity-50 grayscale' : ''}`} />
+                  <img src={product.imageUrl} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'opacity-50 grayscale' : ''}`} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300 group-hover:scale-105 transition-transform duration-500">
-                    <Package className="w-12 h-12" />
+                  <div className="w-full h-full flex items-center justify-center text-gray-300 group-hover:scale-105 transition-transform duration-700">
+                    <Package className="w-16 h-16" strokeWidth={1} />
                   </div>
                 )}
                 {!product.isAvailable && (
-                  <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="bg-white text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm uppercase tracking-wider">Sold Out</span>
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+                    <span className="bg-white text-black text-xs font-bold px-4 py-2 rounded-full uppercase tracking-widest shadow-sm">Sold Out</span>
                   </div>
                 )}
                 {product.isAvailable && (
                   <button 
                     onClick={e => { e.stopPropagation(); onOpenProduct(product); }}
-                    className="absolute bottom-4 right-4 w-10 h-10 bg-gray-900 text-white rounded-full flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 shadow-md hover:bg-gray-800"
+                    className="absolute bottom-4 right-4 w-12 h-12 bg-black text-white rounded-full flex items-center justify-center opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-gray-800"
                   >
-                    <ShoppingBag className="w-4 h-4" />
+                    <ShoppingBag className="w-5 h-5" />
                   </button>
                 )}
               </div>
-              <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug mb-2 group-hover:text-indigo-600 transition-colors">{product.name}</h3>
-                <p className="text-base font-bold text-gray-900">{formatNaira(product.price)}</p>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 mb-1 group-hover:underline decoration-2 underline-offset-4">{product.name}</h3>
+                <p className="text-lg font-medium text-gray-600">{formatNaira(product.price)}</p>
               </div>
             </div>
           ))}
         </div>
         
         {products.length === 0 && (
-          <div className="text-center py-24 bg-white border border-gray-200 rounded-2xl">
-            <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900">No products yet</h3>
-            <p className="text-gray-500 mt-1">Check back later for new arrivals.</p>
+          <div className="text-center py-32 bg-gray-50 rounded-2xl border border-gray-100">
+            <Package className="w-16 h-16 text-gray-300 mx-auto mb-6" strokeWidth={1} />
+            <h3 className="text-2xl font-bold text-black mb-2">No products yet</h3>
+            <p className="text-gray-500">Check back later for new arrivals.</p>
           </div>
         )}
       </div>
@@ -179,29 +177,29 @@ function ClassicStorefront({ business, products, onOpenProduct }: { business: Bu
   );
 }
 
-//  Black bg, amber accent, large type, editorial product cards
-function BoldStorefront({ business, products, onOpenProduct }: { business: Business; products: Product[]; onOpenProduct: (p: Product) => void }) {
+// ─── BRUTAL STOREFRONT ──────────────────────────────────────────────────────────
+function BrutalStorefront({ business, products, onOpenProduct }: { business: Business; products: Product[]; onOpenProduct: (p: Product) => void }) {
   const featured = products.slice(0, 1)[0];
   const rest = products.slice(1);
 
   return (
-    <div className="min-h-screen bg-[#111827] pb-24 font-sans text-gray-100 selection:bg-amber-400 selection:text-black">
+    <div className="min-h-screen bg-black pb-24 font-sans text-white selection:bg-[#E0FF4F] selection:text-black">
       {/* Editorial Hero */}
-      <div className="pt-24 pb-16 px-4 sm:px-6 lg:px-8 border-b border-white/10">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+      <div className="pt-20 pb-16 px-4 sm:px-6 lg:px-8 border-b-[4px] border-white">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           <div>
-            <span className="text-amber-400 font-bold tracking-widest uppercase text-xs mb-6 block flex items-center gap-2">
-              <span className="w-8 h-[2px] bg-amber-400"></span> Official Store
+            <span className="inline-block bg-[#E0FF4F] text-black font-black uppercase tracking-widest px-4 py-2 border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] mb-8 -rotate-2">
+              Official Store
             </span>
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[0.95] mb-6 uppercase break-words">
+            <h1 className="text-5xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter leading-[0.9] mb-8 uppercase break-words drop-shadow-[4px_4px_0px_rgba(224,255,79,1)]">
               {business.businessName}
             </h1>
-            <p className="text-lg text-gray-400 max-w-md leading-relaxed mb-10 border-l border-white/20 pl-4">
-              Curated selection of premium items. Designed for the bold.
+            <p className="text-xl sm:text-2xl font-bold uppercase text-gray-300 max-w-xl leading-relaxed mb-10 border-l-[6px] border-[#E0FF4F] pl-6 py-2">
+              Curated selection of premium items. Built for the bold.
             </p>
             {featured && (
-              <a href="#products" className="inline-flex items-center justify-center h-14 px-8 bg-amber-400 text-black font-bold uppercase tracking-wider hover:bg-amber-300 transition-colors rounded-none w-full sm:w-auto">
-                Explore Collection
+              <a href="#products" className="inline-flex items-center justify-center h-16 px-8 bg-white text-black font-black uppercase text-xl border-[4px] border-[#E0FF4F] shadow-[6px_6px_0px_rgba(224,255,79,1)] hover:bg-[#E0FF4F] hover:border-white hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] transition-all active:translate-y-1 active:shadow-none w-full sm:w-auto">
+                EXPLORE NOW <ArrowRight className="ml-3 w-6 h-6" strokeWidth={3} />
               </a>
             )}
           </div>
@@ -210,26 +208,29 @@ function BoldStorefront({ business, products, onOpenProduct }: { business: Busin
           {featured && (
             <div 
               onClick={() => onOpenProduct(featured)}
-              className="relative aspect-square md:aspect-[4/3] bg-[#1F2937] border border-white/10 group cursor-pointer overflow-hidden"
+              className="relative aspect-square md:aspect-[4/3] bg-[#E0FF4F] border-[4px] border-white group cursor-pointer overflow-hidden shadow-[8px_8px_0px_rgba(255,255,255,1)] hover:-translate-y-2 hover:shadow-[16px_16px_0px_rgba(255,255,255,1)] transition-all"
             >
               {featured.imageUrl ? (
                 <img src={featured.imageUrl} alt={featured.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!featured.isAvailable ? 'opacity-40 grayscale' : ''}`} />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/10">
-                  <Package className="w-24 h-24" />
+                <div className="w-full h-full flex items-center justify-center text-black">
+                  <Package className="w-32 h-32" strokeWidth={1.5} />
                 </div>
               )}
               
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-8">
-                <div className="flex justify-between items-end">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                   <div>
-                    <span className="bg-white text-black text-[10px] font-bold uppercase tracking-widest px-2 py-1 mb-3 inline-block">Featured</span>
-                    <h3 className="text-2xl font-bold text-white mb-1 group-hover:text-amber-400 transition-colors line-clamp-1">{featured.name}</h3>
-                    <p className="text-amber-400 font-black text-xl">{formatNaira(featured.price)}</p>
+                    <span className="bg-white text-black text-xs font-black uppercase tracking-widest px-3 py-1 mb-4 inline-block border-[2px] border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">FEATURED</span>
+                    <h3 className="text-3xl sm:text-4xl font-black text-white uppercase group-hover:text-[#E0FF4F] transition-colors line-clamp-2">{featured.name}</h3>
                   </div>
-                  {!featured.isAvailable && (
-                    <span className="text-gray-400 font-bold uppercase text-sm border border-gray-600 px-3 py-1">Sold Out</span>
-                  )}
+                  <div className="shrink-0">
+                    {featured.isAvailable ? (
+                      <div className="bg-black text-[#E0FF4F] px-4 py-2 border-[3px] border-[#E0FF4F] font-black text-xl sm:text-2xl shadow-[4px_4px_0px_rgba(255,255,255,1)]">{formatNaira(featured.price)}</div>
+                    ) : (
+                      <span className="bg-[#FF6666] text-white px-4 py-2 border-[3px] border-white font-black text-xl uppercase shadow-[4px_4px_0px_rgba(255,255,255,1)]">SOLD OUT</span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -238,56 +239,57 @@ function BoldStorefront({ business, products, onOpenProduct }: { business: Busin
       </div>
 
       {/* Product grid */}
-      <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
-        <div className="mb-12 flex items-center justify-between">
-          <h2 className="text-3xl font-black text-white uppercase tracking-tight">The Collection</h2>
-          <span className="text-gray-500 text-sm font-bold uppercase tracking-widest border border-white/10 px-4 py-1.5">{products.length} Items</span>
+      <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-20">
+        <div className="mb-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-[4px] border-white pb-6">
+          <h2 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tighter">THE COLLECTION</h2>
+          <span className="bg-[#E0FF4F] text-black text-lg font-black uppercase px-4 py-2 border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] inline-block self-start sm:self-auto">{products.length} ITEMS</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
           {rest.map(product => (
             <div 
               key={product.id}
               onClick={() => onOpenProduct(product)}
-              className="group cursor-pointer"
+              className="group cursor-pointer bg-white border-[4px] border-white flex flex-col shadow-[8px_8px_0px_rgba(255,255,255,1)] hover:-translate-y-2 hover:shadow-[12px_12px_0px_rgba(255,255,255,1)] transition-all"
             >
-              <div className="aspect-[3/4] bg-[#1F2937] mb-6 overflow-hidden relative border border-white/5 group-hover:border-white/20 transition-colors">
+              <div className="aspect-[4/5] bg-gray-100 overflow-hidden relative border-b-[4px] border-black">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'opacity-30 grayscale' : ''}`} />
+                  <img src={product.imageUrl} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'opacity-50 grayscale' : ''}`} />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/5">
-                    <Package className="w-16 h-16" />
+                  <div className="w-full h-full flex items-center justify-center text-gray-300">
+                    <Package className="w-24 h-24" strokeWidth={1.5} />
                   </div>
                 )}
                 {!product.isAvailable && (
-                  <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]">
-                    <span className="text-white font-black uppercase tracking-[0.2em] text-sm border border-white/20 px-6 py-2 bg-black/50">Sold Out</span>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                    <span className="text-white font-black uppercase text-xl border-[4px] border-white px-6 py-3 bg-[#FF6666] shadow-[4px_4px_0px_rgba(255,255,255,1)] -rotate-6">SOLD OUT</span>
                   </div>
                 )}
                 
                 {product.isAvailable && (
-                  <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                  <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
                     <button 
                       onClick={e => { e.stopPropagation(); onOpenProduct(product); }}
-                      className="w-full h-12 bg-amber-400 text-black font-bold uppercase tracking-wider hover:bg-amber-300 transition-colors"
+                      className="w-full h-14 bg-[#E0FF4F] text-black font-black uppercase text-lg border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:bg-white"
                     >
-                      Quick Add
+                      QUICK ADD
                     </button>
                   </div>
                 )}
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-gray-200 line-clamp-1 mb-1 group-hover:text-amber-400 transition-colors">{product.name}</h3>
-                <p className="text-gray-400 font-medium">{formatNaira(product.price)}</p>
+              <div className="p-5 flex-1 flex flex-col bg-black text-white">
+                <h3 className="text-xl md:text-2xl font-black uppercase line-clamp-2 mb-2 group-hover:text-[#E0FF4F] transition-colors leading-tight">{product.name}</h3>
+                <p className="text-2xl font-black text-white mt-auto">{formatNaira(product.price)}</p>
               </div>
             </div>
           ))}
         </div>
         
         {rest.length === 0 && !featured && (
-          <div className="text-center py-32 border border-white/10 bg-[#1F2937]/50">
-            <Package className="w-12 h-12 text-gray-600 mx-auto mb-6" />
-            <h3 className="text-xl font-bold text-white uppercase tracking-widest">Collection Empty</h3>
+          <div className="text-center py-32 border-[4px] border-white bg-black shadow-[8px_8px_0px_rgba(255,255,255,1)]">
+            <Package className="w-24 h-24 text-white mx-auto mb-8" strokeWidth={1.5} />
+            <h3 className="text-4xl font-black text-white uppercase tracking-widest mb-4">COLLECTION EMPTY</h3>
+            <p className="text-xl font-bold uppercase text-gray-400">Check back later for new drops.</p>
           </div>
         )}
       </div>
@@ -326,8 +328,8 @@ export default function StoreHomePage() {
     return () => channel.close();
   }, [slug]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!business) return <div className="min-h-screen flex items-center justify-center text-gray-500">Store not found</div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" /></div>;
+  if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-2xl uppercase">Store not found</div>;
 
   const handleAdd = (p: Product, qty: number) => {
     addItem({
@@ -341,15 +343,13 @@ export default function StoreHomePage() {
     setSelectedProduct(null);
   };
 
-  const theme = business.theme || 'classic';
+  const theme = business.theme || 'brutal';
 
   return (
     <>
-      {theme === 'classic' && <ClassicStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
-      {theme === 'bold' && <BoldStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
-      {/* Fallback to classic if theme is missing */}
-      {theme !== 'classic' && theme !== 'bold' && <ClassicStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
-      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={handleAdd} />
+      {theme === 'modern' && <ModernStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
+      {theme === 'brutal' && <BrutalStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
+      <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={handleAdd} theme={theme} />
     </>
   );
 }

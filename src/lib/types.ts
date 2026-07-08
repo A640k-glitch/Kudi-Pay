@@ -1,3 +1,10 @@
+export interface ThemeConfig {
+  primaryColor?: string;
+  secondaryColor?: string;
+  heroImageUrl?: string;
+  ctaText?: string;
+}
+
 export interface Business {
   id: string;
   ownerPhone: string;
@@ -7,7 +14,8 @@ export interface Business {
   lga: string;
   logoUrl?: string;
   storefrontSlug: string;
-  theme: 'classic' | 'bold';
+  theme: 'brutal' | 'modern';
+  themeConfig?: ThemeConfig;
   createdAt: string;
   kycTier: 0 | 1 | 2 | 3;
 }

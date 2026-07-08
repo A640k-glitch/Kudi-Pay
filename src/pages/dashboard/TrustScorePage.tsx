@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Sparkles, TrendingUp, CheckCircle, Percent, AlertCircle } from 'lucide-react';
-import { Button } from '../../components/Button';
+import { ArrowRight } from 'lucide-react';
+import BrutalButton from '../../components/ui/BrutalButton';
 
 interface FactorItemProps {
   label: string;
@@ -12,24 +12,24 @@ interface FactorItemProps {
 
 function FactorItem({ label, weight, score, status }: FactorItemProps) {
   return (
-    <div className="space-y-2">
-      <div className="flex justify-between text-sm">
-        <span className="font-semibold text-gray-900">{label}</span>
-        <span className="text-gray-500 text-xs">Weight: {weight}%</span>
+    <div className="space-y-2 border-b-[3px] border-black pb-4 last:border-b-0 last:pb-0">
+      <div className="flex justify-between text-sm uppercase font-black">
+        <span className="text-black">{label}</span>
+        <span className="text-gray-600">WT: {weight}%</span>
       </div>
       <div className="flex items-center gap-3">
         {/* Rating Bar */}
-        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div className="flex-1 h-4 border-[3px] border-black bg-white relative overflow-hidden">
           <div 
-            className="h-full bg-accent rounded-full transition-all duration-1000 ease-out" 
+            className="absolute top-0 bottom-0 left-0 bg-[#E0FF4F] border-r-[3px] border-black transition-all duration-1000 ease-out" 
             style={{ width: `${score}%` }} 
           />
         </div>
-        <span className="text-xs font-bold text-gray-900 w-10 text-right">{score}/100</span>
-        <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded shrink-0
-          ${score >= 80 ? 'bg-emerald-50 text-[#059669]' : ''}
-          ${score >= 50 && score < 80 ? 'bg-indigo-50 text-primary' : ''}
-          ${score < 50 ? 'bg-amber-50 text-amber-700' : ''}
+        <span className="text-sm font-black text-black w-12 text-right">{score}/100</span>
+        <span className={`text-[10px] uppercase font-black tracking-wider px-2 py-1 border-[2px] border-black shrink-0 shadow-[2px_2px_0px_rgba(0,0,0,1)]
+          ${score >= 80 ? 'bg-[#E0FF4F] text-black' : ''}
+          ${score >= 50 && score < 80 ? 'bg-[#4D9DE0] text-white' : ''}
+          ${score < 50 ? 'bg-[#FF6666] text-white' : ''}
         `}>
           {status}
         </span>
@@ -43,7 +43,6 @@ export default function TrustScorePage() {
   const [points, setPoints] = useState(350); // out of 500
 
   useEffect(() => {
-    // Read local trust points
     const str = localStorage.getItem('coda_businesses');
     const phone = localStorage.getItem('coda_session_phone');
     if (str && phone) {
@@ -59,104 +58,74 @@ export default function TrustScorePage() {
   const readinessPercent = Math.round((points / 500) * 100);
 
   return (
-    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6 bg-[#F5F5F4] min-h-screen pb-24">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-8 bg-[#FDFBF7] min-h-screen pb-24 selection:bg-black selection:text-white">
       {/* Title */}
-      <header className="mb-2">
-        <span className="text-[11px] font-bold uppercase tracking-widest text-[#059669]">
+      <header className="mb-4 border-b-[4px] border-black pb-4">
+        <span className="inline-block bg-[#E0FF4F] border-[3px] border-black px-2 py-1 text-[10px] font-black uppercase tracking-widest text-black mb-2 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
           Credit &amp; Analytics
         </span>
-        <h1 className="text-xl md:text-2xl font-bold font-display text-gray-900 mt-1 leading-tight">
-          Credit Health Summary
+        <h1 className="text-3xl md:text-4xl font-black text-black uppercase leading-tight mb-2">
+          Credit Health
         </h1>
-        <p className="text-[13px] text-gray-500 mt-0.5">
+        <p className="text-sm font-bold uppercase text-gray-700">
           Your weighted rating determines loan eligibility and virtual account limits.
         </p>
       </header>
 
       {/* Main Score Board */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 text-center space-y-4">
+      <div className="bg-white border-[4px] border-black p-6 md:p-8 text-center space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
         <div>
-          <div className="text-[48px] font-bold font-display text-gray-900 leading-none">
+          <div className="text-[64px] font-black text-black leading-none uppercase">
             640
           </div>
-          <div className="text-xs font-semibold text-gray-400 mt-1">out of 1000 points</div>
+          <div className="text-sm font-black uppercase text-gray-500 mt-2 tracking-widest">out of 1000 pts</div>
         </div>
 
-        <div className="max-w-xs mx-auto text-xs text-gray-500 bg-gray-50 p-3 rounded-lg border border-gray-100">
-          Your credit profile is rated <span className="font-semibold text-primary">Good</span>. 
-          You qualify for Tier 1 &amp; 2 micro-business loans.
+        <div className="max-w-xs mx-auto text-sm font-bold uppercase text-black bg-[#E0FF4F] border-[3px] border-black p-4 shadow-[4px_4px_0px_rgba(0,0,0,1)] -rotate-1">
+          Your credit profile is rated <span className="font-black bg-black text-[#E0FF4F] px-1">Good</span>.<br/>
+          You qualify for Tier 1 &amp; 2 loans.
         </div>
 
-        <div className="pt-2">
-          <Button className="w-full text-xs font-semibold flex items-center justify-center gap-1.5" onClick={() => navigate('/dashboard/loans')}>
-            View Loan Eligibility <ArrowRight className="w-3.5 h-3.5" />
-          </Button>
+        <div className="pt-4">
+          <BrutalButton className="w-full text-sm flex items-center justify-center gap-2 h-14" onClick={() => navigate('/dashboard/loans')}>
+            VIEW LOAN ELIGIBILITY <ArrowRight className="w-5 h-5" />
+          </BrutalButton>
         </div>
       </div>
 
       {/* Weighted Factors Breakdown */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-5">
-        <div>
-          <h3 className="font-bold text-gray-900 text-sm">Score Breakdown</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+      <div className="bg-white border-[4px] border-black p-6 space-y-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+        <div className="border-b-[4px] border-black pb-4">
+          <h3 className="font-black text-black text-xl uppercase mb-1">Score Breakdown</h3>
+          <p className="text-xs font-bold uppercase text-gray-600">
             Six dimensions defined by Kudi to measure transaction consistency.
           </p>
         </div>
 
         <div className="space-y-4 pt-2">
-          <FactorItem 
-            label="Revenue Stability" 
-            weight={25} 
-            score={78} 
-            status="Good" 
-          />
-          <FactorItem 
-            label="Expense Tracking" 
-            weight={20} 
-            score={62} 
-            status="Good" 
-          />
-          <FactorItem 
-            label="Repayment History" 
-            weight={20} 
-            score={90} 
-            status="Excellent" 
-          />
-          <FactorItem 
-            label="Inventory Movement" 
-            weight={15} 
-            score={55} 
-            status="Fair" 
-          />
-          <FactorItem 
-            label="Account Activity" 
-            weight={10} 
-            score={70} 
-            status="Good" 
-          />
-          <FactorItem 
-            label="Business Age" 
-            weight={10} 
-            score={45} 
-            status="New" 
-          />
+          <FactorItem label="Revenue Stability" weight={25} score={78} status="Good" />
+          <FactorItem label="Expense Tracking" weight={20} score={62} status="Good" />
+          <FactorItem label="Repayment History" weight={20} score={90} status="Excellent" />
+          <FactorItem label="Inventory Movement" weight={15} score={55} status="Fair" />
+          <FactorItem label="Account Activity" weight={10} score={70} status="Good" />
+          <FactorItem label="Business Age" weight={10} score={45} status="New" />
         </div>
       </div>
 
       {/* Reward Points / Overdraft tracker */}
-      <div className="bg-gradient-to-br from-emerald-50/50 to-indigo-50/20 p-5 border border-emerald-100 rounded-xl flex items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h4 className="font-bold text-gray-900 text-xs">Capital Readiness Overdraft Progress</h4>
-          <p className="text-[11px] text-gray-500">
-            Earn points by logging sales (+5pt) and scanning receipts (+10pt) to unlock Level 2 virtual accounts.
+      <div className="bg-white border-[4px] border-black p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+        <div className="space-y-3">
+          <h4 className="font-black text-black text-lg uppercase inline-block bg-[#4D9DE0] text-white px-2 py-1 border-[2px] border-black -rotate-1 shadow-[2px_2px_0px_rgba(0,0,0,1)]">Capital Readiness</h4>
+          <p className="text-xs font-bold uppercase text-gray-700 leading-relaxed">
+            Earn points by logging sales <span className="bg-[#E0FF4F] px-1 border border-black">+5pt</span> and scanning receipts <span className="bg-[#E0FF4F] px-1 border border-black">+10pt</span> to unlock Level 2 virtual accounts.
           </p>
-          <div className="flex items-center gap-2 pt-2">
-            <span className="text-[11px] font-bold text-gray-800">{points}/500 points</span>
-            <span className="text-[10px] text-gray-400">({readinessPercent}%)</span>
+          <div className="flex items-center gap-3 pt-2">
+            <span className="text-sm font-black uppercase bg-black text-[#E0FF4F] px-2 py-1 border-[2px] border-black shadow-[2px_2px_0px_rgba(224,255,79,1)]">{points}/500 PTS</span>
+            <span className="text-xs font-black uppercase text-gray-500">({readinessPercent}%)</span>
           </div>
         </div>
         
-        <div className="w-12 h-12 rounded-full border-4 border-emerald-100 flex items-center justify-center font-display font-bold text-xs text-[#059669] shrink-0">
+        <div className="w-20 h-20 bg-[#E0FF4F] border-[4px] border-black flex items-center justify-center font-black text-xl text-black shrink-0 shadow-[4px_4px_0px_rgba(0,0,0,1)] rotate-3 hover:rotate-12 transition-transform">
           {readinessPercent}%
         </div>
       </div>

@@ -3,8 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '../../components/Button';
-import { Input } from '../../components/FormInputs';
+import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
 import { loginSchema } from '../../lib/validation/schemas';
 import { authService } from '../../lib/services/authService';
@@ -41,59 +40,66 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 items-center justify-center p-4 md:p-6">
+    <div className="min-h-screen flex flex-col bg-[#FF6666] items-center justify-center p-4 md:p-6 selection:bg-black selection:text-white">
       <div className="w-full max-w-[400px]">
-        <div className="flex justify-center mb-6 md:mb-8">
+        <div className="flex justify-center mb-6 md:mb-8 hover:scale-105 transition-transform">
           <Link to="/">
-            <Logo className="h-7 md:h-8" />
+            <Logo className="h-10" />
           </Link>
         </div>
         
-        <div className="bg-white rounded-2xl p-5 md:p-8 border border-gray-200 shadow-sm">
-          <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-xl md:text-2xl font-bold text-[#1E1B4B] mb-1.5">Welcome back</h1>
-            <p className="text-xs md:text-sm text-gray-500">Enter your credentials to manage your store</p>
+        <div className="bg-white border-[4px] border-black p-6 md:p-8 shadow-[8px_8px_0px_rgba(0,0,0,1)] relative">
+          <div className="absolute -top-4 -right-4 bg-[#E0FF4F] border-[3px] border-black font-black uppercase px-3 py-1 text-sm shadow-[2px_2px_0px_rgba(0,0,0,1)] rotate-6">
+            LOGIN
+          </div>
+
+          <div className="mb-6 md:mb-8 text-left border-b-[4px] border-black pb-4">
+            <h1 className="text-3xl md:text-4xl font-black uppercase text-black mb-1.5 leading-none">Welcome<br/>Back.</h1>
+            <p className="text-sm font-bold text-gray-700 uppercase">Manage your store & ledger</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <Input
-              type="tel"
-              label="Phone Number"
-              placeholder="e.g. 08031234567"
-              {...register('phone')}
-              error={errors.phone?.message}
-            />
+            <div>
+              <label className="block font-black uppercase text-xs mb-2">Phone Number</label>
+              <input
+                type="tel"
+                placeholder="08031234567"
+                {...register('phone')}
+                className="w-full border-[3px] border-black p-3 font-bold outline-none focus:bg-[#E0FF4F] transition-colors"
+              />
+              {errors.phone?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.phone?.message}</span>}
+            </div>
 
-            <Input
-              type="password"
-              label="Password"
-              placeholder="Enter your password"
-              {...register('password')}
-              error={errors.password?.message}
-            />
+            <div>
+              <label className="block font-black uppercase text-xs mb-2">Password</label>
+              <input
+                type="password"
+                placeholder="••••••"
+                {...register('password')}
+                className="w-full border-[3px] border-black p-3 font-bold outline-none focus:bg-[#E0FF4F] transition-colors"
+              />
+              {errors.password?.message && <span className="text-xs font-bold text-red-600 mt-1 block uppercase">{errors.password?.message}</span>}
+            </div>
             
             {errorMsg && (
-              <div className="p-4 rounded-xl bg-red-50 text-red-800 text-sm border border-red-100 flex items-start gap-2">
+              <div className="p-3 bg-red-100 border-[3px] border-black text-black font-bold text-sm shadow-[2px_2px_0px_rgba(0,0,0,1)] -rotate-1">
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            <Button type="submit" className="w-full h-12 text-sm font-semibold rounded-xl bg-[#1E1B4B] text-white hover:bg-[#111827] transition-colors mt-2 shadow-sm" isLoading={isLoading}>
-              Log in securely
-            </Button>
+            <BrutalButton type="submit" className="w-full h-14 mt-4 text-base" isLoading={isLoading}>
+              ENTER VAULT &rarr;
+            </BrutalButton>
           </form>
 
-          <div className="mt-6 text-center pt-4 md:pt-6 border-t border-gray-100">
-            <p className="text-xs md:text-sm text-gray-500">
-              Don't have a store yet?{' '}
-              <Link to="/signup" className="font-semibold text-[#1E1B4B] hover:text-[#312E81] transition-colors">
-                Create one for free
+          <div className="mt-8 pt-6 border-t-[4px] border-black text-center">
+            <p className="text-sm font-bold uppercase text-black">
+              No store yet?{' '}
+              <Link to="/signup" className="text-[#4D9DE0] underline decoration-[3px] hover:bg-[#E0FF4F] hover:text-black transition-colors px-1">
+                Create one now
               </Link>
             </p>
           </div>
-        </div>
-        <div className="mt-6 md:mt-8 text-center">
-          <p className="text-[10px] md:text-xs text-gray-400">Secure access provided by Kudi Infrastructure</p>
         </div>
       </div>
     </div>

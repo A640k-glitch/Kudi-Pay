@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, User, ChevronLeft, Check, CheckCheck, Loader2, Sparkles, HelpCircle } from 'lucide-react';
+import { Send, CheckCheck, Loader2 } from 'lucide-react';
 import { ledgerService } from '../../lib/services/ledgerService';
 import { formatNaira } from '../../lib/utils';
 
@@ -65,7 +65,7 @@ export default function WhatsAppBotPage() {
         {
           id: 'init-1',
           sender: 'bot',
-          text: `Welcome to Kudi Assistant! 👋\n\nI am your automated financial companion. You can log sales, submit expenses, or query your credit health by sending me natural messages here.`,
+          text: `WELCOME TO KUDI ASSISTANT! 👋\n\nI am your automated financial companion. You can log sales, submit expenses, or query your credit health by sending me natural messages here.`,
           timestamp: getFormattedTime()
         },
         {
@@ -107,7 +107,6 @@ export default function WhatsAppBotPage() {
     setInputText('');
     setIsBotTyping(true);
 
-    // Simulate bot parsing after 1.5 seconds
     setTimeout(async () => {
       const reply = await parseWhatsAppCommand(textToSend, businessId);
       const botMsg: ChatMessage = {
@@ -122,23 +121,23 @@ export default function WhatsAppBotPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-136px)] md:h-screen max-w-md mx-auto border-x border-gray-200 bg-[#E5DDD5] relative font-sans shadow-lg overflow-hidden">
-      {/* WhatsApp Header */}
-      <header className="bg-[#075E54] text-white p-3.5 flex items-center gap-3 shrink-0 select-none">
-        <div className="w-10 h-10 bg-emerald-600 rounded-full flex items-center justify-center font-bold text-base border border-emerald-500 shadow-inner">
+    <div className="flex flex-col h-[calc(100vh-136px)] md:h-[calc(100vh-64px)] max-w-md mx-auto border-[4px] border-black bg-[#FDFBF7] relative font-sans shadow-[8px_8px_0px_rgba(0,0,0,1)] my-4">
+      {/* Header */}
+      <header className="bg-[#4D9DE0] border-b-[4px] border-black text-white p-4 flex items-center gap-4 shrink-0 select-none shadow-[0px_4px_0px_rgba(0,0,0,1)] z-20">
+        <div className="w-12 h-12 bg-black text-[#E0FF4F] flex items-center justify-center font-black text-xl border-[3px] border-black shadow-[2px_2px_0px_rgba(224,255,79,1)]">
           KD
         </div>
         <div className="flex-1">
-          <div className="font-bold text-sm tracking-wide">Kudi Assistant</div>
-          <div className="text-[10px] text-emerald-100 flex items-center gap-1 mt-0.5">
-            <span className="w-1.5 h-1.5 bg-[#25D366] rounded-full inline-block animate-pulse"></span>
+          <div className="font-black text-lg uppercase tracking-widest text-black">KUDI ASSISTANT</div>
+          <div className="text-xs font-bold text-black uppercase flex items-center gap-2 mt-1">
+            <span className="w-2.5 h-2.5 bg-[#E0FF4F] border-[2px] border-black rounded-full inline-block animate-pulse shadow-[1px_1px_0px_rgba(0,0,0,1)]"></span>
             Online
           </div>
         </div>
       </header>
 
       {/* Message Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3.5 pb-32">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-32 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0iI2ZmZmZmZiIvPgo8Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMiIgZmlsbD0iI2YwZjBmMCIvPgo8L3N2Zz4=')] relative">
         {messages.map((msg) => {
           const isUser = msg.sender === 'user';
           return (
@@ -147,18 +146,18 @@ export default function WhatsAppBotPage() {
               className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'}`}
             >
               <div 
-                className={`max-w-[85%] rounded-lg p-2.5 shadow-sm text-[13px] leading-relaxed relative whitespace-pre-line
+                className={`max-w-[85%] border-[3px] border-black p-3 text-sm font-bold uppercase leading-relaxed relative whitespace-pre-line shadow-[4px_4px_0px_rgba(0,0,0,1)]
                   ${isUser 
-                    ? 'bg-[#DCF8C6] text-gray-800 rounded-tr-none' 
-                    : 'bg-white text-gray-800 rounded-tl-none'
+                    ? 'bg-[#E0FF4F] text-black rounded-xl rounded-tr-none' 
+                    : 'bg-white text-black rounded-xl rounded-tl-none'
                   }
                 `}
               >
                 {msg.text}
                 
-                <div className="flex items-center justify-end gap-1 text-[9px] text-gray-400 mt-1 select-none">
+                <div className="flex items-center justify-end gap-1.5 text-[10px] text-gray-600 mt-2 select-none border-t-[2px] border-black/10 pt-1">
                   <span>{msg.timestamp}</span>
-                  {isUser && <CheckCheck className="w-3.5 h-3.5 text-blue-500" />}
+                  {isUser && <CheckCheck className="w-4 h-4 text-black" strokeWidth={3} />}
                 </div>
               </div>
             </div>
@@ -167,9 +166,9 @@ export default function WhatsAppBotPage() {
 
         {isBotTyping && (
           <div className="flex justify-start">
-            <div className="bg-white rounded-lg p-3 shadow-sm text-xs text-gray-500 rounded-tl-none flex items-center gap-1.5">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#075E54]" />
-              <span>Typing...</span>
+            <div className="bg-white border-[3px] border-black rounded-xl rounded-tl-none p-3 shadow-[4px_4px_0px_rgba(0,0,0,1)] text-xs font-black uppercase text-black flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin" strokeWidth={3} />
+              <span>TYPING...</span>
             </div>
           </div>
         )}
@@ -177,12 +176,12 @@ export default function WhatsAppBotPage() {
       </div>
 
       {/* Floating Toolbar with Preset Command Quick-buttons */}
-      <div className="absolute bottom-16 left-0 right-0 p-2 flex flex-wrap gap-1.5 bg-[#F0F0F0]/90 backdrop-blur-sm border-t border-gray-200/50 justify-center">
+      <div className="absolute bottom-20 left-0 right-0 p-3 flex flex-wrap gap-2 bg-white/90 backdrop-blur-sm justify-center z-10 border-t-[4px] border-black">
         {PRESET_COMMANDS.map((cmd, idx) => (
           <button
             key={idx}
             onClick={() => handleSendMessage(cmd.text)}
-            className="text-[11px] font-semibold bg-white border border-gray-300 hover:bg-gray-100 hover:border-gray-400 active:bg-gray-200 text-gray-700 px-2.5 py-1.5 rounded-full cursor-pointer transition-all shadow-sm max-w-[210px] truncate"
+            className="text-[10px] font-black uppercase bg-[#FDFBF7] border-[2px] border-black text-black px-3 py-2 cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_rgba(0,0,0,1)] hover:bg-[#E0FF4F] active:translate-y-0.5 active:shadow-none transition-all max-w-[210px] truncate"
             title={cmd.text}
           >
             {cmd.label}
@@ -191,22 +190,22 @@ export default function WhatsAppBotPage() {
       </div>
 
       {/* Footer Text Input Bar */}
-      <footer className="bg-[#F0F0F0] p-2.5 border-t border-gray-200 flex items-center gap-2 shrink-0 z-10">
+      <footer className="bg-white p-3 border-t-[4px] border-black flex items-center gap-3 shrink-0 z-20 shadow-[0px_-4px_0px_rgba(0,0,0,1)]">
         <input
           type="text"
-          placeholder="Type message command..."
+          placeholder="TYPE COMMAND..."
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') handleSendMessage(inputText);
           }}
-          className="flex-1 bg-white border border-gray-300 rounded-full px-4 py-2 text-xs focus:outline-none focus:border-[#075E54] shadow-inner"
+          className="flex-1 bg-[#FDFBF7] border-[3px] border-black px-4 py-3 text-sm font-black uppercase placeholder-gray-500 focus:outline-none focus:bg-[#E0FF4F] transition-colors shadow-inner"
         />
         <button
           onClick={() => handleSendMessage(inputText)}
-          className="w-9 h-9 rounded-full bg-[#075E54] text-white flex items-center justify-center hover:bg-[#054c44] active:scale-95 transition-all shadow-md cursor-pointer shrink-0"
+          className="w-12 h-12 bg-black text-[#E0FF4F] border-[3px] border-black flex items-center justify-center hover:bg-[#E0FF4F] hover:text-black active:translate-y-1 transition-colors shadow-[2px_2px_0px_rgba(0,0,0,1)] cursor-pointer shrink-0"
         >
-          <Send className="w-4 h-4 ml-0.5" />
+          <Send className="w-5 h-5 -ml-1" strokeWidth={2.5} />
         </button>
       </footer>
     </div>
@@ -217,13 +216,11 @@ export default function WhatsAppBotPage() {
 async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
   const norm = msg.toLowerCase().trim();
 
-  // Match sale patterns (e.g. "Sold 2x Ankara fabrics for 30000", "sold bags of rice for 20000")
+  // Match sale patterns
   if (norm.startsWith('sold ') || norm.includes('for ')) {
-    // Attempt amount extraction
-    const match = norm.match(/\b\d{4,7}\b/); // Matches 4 to 7 digit numbers
+    const match = norm.match(/\b\d{4,7}\b/);
     if (match) {
       const amount = parseFloat(match[0]);
-      // Extract descriptions if any
       const descMatch = msg.match(/sold\s+(.*?)\s+for/i);
       const desc = descMatch ? descMatch[1] : 'Sales via WhatsApp';
       
@@ -236,14 +233,14 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
           metadata: { description: `WhatsApp: ${desc}` }
         });
         
-        return `✅ Transaction Logged Successfully!\n\nRevenue: +${formatNaira(amount)}\nNote: ${desc}\n\nYour Kudi credit score has improved (+5 points)! 🚀`;
+        return `✅ TRANSACTION LOGGED!\n\nREVENUE: +${formatNaira(amount)}\nNOTE: ${desc}\n\nYOUR SCORE IMPROVED (+5 PTS)! 🚀`;
       } catch (err) {
-        return `❌ Error saving transaction. Please try again.`;
+        return `❌ ERROR SAVING TRANSACTION. PLEASE TRY AGAIN.`;
       }
     }
   }
 
-  // Match expense patterns (e.g. "Paid 12000 for fuel", "paid supplier 50000")
+  // Match expense patterns
   if (norm.startsWith('paid ') || norm.startsWith('expense ') || norm.includes('bought ')) {
     const match = norm.match(/\b\d{4,7}\b/);
     if (match) {
@@ -259,9 +256,9 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
           metadata: { vendor: 'WhatsApp Log', description: desc, category: 'Operations' }
         });
         
-        return `✅ Expense Logged successfully!\n\nAmount: -${formatNaira(amount)}\nNote: ${desc}\n\nLogged in Operations Ledger (+10 points).`;
+        return `✅ EXPENSE LOGGED!\n\nAMOUNT: -${formatNaira(amount)}\nNOTE: ${desc}\n\nLOGGED IN OPERATIONS (+10 PTS).`;
       } catch (err) {
-        return `❌ Error saving transaction.`;
+        return `❌ ERROR SAVING TRANSACTION.`;
       }
     }
   }
@@ -270,18 +267,18 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
   if (norm.includes('profit') || norm.includes('how much') || norm.includes('revenue')) {
     try {
       const stats = await ledgerService.getStats(bId);
-      return `📊 Weekly Profit Report:\n\n• Revenue: ${formatNaira(stats.revenue)}\n• Expenses: ${formatNaira(stats.expenses)}\n\n📈 Net Profit: ${formatNaira(stats.profit)}`;
+      return `📊 WEEKLY REPORT:\n\n• REVENUE: ${formatNaira(stats.revenue)}\n• EXPENSES: ${formatNaira(stats.expenses)}\n\n📈 NET PROFIT: ${formatNaira(stats.profit)}`;
     } catch (err) {
-      return `❌ Error loading stats.`;
+      return `❌ ERROR LOADING STATS.`;
     }
   }
 
   // Match trust score query
   if (norm.includes('score') || norm.includes('trust') || norm.includes('readiness')) {
     const pts = localStorage.getItem(`aza_trust_points_${bId}`) || "350";
-    return `⭐️ Credit Score Status:\n\n• Trust Rating: 640 / 1000\n• Capital Readiness: ${pts} / 500 points\n\nQualifies for Tier 1 & 2 business lending! Type "apply loan" to view funding.`;
+    return `⭐️ CREDIT STATUS:\n\n• RATING: 640 / 1000\n• CAPITAL READINESS: ${pts} / 500 PTS\n\nQUALIFIES FOR TIER 1 & 2 LOANS! TYPE "APPLY LOAN" TO VIEW FUNDING.`;
   }
 
   // Fallback / instructions
-  return `ℹ️ Kudi Assistant commands list:\n\n1. *"Sold [item] for [amount]"* — Log revenue\n2. *"Paid [recipient] [amount] for [reason]"* — Log expenses\n3. *"What is my profit this week?"* — Review balance sheet\n4. *"What is my trust score?"* — Check credit eligibility`;
+  return `ℹ️ KUDI ASSISTANT COMMANDS:\n\n1. *"SOLD [ITEM] FOR [AMOUNT]"*\n2. *"PAID [RECIPIENT] [AMOUNT] FOR [REASON]"*\n3. *"WHAT IS MY PROFIT THIS WEEK?"*\n4. *"WHAT IS MY TRUST SCORE?"*`;
 }

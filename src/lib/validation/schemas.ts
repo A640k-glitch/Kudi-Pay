@@ -26,7 +26,7 @@ export const businessSchema = z.object({
 
 export const storefrontSchema = z.object({
   storefrontSlug: z.string().regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed"),
-  theme: z.enum(["classic", "bold"]),
+  theme: z.enum(["brutal", "modern"]),
 });
 
 export const productSchema = z.object({

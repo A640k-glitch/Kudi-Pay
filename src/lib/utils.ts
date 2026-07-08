@@ -5,3 +5,10 @@ export const formatNaira = (amount: number) => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}

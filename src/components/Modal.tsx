@@ -50,31 +50,25 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             exit={isDrawer ? { x: '100%' } : { y: '100%', sm: { y: 20, scale: 0.95 } }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={`
-              relative flex flex-col bg-white shadow-xl
+              relative flex flex-col bg-white
               ${isDrawer 
-                ? 'absolute right-0 top-0 h-full w-full max-w-md rounded-l-2xl' 
-                : 'w-full max-h-[90vh] sm:max-h-[85vh] sm:max-w-lg rounded-t-2xl sm:rounded-2xl'
+                ? 'absolute right-0 top-0 h-full w-full max-w-md border-l-[4px] border-black' 
+                : 'w-full h-full sm:h-auto sm:max-h-[85vh] sm:max-w-lg border-0 sm:border-[4px] border-black sm:shadow-[8px_8px_0px_rgba(0,0,0,1)]'
               }
             `}
           >
-            {/* Handle for mobile bottom sheet */}
-            {!isDrawer && (
-              <div className="flex w-full justify-center pt-2.5 pb-0.5 sm:hidden">
-                <div className="h-1 w-10 rounded-full bg-gray-200" />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between px-4 py-2.5 sm:px-6 sm:py-4 border-b border-gray-100 shrink-0">
-              {title && <h2 className="text-sm sm:text-lg font-semibold text-[#1E1B4B]">{title}</h2>}
+            {/* Header */}
+            <div className={`flex items-center justify-between px-4 sm:px-6 py-4 shrink-0 ${title ? 'border-b-[4px] border-black bg-[#E0FF4F]' : ''}`}>
+              {title && <h2 className="text-xl sm:text-2xl font-black uppercase text-black tracking-tight">{title}</h2>}
               <button
                 onClick={onClose}
-                className="rounded-full p-1.5 hover:bg-gray-100 transition-colors ml-auto"
+                className="bg-white border-[3px] border-black p-1.5 shadow-[2px_2px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all ml-auto"
               >
-                <X className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                <X className="h-5 w-5 text-black" strokeWidth={3} />
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto px-4 py-3 sm:px-6 sm:py-4">
+            <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6 bg-[#FDFBF7]">
               {children}
             </div>
           </motion.div>

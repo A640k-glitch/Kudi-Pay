@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '../../components/Button';
-import { Input, Select } from '../../components/FormInputs';
+import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
 import { businessSchema } from '../../lib/validation/schemas';
 
@@ -97,32 +96,31 @@ export default function BusinessProfilePage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50 text-[#1E1B4B]">
-      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none">
-        <Logo className="h-7 md:h-8" />
-        <div className="flex items-center gap-3 text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider">
-          <span>Step 1 of 2</span>
-          <div className="flex gap-1">
-            <div className="w-5 h-1.5 rounded-sm bg-[#1E1B4B]" />
-            <div className="w-5 h-1.5 rounded-sm bg-gray-200" />
-          </div>
+    <div className="min-h-screen flex flex-col bg-[#FDFBF7] text-black font-sans selection:bg-[#E0FF4F] selection:text-black">
+      <header className="p-4 md:p-6 max-w-7xl mx-auto w-full flex items-center justify-between shrink-0 select-none border-b-[4px] border-black bg-white shadow-[0px_4px_0px_rgba(0,0,0,1)] z-10">
+        <Logo className="h-8" />
+        <div className="flex items-center gap-3 text-xs font-black uppercase tracking-widest bg-[#E0FF4F] border-[3px] border-black px-3 py-1 shadow-[2px_2px_0px_rgba(0,0,0,1)] rotate-2">
+          Step 1 of 2
         </div>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center px-4 max-w-md mx-auto w-full py-4 md:py-12">
-        <div className="bg-white p-5 md:p-8 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="mb-6 md:mb-8 text-center">
-            <h1 className="text-xl md:text-2xl font-bold text-[#1E1B4B] mb-1.5">Business Identity</h1>
-            <p className="text-xs md:text-sm text-gray-500">Provide details to generate your storefront.</p>
+      <main className="flex-1 flex flex-col justify-center px-4 max-w-lg mx-auto w-full py-8 md:py-12 animate-fade-in">
+        <div className="bg-white p-6 md:p-10 border-[4px] border-black shadow-[8px_8px_0px_rgba(0,0,0,1)] relative">
+          <div className="absolute -top-4 -left-4 w-8 h-8 bg-[#FF6666] border-[3px] border-black rounded-full" />
+          <div className="absolute -bottom-4 -right-4 w-10 h-10 bg-[#4D9DE0] border-[3px] border-black" />
+
+          <div className="mb-8 border-b-[4px] border-black pb-6 text-center">
+            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tight mb-2">Business Identity</h1>
+            <p className="font-bold text-gray-600 uppercase text-sm">Provide details to generate your storefront.</p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-            <div className="flex flex-col items-center gap-2 mb-2">
-              <div className="relative w-24 h-24 rounded-2xl bg-gray-50 border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden hover:bg-gray-100 transition-colors">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+            <div className="flex flex-col items-center gap-3 mb-4">
+              <div className="relative w-32 h-32 bg-[#E0FF4F] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] flex items-center justify-center overflow-hidden hover:translate-y-1 hover:shadow-none transition-all cursor-pointer">
                 {logoPreview ? (
                   <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-gray-400 text-xs font-medium text-center px-2">Upload Logo</span>
+                  <span className="text-black font-black uppercase text-sm text-center px-4">Upload Logo</span>
                 )}
                 <input 
                   type="file" 
@@ -131,48 +129,65 @@ export default function BusinessProfilePage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
               </div>
-              <p className="text-[11px] text-gray-400 font-medium uppercase tracking-widest">Store Logo (Optional)</p>
+              <p className="text-xs font-black uppercase tracking-widest text-gray-500">Store Logo (Optional)</p>
             </div>
 
             <div>
-              <Input
-                label="Business Name"
+              <label className="block font-black uppercase text-sm mb-2">Business Name</label>
+              <input
+                type="text"
                 placeholder="e.g. Adeeze Fashion House"
                 {...register('businessName')}
-                error={errors.businessName?.message}
+                className="w-full border-[4px] border-black p-4 font-bold outline-none focus:bg-[#E0FF4F] transition-colors"
               />
-              <p className="text-xs text-gray-500 mt-2 font-mono bg-gray-50 p-2.5 rounded-lg border border-gray-100">
-                Your link: <span className="text-[#1E1B4B] font-bold">kudi.ng/store/{liveSlug}</span>
+              {errors.businessName && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.businessName.message}</p>}
+              <p className="text-sm font-bold mt-2 bg-gray-100 border-[3px] border-black p-3 shadow-[2px_2px_0px_rgba(0,0,0,1)]">
+                Your link: <span className="font-black text-[#4D9DE0]">kudi.ng/store/{liveSlug}</span>
               </p>
             </div>
 
-            <Select
-              label="Category"
-              options={CATEGORIES}
-              {...register('category')}
-              error={errors.category?.message}
-            />
-
-            <div className="grid grid-cols-2 gap-4">
-              <Select
-                label="State"
-                options={NIGERIAN_STATES}
-                {...register('state')}
-                error={errors.state?.message}
-              />
-
-              <Select
-                label="LGA"
-                options={selectedState ? LGAS_BY_STATE[selectedState] || [] : []}
-                {...register('lga')}
-                disabled={!selectedState}
-                error={errors.lga?.message}
-              />
+            <div>
+              <label className="block font-black uppercase text-sm mb-2">Category</label>
+              <select
+                {...register('category')}
+                className="w-full border-[4px] border-black p-4 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none bg-white cursor-pointer"
+              >
+                <option value="">Select Category</option>
+                {CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
+              </select>
+              {errors.category && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.category.message}</p>}
             </div>
 
-            <Button type="submit" className="w-full mt-4 h-12 text-sm font-semibold rounded-xl bg-[#1E1B4B] text-white hover:bg-[#111827] transition-colors shadow-sm">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block font-black uppercase text-sm mb-2">State</label>
+                <select
+                  {...register('state')}
+                  className="w-full border-[4px] border-black p-4 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none bg-white cursor-pointer"
+                >
+                  <option value="">State</option>
+                  {NIGERIAN_STATES.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+                </select>
+                {errors.state && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.state.message}</p>}
+              </div>
+
+              <div>
+                <label className="block font-black uppercase text-sm mb-2">LGA</label>
+                <select
+                  {...register('lga')}
+                  disabled={!selectedState}
+                  className="w-full border-[4px] border-black p-4 font-bold uppercase outline-none focus:bg-[#E0FF4F] transition-colors appearance-none bg-white cursor-pointer disabled:bg-gray-100 disabled:text-gray-400"
+                >
+                  <option value="">LGA</option>
+                  {selectedState && LGAS_BY_STATE[selectedState]?.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
+                </select>
+                {errors.lga && <p className="text-[#FF6666] font-black uppercase text-xs mt-1">{errors.lga.message}</p>}
+              </div>
+            </div>
+
+            <BrutalButton type="submit" className="w-full mt-4 h-16 text-xl">
               Create storefront &rarr;
-            </Button>
+            </BrutalButton>
           </form>
         </div>
       </main>

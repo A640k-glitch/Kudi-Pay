@@ -16,47 +16,50 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
 
   if (!isOpen) return null;
 
+  const theme = business?.theme || 'modern';
+  const isBrutal = theme === 'brutal';
+
   return (
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 z-50 transition-opacity"
+        className={`fixed inset-0 z-[100] transition-opacity ${isBrutal ? 'bg-black/80 backdrop-blur-sm' : 'bg-black/50'}`}
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="fixed inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+      <div className={`fixed inset-y-0 right-0 w-full max-w-md shadow-2xl z-[110] flex flex-col animate-in slide-in-from-right duration-300 ${isBrutal ? 'bg-black border-l-[4px] border-white' : 'bg-white'}`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+        <div className={`flex items-center justify-between px-5 py-4 ${isBrutal ? 'border-b-[4px] border-white' : 'border-b border-gray-100'}`}>
           <div className="flex items-center gap-3">
-            <ShoppingBag className="w-5 h-5 text-[#1E1B4B]" />
-            <h2 className="text-lg font-bold text-[#1E1B4B]">Your Cart</h2>
+            <ShoppingBag className={`w-6 h-6 ${isBrutal ? 'text-white' : 'text-black'}`} strokeWidth={isBrutal ? 2.5 : 2} />
+            <h2 className={`text-xl font-black uppercase ${isBrutal ? 'text-white' : 'text-black'}`}>Your Cart</h2>
             {items.length > 0 && (
-              <span className="w-6 h-6 rounded-full bg-[#1E1B4B] text-white text-xs font-bold flex items-center justify-center">
+              <span className={`w-8 h-8 flex items-center justify-center font-black text-sm ${isBrutal ? 'bg-[#E0FF4F] text-black border-[3px] border-white shadow-[2px_2px_0px_rgba(255,255,255,1)]' : 'rounded-full bg-black text-white'}`}>
                 {items.length}
               </span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className={`p-2 transition-all ${isBrutal ? 'bg-white text-black border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1' : 'hover:bg-gray-100 rounded-full'}`}
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5" strokeWidth={isBrutal ? 3 : 2} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className={`flex-1 overflow-y-auto p-5 ${isBrutal ? 'bg-black selection:bg-[#E0FF4F] selection:text-black' : ''}`}>
           {items.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-20">
-              <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
-                <ShoppingBag className="w-10 h-10 text-gray-400" />
+              <div className={`w-24 h-24 flex items-center justify-center mb-6 ${isBrutal ? 'bg-[#E0FF4F] border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)]' : 'bg-gray-100 rounded-full'}`}>
+                <ShoppingBag className={`w-12 h-12 ${isBrutal ? 'text-black' : 'text-gray-400'}`} strokeWidth={isBrutal ? 1.5 : 2} />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Your cart is empty</h3>
-              <p className="text-gray-500 mb-6">Looks like you haven't added anything yet.</p>
+              <h3 className={`text-2xl font-black uppercase mb-2 ${isBrutal ? 'text-white' : 'text-black'}`}>Your cart is empty</h3>
+              <p className={`font-bold uppercase mb-8 ${isBrutal ? 'text-gray-400' : 'text-gray-500'}`}>Looks like you haven't added anything yet.</p>
               <button
                 onClick={onClose}
-                className="px-6 h-12 rounded-xl font-bold text-white bg-[#1E1B4B] hover:bg-[#312E81] transition-colors"
+                className={`px-8 h-14 flex items-center justify-center font-black uppercase text-lg transition-all ${isBrutal ? 'bg-[#E0FF4F] text-black border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] active:translate-y-1 active:shadow-none' : 'rounded-xl bg-black text-white hover:bg-gray-800'}`}
               >
                 Continue Shopping
               </button>
@@ -64,44 +67,44 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
           ) : (
             <div className="space-y-4">
               {items.map(item => (
-                <div key={item.productId} className="flex gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
-                  <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-gray-200">
+                <div key={item.productId} className={`flex gap-4 p-4 transition-all ${isBrutal ? 'bg-black border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)]' : 'bg-gray-50 rounded-xl border border-gray-100'}`}>
+                  <div className={`w-20 h-20 overflow-hidden shrink-0 ${isBrutal ? 'bg-[#E0FF4F] border-[2px] border-white' : 'bg-gray-200 rounded-lg'}`}>
                     {item.imageUrl ? (
                       <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag className="w-5 h-5 text-gray-400" />
+                        <ShoppingBag className={`w-6 h-6 ${isBrutal ? 'text-black' : 'text-gray-400'}`} strokeWidth={isBrutal ? 1.5 : 2} />
                       </div>
                     )}
                   </div>
                   
                   <div className="flex-1 flex flex-col justify-between">
                     <div className="flex justify-between items-start gap-2">
-                      <h3 className="font-medium text-sm text-gray-900 line-clamp-2">{item.productName}</h3>
+                      <h3 className={`font-black uppercase text-sm line-clamp-2 ${isBrutal ? 'text-white' : 'text-gray-900'}`}>{item.productName}</h3>
                       <button 
                         onClick={() => removeItem(item.productId)}
-                        className="p-1 hover:bg-red-50 rounded text-red-500 transition-colors"
+                        className={`p-1.5 transition-all ${isBrutal ? 'bg-[#FF6666] text-white border-[2px] border-white shadow-[2px_2px_0px_rgba(255,255,255,1)] hover:-translate-y-0.5' : 'hover:bg-red-50 rounded text-red-500'}`}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" strokeWidth={isBrutal ? 3 : 2} />
                       </button>
                     </div>
                     
                     <div className="flex items-center justify-between mt-2">
-                      <span className="font-bold text-sm text-gray-900">{formatNaira(item.unitPrice)}</span>
+                      <span className={`font-black text-lg ${isBrutal ? 'text-[#E0FF4F]' : 'text-black'}`}>{formatNaira(item.unitPrice)}</span>
                       
-                      <div className="flex items-center rounded-lg border border-gray-200 p-1 bg-white">
+                      <div className={`flex items-center p-1 ${isBrutal ? 'bg-white border-[2px] border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]' : 'border border-gray-200 rounded-lg bg-white'}`}>
                         <button 
                           onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
+                          className={`w-8 h-8 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[#E0FF4F] hover:bg-gray-900' : 'text-gray-600 hover:bg-gray-100 rounded'}`}
                         >
-                          <Minus className="w-3 h-3 text-gray-600" />
+                          <Minus className="w-4 h-4" strokeWidth={isBrutal ? 3 : 2} />
                         </button>
-                        <span className="w-7 text-center text-sm font-bold text-gray-900">{item.quantity}</span>
+                        <span className={`w-8 text-center text-sm font-black ${isBrutal ? 'text-black' : 'text-gray-900'}`}>{item.quantity}</span>
                         <button 
                           onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
+                          className={`w-8 h-8 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[#E0FF4F] hover:bg-gray-900' : 'text-gray-600 hover:bg-gray-100 rounded'}`}
                         >
-                          <Plus className="w-3 h-3 text-gray-600" />
+                          <Plus className="w-4 h-4" strokeWidth={isBrutal ? 3 : 2} />
                         </button>
                       </div>
                     </div>
@@ -114,19 +117,19 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
 
         {/* Footer */}
         {items.length > 0 && (
-          <div className="border-t border-gray-100 p-5 bg-gray-50">
+          <div className={`p-5 ${isBrutal ? 'bg-black border-t-[4px] border-white' : 'border-t border-gray-100 bg-gray-50'}`}>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="text-xl font-bold text-gray-900">{formatNaira(getTotal())}</span>
+              <span className={`font-black uppercase tracking-widest ${isBrutal ? 'text-gray-400' : 'text-gray-600'}`}>Subtotal</span>
+              <span className={`text-2xl font-black ${isBrutal ? 'text-white' : 'text-black'}`}>{formatNaira(getTotal())}</span>
             </div>
             <button
               onClick={() => {
                 onClose();
                 onCheckout();
               }}
-              className="w-full flex items-center justify-center gap-2 px-6 h-14 rounded-xl font-bold text-white bg-[#1E1B4B] hover:bg-[#312E81] transition-colors"
+              className={`w-full flex items-center justify-center gap-3 h-16 font-black uppercase text-xl transition-all ${isBrutal ? 'bg-[#E0FF4F] text-black border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] active:translate-y-1 active:shadow-none' : 'rounded-xl bg-black text-white hover:bg-gray-800'}`}
             >
-              Checkout <ArrowRight className="w-5 h-5" />
+              CHECKOUT <ArrowRight className="w-6 h-6" strokeWidth={isBrutal ? 3 : 2} />
             </button>
           </div>
         )}
