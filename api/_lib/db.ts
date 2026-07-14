@@ -3,6 +3,9 @@ import { Pool } from '@neondatabase/serverless';
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: true,
+  connectionTimeoutMillis: 5000,
+  max: 1,
+  idleTimeoutMillis: 30000,
 });
 
 const SCHEMA_SQL = `

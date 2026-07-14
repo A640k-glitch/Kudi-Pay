@@ -587,5 +587,11 @@ app.get('/api/proxy/kyc/cac', async (_req, res) => {
   res.json({ status: 'success', message: 'Proxy placeholder for Dojah CAC' });
 });
 
+// ── Global Error Handler (must be last) ─────────────────────
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[Express] Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error', detail: err?.message || 'Unknown error' });
+});
+
 export { app };
 export default app;
