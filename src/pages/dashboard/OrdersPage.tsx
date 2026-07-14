@@ -275,14 +275,32 @@ export default function OrdersPage() {
                 className="flex-[2] py-3.5 flex items-center justify-center bg-[#E0FF4F] text-slate-900 font-bold border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] rounded-[12px] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all"
                 onClick={() => {
                   const el = document.getElementById('receipt-container');
-                  if (el) {
-                    htmlToImage.toPng(el, { backgroundColor: '#fff', pixelRatio: 2 }).then(dataUrl => {
+                  if (!el) return;
+                  // Clone off-screen so full height is captured (not just visible scroll area)
+                  const clone = el.cloneNode(true) as HTMLElement;
+                  clone.style.position = 'fixed';
+                  clone.style.top = '-9999px';
+                  clone.style.left = '-9999px';
+                  clone.style.width = el.scrollWidth + 'px';
+                  clone.style.height = el.scrollHeight + 'px';
+                  clone.style.overflow = 'visible';
+                  document.body.appendChild(clone);
+                  htmlToImage
+                    .toPng(clone, {
+                      backgroundColor: '#fff',
+                      pixelRatio: 2,
+                      skipFonts: true,  // avoids CORS SecurityError from Google Fonts
+                      width: el.scrollWidth,
+                      height: el.scrollHeight,
+                    })
+                    .then(dataUrl => {
+                      document.body.removeChild(clone);
                       const link = document.createElement('a');
-                      link.download = `Receipt-${selectedOrder.id.slice(0,8)}.png`;
+                      link.download = `Receipt-${selectedOrder.id.slice(0, 8)}.png`;
                       link.href = dataUrl;
                       link.click();
-                    });
-                  }
+                    })
+                    .catch(() => document.body.removeChild(clone));
                 }}
               >
                 <Download weight="bold" className="w-5 h-5 mr-2" /> Download

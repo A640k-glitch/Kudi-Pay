@@ -130,14 +130,31 @@ export default function ConfirmationPage() {
               className="flex-1 h-14 flex items-center justify-center transition-all font-semibold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200"
               onClick={() => {
                 const el = document.getElementById('receipt-container');
-                if (el) {
-                  htmlToImage.toPng(el, { backgroundColor: '#ffffff', pixelRatio: 2 }).then(dataUrl => {
+                if (!el) return;
+                const clone = el.cloneNode(true) as HTMLElement;
+                clone.style.position = 'fixed';
+                clone.style.top = '-9999px';
+                clone.style.left = '-9999px';
+                clone.style.width = el.scrollWidth + 'px';
+                clone.style.height = el.scrollHeight + 'px';
+                clone.style.overflow = 'visible';
+                document.body.appendChild(clone);
+                htmlToImage
+                  .toPng(clone, {
+                    backgroundColor: '#ffffff',
+                    pixelRatio: 2,
+                    skipFonts: true,
+                    width: el.scrollWidth,
+                    height: el.scrollHeight,
+                  })
+                  .then(dataUrl => {
+                    document.body.removeChild(clone);
                     const link = document.createElement('a');
                     link.download = `Receipt-${order.id}.png`;
                     link.href = dataUrl;
                     link.click();
-                  });
-                }
+                  })
+                  .catch(() => document.body.removeChild(clone));
               }}
             >
               <Download className="w-5 h-5 mr-2" strokeWidth={2} /> Download

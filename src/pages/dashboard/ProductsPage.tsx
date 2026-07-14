@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Product } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
-import { businessService } from '../../lib/services/businessService';
+import { businessService, DEFAULT_HERO_IMAGE_URL } from '../../lib/services/businessService';
 import { productService } from '../../lib/services/productService';
 import { Modal } from '../../components/Modal';
 import { formatNaira } from '../../lib/utils';
@@ -80,6 +80,32 @@ export default function ProductsPage() {
 
   const openAddModal = () => { setEditingProduct(null); setIsModalOpen(true); };
   const openEditModal = (product: Product) => { setEditingProduct(product); setIsModalOpen(true); };
+
+  const handleResetHero = async () => {
+    if (!business) return;
+    try {
+      const updated = await businessService.updateBusiness(business.id, {
+        themeConfig: {
+          ...business.themeConfig,
+          heroImageUrl: DEFAULT_HERO_IMAGE_URL
+        }
+      });
+      if (updated) {
+        setBusiness(updated);
+        addToast('Reverted to default hero image', 'success');
+        const channel = new BroadcastChannel('theme_updates');
+        channel.postMessage({
+          type: 'theme_changed',
+          slug: business.storefrontSlug,
+          theme: business.theme,
+          themeConfig: { ...business.themeConfig, heroImageUrl: DEFAULT_HERO_IMAGE_URL }
+        });
+        channel.close();
+      }
+    } catch {
+      addToast('Failed to reset hero image', 'error');
+    }
+  };
 
   const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -233,51 +259,61 @@ export default function ProductsPage() {
 
                       {product.imageUrl && (
                         <div className="pt-2 flex flex-col gap-1 border-t border-slate-100" onClick={e => e.stopPropagation()}>
-                          <div className="flex items-center justify-between">
+                          <div className="flex items-center justify-between gap-2">
                             <span className="text-xs md:text-sm font-bold text-slate-600">Storefront Hero</span>
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (business) {
-                                  try {
-                                    const updated = await businessService.updateBusiness(business.id, {
-                                      themeConfig: {
-                                        ...business.themeConfig,
-                                        heroImageUrl: product.imageUrl
-                                      }
-                                    });
-                                    if (updated) {
-                                      setBusiness(updated);
-                                      addToast('Set as storefront hero image!', 'success');
-                                      
-                                      // Broadcast update so storefront re-renders immediately!
-                                      const channel = new BroadcastChannel('theme_updates');
-                                      channel.postMessage({ 
-                                        type: 'theme_changed', 
-                                        slug: business.storefrontSlug,
-                                        theme: business.theme,
+                            <div className="flex items-center gap-1.5">
+                              {/* Reset to default — only shown when a custom hero is active */}
+                              {isHeroImage && activeHeroUrl !== DEFAULT_HERO_IMAGE_URL && (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => { e.stopPropagation(); await handleResetHero(); }}
+                                  className="px-2.5 py-1 text-[10px] md:text-xs font-black rounded-lg border-2 border-slate-900 bg-white text-slate-500 shadow-[2px_2px_0px_#0f172a] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none transition-all"
+                                >
+                                  Reset
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (business) {
+                                    try {
+                                      const updated = await businessService.updateBusiness(business.id, {
                                         themeConfig: {
                                           ...business.themeConfig,
                                           heroImageUrl: product.imageUrl
                                         }
                                       });
-                                      channel.close();
+                                      if (updated) {
+                                        setBusiness(updated);
+                                        addToast('Set as storefront hero image!', 'success');
+                                        const channel = new BroadcastChannel('theme_updates');
+                                        channel.postMessage({
+                                          type: 'theme_changed',
+                                          slug: business.storefrontSlug,
+                                          theme: business.theme,
+                                          themeConfig: {
+                                            ...business.themeConfig,
+                                            heroImageUrl: product.imageUrl
+                                          }
+                                        });
+                                        channel.close();
+                                      }
+                                    } catch {
+                                      addToast('Failed to update storefront hero image', 'error');
                                     }
-                                  } catch {
-                                    addToast('Failed to update storefront hero image', 'error');
                                   }
-                                }
-                              }}
-                              className={`px-2.5 py-1 text-[10px] md:text-xs font-black rounded-lg border-2 border-slate-900 transition-all ${
-                                isHeroImage 
-                                  ? 'bg-[#FFD166] text-slate-900 shadow-sm cursor-default' 
-                                  : 'bg-white text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none'
-                              }`}
-                              disabled={isHeroImage}
-                            >
-                              {isHeroImage ? 'Current Hero' : 'Use as Hero'}
-                            </button>
+                                }}
+                                className={`px-2.5 py-1 text-[10px] md:text-xs font-black rounded-lg border-2 border-slate-900 transition-all ${
+                                  isHeroImage
+                                    ? 'bg-[#FFD166] text-slate-900 shadow-sm cursor-default'
+                                    : 'bg-white text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none'
+                                }`}
+                                disabled={isHeroImage}
+                              >
+                                {isHeroImage ? 'Current Hero' : 'Use as Hero'}
+                              </button>
+                            </div>
                           </div>
                           <span className="text-[9px] text-slate-400 font-bold self-end">
                             Required size: 1200 x 500 px
@@ -559,17 +595,17 @@ function ProductFormModal({ isOpen, onClose, product, businessId, businessCatego
         <div className="border-t-2 border-slate-100 pt-4 flex flex-col gap-4 mt-2">
           <label className="flex items-center justify-between cursor-pointer group">
             <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 transition-colors">Available for sale</span>
-            <input type="checkbox" className="hidden" checked={watch('isAvailable')} onChange={(e) => setValue('isAvailable', e.target.checked, { shouldDirty: true })} />
-            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${watch('isAvailable') ? 'bg-[#10B981]' : 'bg-slate-200'}`}>
-              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${watch('isAvailable') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+            <input type="checkbox" className="hidden" checked={!!watch('isAvailable')} onChange={(e) => setValue('isAvailable', e.target.checked, { shouldDirty: true })} />
+            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${!!watch('isAvailable') ? 'bg-[#10B981]' : 'bg-slate-200'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${!!watch('isAvailable') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </div>
           </label>
           
           <label className="flex items-center justify-between cursor-pointer group">
             <span className="font-bold text-sm text-slate-700 group-hover:text-slate-900 transition-colors">Track stock?</span>
-            <input type="checkbox" className="hidden" checked={watch('trackStock')} onChange={(e) => setValue('trackStock', e.target.checked, { shouldDirty: true })} />
-            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${watch('trackStock') ? 'bg-[#E0FF4F]' : 'bg-slate-200'}`}>
-              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${watch('trackStock') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+            <input type="checkbox" className="hidden" checked={!!watch('trackStock')} onChange={(e) => setValue('trackStock', e.target.checked, { shouldDirty: true })} />
+            <div className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${!!watch('trackStock') ? 'bg-[#E0FF4F]' : 'bg-slate-200'}`}>
+              <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 rounded-full bg-white border-2 border-slate-900 transition-transform ${!!watch('trackStock') ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
             </div>
           </label>
           
