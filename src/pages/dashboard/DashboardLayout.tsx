@@ -8,6 +8,7 @@ import { Modal } from '../../components/Modal';
 import { Logo } from '../../components/Logo';
 import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '../../lib/utils';
+import { authService } from '../../lib/services/authService';
 import { ArrowRight, PaintBrushBroad } from '@phosphor-icons/react';
 
 
@@ -41,13 +42,15 @@ export default function DashboardLayout() {
       window.history.replaceState({}, '', '/dashboard');
     }
 
-    const str = localStorage.getItem('kudi_businesses');
-    const phone = localStorage.getItem('kudi_session_phone');
-    if (str && phone) {
-      const businesses = JSON.parse(str);
-      const b = businesses.find((b: any) => b.ownerPhone === phone);
-      if (b) {
-        setStoreLink(`${window.location.origin}/store/${b.storefrontSlug}`);
+    const phone = authService.getCurrentPhone();
+    if (phone) {
+      const str = localStorage.getItem('kudi_businesses');
+      if (str) {
+        const businesses = JSON.parse(str);
+        const b = businesses.find((b: any) => b.ownerPhone === phone);
+        if (b) {
+          setStoreLink(`${window.location.origin}/store/${b.storefrontSlug}`);
+        }
       }
     }
   }, [location]);

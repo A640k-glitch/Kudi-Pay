@@ -75,15 +75,22 @@ export default function FirstProductPage() {
   const onSubmit = async (data: ProductFormValues) => {
     setIsSubmitting(true);
     try {
-      const phone = authService.getCurrentPhone();
-      if (!phone) throw new Error("No session");
-      const business = await businessService.getBusinessByPhone(phone);
-      if (!business) throw new Error("Business not found");
-
-      await productService.createProduct({
-        ...data,
-        businessId: business.id,
-      });
+      const businessId = authService.getCurrentBusinessId();
+      if (!businessId) {
+        const phone = authService.getCurrentPhone();
+        if (!phone) throw new Error("No session");
+        const business = await businessService.getBusinessByPhone(phone);
+        if (!business) throw new Error("Business not found");
+        await productService.createProduct({
+          ...data,
+          businessId: business.id,
+        });
+      } else {
+        await productService.createProduct({
+          ...data,
+          businessId,
+        });
+      }
       
       finishOnboarding();
     } catch (err) {

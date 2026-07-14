@@ -6,8 +6,7 @@ import { z } from 'zod';
 import { Logo } from '../../components/Logo';
 import { loginSchema } from '../../lib/validation/schemas';
 import { authService } from '../../lib/services/authService';
-import { businessService } from '../../lib/services/businessService';
-import { ArrowRight, ArrowLeft } from '@phosphor-icons/react';
+import { ArrowRight } from '@phosphor-icons/react';
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
@@ -24,14 +23,12 @@ export default function LoginPage() {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      const business = await businessService.getBusinessByPhone(data.phone);
-      if (!business) {
-        setErrorMsg("We don't recognize this number.");
-        setIsLoading(false);
-        return;
+      const result = await authService.login(data.phone, data.password);
+      if (result.success) {
+        navigate('/verify');
+      } else {
+        setErrorMsg(result.message || "We don't recognize this number.");
       }
-      await authService.sendOTP(data.phone);
-      navigate('/verify');
     } catch (error) {
       console.error(error);
     } finally {

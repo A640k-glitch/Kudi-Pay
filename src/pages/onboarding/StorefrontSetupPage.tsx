@@ -32,7 +32,6 @@ export default function StorefrontSetupPage() {
   const selectedTheme = watch('theme');
 
   useEffect(() => {
-    // Auto-suggest slug from session
     const stored = sessionStorage.getItem('kudi_onboarding_business');
     if (stored) {
       const { businessName } = JSON.parse(stored);
@@ -65,16 +64,19 @@ export default function StorefrontSetupPage() {
       const stored = sessionStorage.getItem('kudi_onboarding_business');
       const businessData = stored ? JSON.parse(stored) : {};
       const phone = authService.getCurrentPhone();
-      
+      const password = sessionStorage.getItem('kudi_temp_password') || '';
+
       if (!phone) throw new Error("No session");
 
       await businessService.createBusiness({
         ...businessData,
         ...data,
         ownerPhone: phone,
+        password,
       });
-      
+
       sessionStorage.removeItem('kudi_onboarding_business');
+      sessionStorage.removeItem('kudi_temp_password');
       navigate('/onboarding/first-product');
     } catch (err) {
       console.error(err);
