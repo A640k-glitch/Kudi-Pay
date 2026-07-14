@@ -43,10 +43,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               initial={{ opacity: 0, y: 50, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg pointer-events-auto w-full text-sm font-medium
-                ${toast.type === 'success' ? 'bg-[var(--color-primary)] text-white' : ''}
-                ${toast.type === 'error' ? 'bg-[var(--color-destructive)] text-white' : ''}
-                ${toast.type === 'info' ? 'bg-[var(--color-neutral-text)] text-white' : ''}
+              className={`flex items-center gap-3 px-4 py-3.5 rounded-xl shadow-xl pointer-events-auto w-full text-sm font-medium text-white
+                ${toast.type === 'success' ? 'bg-emerald-600' : ''}
+                ${toast.type === 'error' ? 'bg-red-500' : ''}
+                ${toast.type === 'info' ? 'bg-slate-900' : ''}
               `}
             >
               {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 shrink-0" />}

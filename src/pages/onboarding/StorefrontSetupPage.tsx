@@ -13,7 +13,7 @@ import { authService } from '../../lib/services/authService';
 type StorefrontFormValues = z.infer<typeof storefrontSchema>;
 
 const THEMES = [
-  { id: 'brutal', name: 'Neo-Brutalism', desc: 'High contrast, bold fonts, raw aesthetic' },
+  { id: 'light', name: 'Light Mode', desc: 'Clean, elegant, Shopify-inspired aesthetic' },
   { id: 'modern', name: 'Modern Minimal', desc: 'Clean, sleek, Shopify-like experience' },
 ];
 
@@ -25,7 +25,7 @@ export default function StorefrontSetupPage() {
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<StorefrontFormValues>({
     resolver: zodResolver(storefrontSchema),
-    defaultValues: { theme: 'brutal' }
+    defaultValues: { theme: 'light' }
   });
 
   const slug = watch('storefrontSlug');

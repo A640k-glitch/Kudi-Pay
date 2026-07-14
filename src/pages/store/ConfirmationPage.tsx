@@ -32,15 +32,15 @@ export default function ConfirmationPage() {
 
   if (isLoading) return (
     <div className="min-h-screen p-10 flex justify-center items-center">
-      <div className={`w-12 h-12 rounded-full border-4 border-t-transparent animate-spin ${isBrutal ? 'border-white' : 'border-black'}`} />
+      <div className="w-12 h-12 rounded-full border-4 border-t-transparent animate-spin border-black" />
     </div>
   );
 
   if (!order || !business) {
     return (
       <div className="p-10 text-center flex flex-col items-center">
-        <h1 className={`text-3xl mb-6 ${isBrutal ? 'font-black uppercase text-white' : 'font-display font-bold text-primary'}`}>Order not found</h1>
-        <Link to={`/store/${business?.storefrontSlug}`} className={`flex items-center gap-2 ${isBrutal ? 'font-bold uppercase text-[#E0FF4F] hover:text-white' : 'font-semibold text-accent hover:text-emerald-400 transition-colors'}`}>
+        <h1 className="text-3xl mb-6 font-display font-bold text-primary">Order not found</h1>
+        <Link to={`/store/${business?.storefrontSlug}`} className="flex items-center gap-2 font-semibold text-accent hover:text-emerald-400 transition-colors">
           <ArrowLeft className="w-5 h-5" /> Return to store
         </Link>
       </div>
@@ -48,43 +48,43 @@ export default function ConfirmationPage() {
   }
 
   return (
-    <div className={`p-4 md:p-6 max-w-xl mx-auto pb-24 flex flex-col items-center text-center mt-10 ${isBrutal ? 'selection:bg-[#E0FF4F] selection:text-black' : 'selection:bg-accent selection:text-white'}`}>
+    <div className="p-4 md:p-6 max-w-xl mx-auto pb-24 flex flex-col items-center text-center mt-10 selection:bg-accent selection:text-white">
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className={`mb-8 w-28 h-28 flex items-center justify-center ${isBrutal ? 'bg-[#E0FF4F] text-black border-[4px] border-white shadow-[8px_8px_0px_rgba(255,255,255,1)]' : 'bg-emerald-50 text-accent rounded-full shadow-sm border border-emerald-100'}`}
+        className="mb-8 w-28 h-28 flex items-center justify-center bg-emerald-50 text-accent rounded-full shadow-sm border border-emerald-100"
       >
-        <CheckCircle2 className="w-14 h-14" strokeWidth={isBrutal ? 3 : 2} />
+        <CheckCircle2 className="w-14 h-14" strokeWidth={2} />
       </motion.div>
 
-      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 ${isBrutal ? 'font-black uppercase text-white drop-shadow-[2px_2px_0px_var(--s-accent)]' : 'font-display font-bold text-primary'}`}>Order Successful!</h1>
-      <p className={`mb-10 max-w-md text-lg md:text-xl leading-relaxed ${isBrutal ? 'font-bold uppercase text-gray-300' : 'font-medium text-slate-500'}`}>
-        We've notified <span className={isBrutal ? 'text-[#E0FF4F]' : 'text-primary font-semibold'}>{business.businessName}</span>. They'll be in touch shortly.
+      <h1 className="text-4xl md:text-5xl tracking-tighter mb-4 font-display font-bold text-primary">Order Successful!</h1>
+      <p className="mb-10 max-w-md text-lg md:text-xl leading-relaxed font-medium text-slate-500">
+        We've notified <span className="text-primary font-semibold">{business.businessName}</span>. They'll be in touch shortly.
       </p>
 
-      <div className={`w-full p-8 mb-10 ${isBrutal ? 'bg-black border-[4px] border-white shadow-[8px_8px_0px_rgba(255,255,255,1)]' : 'glass-panel bg-white/90 border border-slate-200/60 rounded-[32px] shadow-sm'}`}>
-        <div className={`text-sm tracking-widest mb-2 ${isBrutal ? 'font-black uppercase text-gray-400' : 'font-bold text-slate-400 uppercase'}`}>Order Reference</div>
-        <div className={`text-3xl tracking-widest mb-8 ${isBrutal ? 'font-black text-white' : 'font-mono font-bold text-primary'}`}>#{order.id}</div>
-        
-        <div className={`pt-6 text-left ${isBrutal ? 'border-t-[4px] border-white' : 'border-t border-slate-200/60'}`}>
-          <div className={`flex justify-between items-center text-xl ${isBrutal ? 'font-black uppercase text-white' : 'font-semibold text-primary'}`}>
+      <div className="w-full p-8 mb-10 glass-panel bg-white border border-slate-200/60 rounded-[32px] shadow-sm">
+        <div className="text-sm tracking-widest mb-2 font-bold text-slate-400 uppercase">Order Reference</div>
+        <div className="text-3xl tracking-widest mb-8 font-mono font-bold text-primary">#{order.id}</div>
+
+        <div className="pt-6 text-left border-t border-slate-200/60">
+          <div className="flex justify-between items-center text-xl font-semibold text-primary">
             <span>Amount Paid</span>
-            <span className={isBrutal ? 'text-[#E0FF4F]' : 'text-slate-900 font-bold'}>{formatNaira(order.totalAmount)}</span>
+            <span className="text-slate-900 font-bold">{formatNaira(order.totalAmount)}</span>
           </div>
         </div>
       </div>
 
       <div className="w-full flex flex-col sm:flex-row gap-4">
-        <button 
+        <button
           onClick={() => setShowReceipt(true)}
-          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all ${isBrutal ? 'font-black uppercase text-lg bg-[#E0FF4F] text-black border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] active:translate-y-1 active:shadow-none' : 'font-semibold text-base md:text-lg bg-accent text-white rounded-[20px] shadow-lg shadow-accent/25 hover:bg-emerald-400 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0'}`}
+          className="flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg bg-accent text-white rounded-[20px] shadow-lg shadow-accent/25 hover:bg-emerald-400 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0"
         >
-          <Receipt className="w-5 h-5 mr-2" strokeWidth={isBrutal ? 3 : 2} /> View Receipt
+          <Receipt className="w-5 h-5 mr-2" strokeWidth={2} /> View Receipt
         </button>
-        <Link 
+        <Link
           to={`/store/${business.storefrontSlug}`}
-          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all ${isBrutal ? 'font-black uppercase text-lg bg-black text-white border-[4px] border-white shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] hover:bg-white hover:text-black active:translate-y-1 active:shadow-none' : 'font-semibold text-base md:text-lg bg-white text-slate-700 border border-slate-200/60 rounded-[20px] hover:bg-slate-50 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:border-slate-300'}`}
+          className="flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg bg-white text-slate-700 border border-slate-200/60 rounded-[20px] hover:bg-slate-50 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:border-slate-300"
         >
           Continue Shopping
         </Link>
@@ -92,14 +92,14 @@ export default function ConfirmationPage() {
 
       <Modal isOpen={showReceipt} onClose={() => setShowReceipt(false)}>
         <div className="py-4">
-          <div id="receipt-container" className="bg-white border-[4px] border-black p-8 rounded-none mx-auto max-w-sm font-mono text-sm text-black shadow-[8px_8px_0px_rgba(0,0,0,1)]">
+          <div id="receipt-container" className="bg-white border border-slate-200 p-8 rounded-2xl mx-auto max-w-sm font-mono text-sm text-black shadow-md">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-black uppercase tracking-widest border-b-[2px] border-black pb-4 inline-block">{business.businessName}</h2>
+              <h2 className="text-2xl font-bold uppercase tracking-widest border-b border-slate-200 pb-4 inline-block">{business.businessName}</h2>
               <p className="font-bold text-xs mt-4 uppercase">Receipt for Order #{order.id}</p>
               <p className="font-bold text-xs mt-1 uppercase text-gray-500">{format(new Date(order.createdAt), 'dd MMM yyyy, HH:mm')}</p>
             </div>
 
-            <div className="border-t-[2px] border-b-[2px] border-dashed border-black py-6 mb-6 space-y-4">
+            <div className="border-t border-b border-dashed border-slate-300 py-6 mb-6 space-y-4">
               {order.items.map((item, i) => (
                 <div key={i} className="flex justify-between font-bold uppercase">
                   <div>
@@ -111,7 +111,7 @@ export default function ConfirmationPage() {
               ))}
             </div>
 
-            <div className="flex justify-between font-black text-lg mb-8 uppercase">
+            <div className="flex justify-between font-bold text-lg mb-8 uppercase">
               <span>TOTAL PAID</span>
               <span>{formatNaira(order.totalAmount)}</span>
             </div>
@@ -119,15 +119,15 @@ export default function ConfirmationPage() {
             <div className="text-center font-bold text-xs text-gray-500 space-y-2 uppercase">
               <p>Customer: {order.customerName}</p>
               <p>Payment: {order.paymentMethod.replace('_', ' ')}</p>
-              <div className="mt-8 pt-6 border-t-[2px] border-black text-black">
-                <span className="bg-black text-white px-2 py-1 font-black inline-block -rotate-2 shadow-[2px_2px_0px_rgba(200,200,200,1)]">POWERED BY Kudi</span>
+              <div className="mt-8 pt-6 border-t border-slate-200 text-black">
+                <span className="bg-slate-100 text-slate-800 px-2 py-1 font-bold inline-block -rotate-2 rounded">POWERED BY KUDI</span>
               </div>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-8 px-4 sm:px-0">
-            <button 
-              className={`flex-1 h-14 flex items-center justify-center transition-all ${isBrutal ? 'font-black uppercase bg-white text-black border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1' : 'font-semibold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200'}`}
+            <button
+              className="flex-1 h-14 flex items-center justify-center transition-all font-semibold bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200"
               onClick={() => {
                 const el = document.getElementById('receipt-container');
                 if (el) {
@@ -140,10 +140,10 @@ export default function ConfirmationPage() {
                 }
               }}
             >
-              <Download className="w-5 h-5 mr-2" strokeWidth={isBrutal ? 3 : 2} /> Download
+              <Download className="w-5 h-5 mr-2" strokeWidth={2} /> Download
             </button>
-            <button 
-              className={`flex-1 h-14 transition-all ${isBrutal ? 'font-black uppercase bg-black text-white border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] hover:-translate-y-1 hover:bg-[#E0FF4F] hover:text-black' : 'font-semibold bg-primary text-white rounded-xl hover:bg-slate-800'}`}
+            <button
+              className="flex-1 h-14 transition-all font-semibold bg-primary text-white rounded-xl hover:bg-slate-800"
               onClick={() => setShowReceipt(false)}
             >
               Close

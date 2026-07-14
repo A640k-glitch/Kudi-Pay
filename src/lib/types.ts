@@ -20,7 +20,7 @@ export interface Business {
   lga: string;
   logoUrl?: string;
   storefrontSlug: string;
-  theme: 'brutal' | 'modern';
+  theme: 'light' | 'modern' | 'brutal';
   themeConfig?: ThemeConfig;
   createdAt: string;
   kycTier: KYCTier;

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet, useParams, Link, useNavigate } from 'react-router-dom';
-import { ShoppingBag, Phone, MapPin, ArrowRight } from 'lucide-react';
+import { Outlet, useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { ShoppingBag, Phone, MapPin, ArrowRight, ArrowLeft, Lock, X, Package } from 'lucide-react';
 import { businessService } from '../../lib/services/businessService';
-import { Business } from '../../lib/types';
+import { productService } from '../../lib/services/productService';
+import { Business, Product } from '../../lib/types';
 import { useCartStore } from '../../lib/store';
 import { Logo } from '../../components/Logo';
 import CartDrawer from '../../components/CartDrawer';
+import { useToast } from '../../components/Toast';
 
 const getContrastYIQ = (hexcolor: string) => {
   if (!hexcolor) return '#000000';
@@ -19,32 +21,28 @@ const getContrastYIQ = (hexcolor: string) => {
 
 // ─── Per-theme CSS variable sets ───────────────────────────────────────────
 function themeVars(theme: string, config?: any): string {
-  const primary = config?.primaryColor || (theme === 'brutal' ? '#E0FF4F' : '#10b981');
+  const primary = config?.primaryColor || (theme === 'light' || theme === 'brutal' ? '#111111' : '#10b981');
   const accentText = getContrastYIQ(primary);
   
-  if (theme === 'brutal') {
-    const isLightMode = accentText === '#000000';
-    const bg = isLightMode ? '#fdfbf7' : '#000000';
-    const surface = isLightMode ? '#ffffff' : '#000000';
-    const text = isLightMode ? '#000000' : '#ffffff';
-    const border = isLightMode ? '#000000' : '#ffffff';
-    const textMuted = isLightMode ? '#4b5563' : '#a3a3a3';
-
+  if (theme === 'light' || theme === 'brutal') {
     return `
       :root {
-        --s-bg: ${bg};
-        --s-surface: ${surface};
-        --s-card: ${surface};
-        --s-border: ${border};
-        --s-text: ${text};
-        --s-text-muted: ${textMuted};
+        --s-bg: #ffffff;
+        --s-surface: #ffffff;
+        --s-card: #ffffff;
+        --s-border: #e5e7eb;
+        --s-text: #111111;
+        --s-text-muted: #4b5563;
         --s-accent: ${primary};
         --s-accent-text: ${accentText};
       }
       body {
         background-color: var(--s-bg);
         color: var(--s-text);
-        font-family: 'Space Grotesk', sans-serif;
+        font-family: 'Outfit', sans-serif;
+      }
+      h1, h2, h3, h4, h5, h6, .font-display {
+        font-family: 'Plus Jakarta Sans', sans-serif;
       }
     `;
   }
@@ -82,10 +80,90 @@ function themeVars(theme: string, config?: any): string {
 export default function StoreLayout() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { addToast } = useToast();
+  
   const [business, setBusiness] = useState<Business | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const cartItemCount = useCartStore(state => state.getItemCount());
+
+  // Stock Alert Modal State
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [outofStockItems, setOutofStockItems] = useState<{ name: string; originalQty: number; newQty: number; isOut: boolean; category?: string }[]>([]);
+  const [alternatives, setAlternatives] = useState<Product[]>([]);
+
+  const formatNaira = (amount: number) => {
+    return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
+  };
+
+  const checkCartStock = async () => {
+    if (!business) return;
+    try {
+      const freshProducts = await productService.getProducts(business.id);
+      const cartItems = useCartStore.getState().items;
+      
+      const affected: { name: string; originalQty: number; newQty: number; isOut: boolean; category?: string }[] = [];
+      const updatedItems = [...cartItems];
+      let cartChanged = false;
+
+      for (let i = 0; i < updatedItems.length; i++) {
+        const item = updatedItems[i];
+        const fresh = freshProducts.find(p => p.id === item.productId);
+        
+        if (!fresh) continue;
+
+        const isOut = !fresh.isAvailable || (fresh.stockCount !== undefined && fresh.stockCount <= 0);
+        const maxAvailable = fresh.stockCount !== undefined ? fresh.stockCount : 9999;
+        
+        if (isOut) {
+          affected.push({
+            name: item.productName,
+            originalQty: item.quantity,
+            newQty: 0,
+            isOut: true,
+            category: fresh.category
+          });
+          updatedItems.splice(i, 1);
+          i--;
+          cartChanged = true;
+        } else if (item.quantity > maxAvailable) {
+          affected.push({
+            name: item.productName,
+            originalQty: item.quantity,
+            newQty: maxAvailable,
+            isOut: false,
+            category: fresh.category
+          });
+          updatedItems[i] = { ...item, quantity: maxAvailable };
+          cartChanged = true;
+        }
+      }
+
+      if (cartChanged) {
+        // Update store directly
+        useCartStore.setState({ items: updatedItems });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('kudi_store_cart_items', JSON.stringify(updatedItems));
+        }
+
+        // Find recommended alternatives from same category
+        const categoriesOfAffected = affected.map(a => a.category).filter(Boolean);
+        const altRecommendations = freshProducts.filter(p => 
+          p.isAvailable && 
+          (p.stockCount === undefined || p.stockCount > 0) &&
+          !updatedItems.some(item => item.productId === p.id) &&
+          categoriesOfAffected.includes(p.category)
+        ).slice(0, 3);
+
+        setAlternatives(altRecommendations);
+        setOutofStockItems(affected);
+        setIsNotificationOpen(true);
+      }
+    } catch (err) {
+      console.error('Failed to sync cart inventory:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchBusiness = async () => {
@@ -115,6 +193,21 @@ export default function StoreLayout() {
     return () => themeChannel.close();
   }, [slug]);
 
+  useEffect(() => {
+    const inventoryChannel = new BroadcastChannel('inventory_updates');
+    inventoryChannel.onmessage = (event) => {
+      if (event.data.type === 'inventory_changed' && event.data.slug === slug) {
+        checkCartStock();
+      }
+    };
+    
+    if (business) {
+      checkCartStock();
+    }
+    
+    return () => inventoryChannel.close();
+  }, [business?.id, slug]);
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">
       <div className="w-8 h-8 sm:w-12 sm:h-12 border-4 border-black border-t-transparent rounded-full animate-spin" />
@@ -123,117 +216,185 @@ export default function StoreLayout() {
   
   if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-xl sm:text-2xl uppercase">Store not found</div>;
 
-  const theme = business.theme || 'modern';
-  const isBrutal = theme === 'brutal';
-  const primary = business.themeConfig?.primaryColor || (isBrutal ? '#E0FF4F' : '#10b981');
+  const theme = business.theme || 'light';
+  const isLight = theme === 'light' || theme === 'brutal';
+  const primary = business.themeConfig?.primaryColor || (isLight ? '#111111' : '#10b981');
   const accentText = getContrastYIQ(primary);
-  const isLightMode = isBrutal && accentText === '#000000';
-  const isDarkMode = !isBrutal && accentText === '#ffffff';
+  const isLightMode = isLight;
+  const isDarkMode = !isLight && theme === 'modern';
   const initial = business.businessName.charAt(0).toUpperCase();
+  const isCheckoutPage = location.pathname.endsWith('/checkout');
 
   return (
-    <div className={`min-h-screen flex flex-col ${isBrutal ? 'selection:bg-[var(--s-accent)] selection:text-[var(--s-accent-text)]' : 'selection:bg-accent selection:text-white'} ${isLightMode ? 'brutal-light-mode' : ''} ${isDarkMode ? 'modern-dark-mode' : ''}`}>
+    <div className={`min-h-screen flex flex-col ${isLight ? 'selection:bg-[var(--s-accent)] selection:text-[var(--s-accent-text)]' : 'selection:bg-accent selection:text-white'} ${isDarkMode ? 'modern-dark-mode' : ''}`}>
       <style>{themeVars(theme, business.themeConfig)}</style>
       
       {/* ── HEADER ───────────────────────────────────────────────────────── */}
-      <header className={`fixed top-0 left-0 right-0 z-40 ${isBrutal ? 'bg-black border-b-[3px] border-white' : 'glass-panel bg-white/80 border-b border-slate-200/60 shadow-sm backdrop-blur-xl'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
+      <header className={`fixed top-0 left-0 right-0 z-40 ${isLight ? 'bg-white/90 backdrop-blur-md border-b border-slate-200/30' : 'glass-panel bg-white/80 border-b border-slate-200/60 shadow-sm backdrop-blur-xl'}`}>
+        <div className={`max-w-7xl mx-auto flex items-center justify-between gap-4 ${isLight ? 'px-4 lg:px-8 h-16 lg:h-20' : 'px-4 sm:px-6 lg:px-8 h-16 sm:h-20'}`}>
           
-          {/* Logo / Brand */}
-          <Link to={`/store/${slug}`} className="flex items-center gap-3 shrink-0 group">
-            {business.logoUrl ? (
-              <img src={business.logoUrl} alt={business.businessName} className={`w-8 h-8 sm:w-10 sm:h-10 object-cover ${isBrutal ? 'border-[2px] border-white transition-transform group-hover:-translate-y-1' : 'rounded-[10px] shadow-sm border border-slate-100 transition-all group-hover:scale-105'}`} />
-            ) : (
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-lg transition-transform ${isBrutal ? 'font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[2px] border-white group-hover:-translate-y-1' : 'font-display font-bold bg-accent text-white rounded-[10px] shadow-sm group-hover:scale-105 group-hover:shadow-md'}`}>
-                {initial}
-              </div>
-            )}
-            <span className={`hidden sm:block truncate max-w-[150px] lg:max-w-[300px] ${isBrutal ? 'font-black text-lg sm:text-xl uppercase tracking-tighter text-[var(--s-accent)]' : 'font-display font-bold text-lg sm:text-xl text-slate-800'}`}>{business.businessName}</span>
-          </Link>
+          {isCheckoutPage ? (
+            <>
+              {/* Back to Store link */}
+              <Link to={`/store/${slug}`} className="flex items-center gap-2 text-slate-500 hover:text-[#111111] transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                <span className="font-semibold text-sm hidden sm:inline">Back to Store</span>
+              </Link>
 
-          {/* Cart */}
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setIsCartOpen(true)}
-              className={`relative flex items-center gap-2 px-3 sm:px-4 py-2 transition-all ${isBrutal ? 'border-[2.5px] border-white bg-[var(--s-accent)] text-[var(--s-accent-text)] font-black uppercase text-sm sm:text-base hover:-translate-y-0.5 shadow-[3px_3px_0px_rgba(255,255,255,1)]' : 'bg-slate-100 text-primary font-semibold text-sm sm:text-base rounded-xl hover:bg-slate-200 border border-slate-200/60 shadow-sm'}`}
-            >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" strokeWidth={isBrutal ? 2.5 : 2} />
-              <span className="hidden sm:inline">CART</span>
-              {cartItemCount > 0 && (
-                <span className={`flex items-center justify-center text-[10px] sm:text-xs min-w-[20px] h-[20px] px-1 ${isBrutal ? 'bg-black text-[var(--s-accent)] border-[2px] border-white font-black' : 'bg-accent text-white rounded-full font-bold shadow-sm ml-1'}`}>
-                  {cartItemCount}
-                </span>
-              )}
-            </button>
-          </div>
+              {/* Logo / Brand Centered */}
+              <div className="flex items-center gap-3 shrink-0">
+                {business.logoUrl ? (
+                  <img src={business.logoUrl} alt={business.businessName} className="w-8 h-8 object-cover rounded-xl border border-slate-100" />
+                ) : (
+                  <div className="w-8 h-8 flex items-center justify-center text-sm font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-xl border border-slate-100">
+                    {initial}
+                  </div>
+                )}
+                <span className="font-display font-semibold text-base sm:text-lg text-[#111111] tracking-tight truncate max-w-[150px]">{business.businessName}</span>
+              </div>
+
+              {/* Secured checkout and cart */}
+              <div className="flex items-center gap-3 text-slate-600">
+                <div className="flex items-center gap-1.5 text-slate-500 bg-slate-100 px-3 py-1 rounded-full text-xs font-semibold">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span className="hidden xs:inline">Secured Checkout</span>
+                </div>
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative flex items-center justify-center p-2 text-slate-500 hover:text-[#111111] transition-colors"
+                >
+                  <ShoppingBag className="w-5 h-5" strokeWidth={1.5} />
+                  {cartItemCount > 0 && (
+                    <span className="absolute -top-1 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[#111111] text-white min-w-[16px] h-4 px-1 rounded-full">
+                      {cartItemCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Logo / Brand */}
+              <Link to={`/store/${slug}`} className="flex items-center gap-3 shrink-0 group">
+                {business.logoUrl ? (
+                  <img src={business.logoUrl} alt={business.businessName} className={`w-8 h-8 sm:w-10 sm:h-10 object-cover ${isLight ? 'rounded-xl border border-slate-100 transition-all hover:scale-105' : 'rounded-[10px] shadow-sm border border-slate-100 transition-all group-hover:scale-105'}`} />
+                ) : (
+                  <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-lg transition-transform ${isLight ? 'font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-xl border border-slate-100 group-hover:scale-105' : 'font-display font-bold bg-accent text-white rounded-[10px] shadow-sm group-hover:scale-105 group-hover:shadow-md'}`}>
+                    {initial}
+                  </div>
+                )}
+                <span className={`truncate max-w-[150px] lg:max-w-[300px] ${isLight ? 'font-display font-semibold text-lg sm:text-xl text-[#111111] tracking-tight' : 'font-display font-bold text-lg sm:text-xl text-slate-800'}`}>{business.businessName}</span>
+              </Link>
+
+              {/* Cart */}
+              <div className="flex items-center gap-4 text-slate-600">
+                <button
+                  onClick={() => setIsCartOpen(true)}
+                  className={`relative flex items-center justify-center p-2 transition-colors ${isLight ? 'hover:text-[#111111] text-slate-500' : 'bg-slate-100 text-primary font-semibold text-sm sm:text-base rounded-xl hover:bg-slate-200 border border-slate-200/60 shadow-sm'}`}
+                >
+                  <ShoppingBag className="w-5 h-5" strokeWidth={isLight ? 1.5 : 2} />
+                  {!isLight && <span className="hidden sm:inline ml-2">CART</span>}
+                  {cartItemCount > 0 && (
+                    isLight ? (
+                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[#111111] text-white min-w-[16px] h-4 px-1 rounded-full">
+                        {cartItemCount}
+                      </span>
+                    ) : (
+                      <span className={`flex items-center justify-center text-[10px] sm:text-xs min-w-[20px] h-[20px] px-1 bg-accent text-white rounded-full font-bold shadow-sm ml-1`}>
+                        {cartItemCount}
+                      </span>
+                    )
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+
         </div>
       </header>
 
       {/* ── MAIN CONTENT ───────────────────────────────────────────────── */}
       <main className="flex-1 pt-16 sm:pt-20">
-        <Outlet context={{ business }} />
+        <Outlet context={{ business, setIsCartOpen }} />
       </main>
 
       {/* ── FOOTER ─────────────────────────────────────────────────────── */}
-      <footer className={`${isBrutal ? 'bg-black text-white border-t-[4px] border-white' : 'bg-white border-t border-slate-200/60 text-slate-600'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8 md:mb-10">
-            {/* Brand column */}
-            <div>
-              <div className="flex items-center gap-3 mb-4">
-                {business.logoUrl ? (
-                  <img src={business.logoUrl} alt={business.businessName} className={`w-8 h-8 sm:w-10 sm:h-10 object-cover ${isBrutal ? 'border-[2px] border-white' : 'rounded-[10px] shadow-sm border border-slate-100'}`} />
-                ) : (
-                  <div className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base ${isBrutal ? 'font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[2px] border-white' : 'font-display font-bold bg-accent text-white rounded-[10px] shadow-sm'}`}>
-                    {initial}
-                  </div>
-                )}
-                <span className={`${isBrutal ? 'font-black text-lg sm:text-xl uppercase tracking-tighter' : 'font-display font-bold text-lg sm:text-xl text-slate-800'}`}>{business.businessName}</span>
+      <footer className={isLight ? 'bg-slate-50 text-slate-500 border-t border-slate-200/30' : 'bg-white border-t border-slate-200/60 text-slate-600'}>
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12 sm:py-16">
+          {isLight ? (
+            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex flex-col items-center md:items-start">
+                <span className="text-lg font-semibold text-[#111111] tracking-tight mb-2 font-display">{business.businessName}</span>
+                <span className="text-sm text-slate-500 text-center md:text-left">© {new Date().getFullYear()} Kudi Business OS. Empowering Nigerian Merchants.</span>
               </div>
-              <p className={`max-w-xs ${isBrutal ? 'text-xs sm:text-sm font-bold uppercase leading-relaxed text-gray-300' : 'text-sm font-medium leading-relaxed'}`}>
-                Quality products. Secure checkout. Direct from {business.businessName}.
-              </p>
+              <div className="flex flex-wrap justify-center gap-6 text-sm">
+                <a className="text-slate-500 hover:text-[#111111] transition-colors" href="#">Privacy Policy</a>
+                <a className="text-slate-500 hover:text-[#111111] transition-colors" href="#">Terms of Service</a>
+                <a className="text-slate-500 hover:text-[#111111] transition-colors" href="#">Help Center</a>
+                <a className="text-slate-500 hover:text-[#111111] transition-colors" href="#">Contact Us</a>
+              </div>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-8 md:mb-10">
+                {/* Brand column */}
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    {business.logoUrl ? (
+                      <img src={business.logoUrl} alt={business.businessName} className="w-8 h-8 sm:w-10 sm:h-10 object-cover rounded-[10px] shadow-sm border border-slate-100" />
+                    ) : (
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-sm sm:text-base font-display font-bold bg-accent text-white rounded-[10px] shadow-sm">
+                        {initial}
+                      </div>
+                    )}
+                    <span className="font-display font-bold text-lg sm:text-xl text-slate-800">{business.businessName}</span>
+                  </div>
+                  <p className="max-w-xs text-sm font-medium leading-relaxed">
+                    Quality products. Secure checkout. Direct from {business.businessName}.
+                  </p>
+                </div>
 
-            {/* Quick links */}
-            <div>
-              <p className={`${isBrutal ? 'font-black uppercase tracking-widest mb-4 border-b-[2px] border-white pb-1.5 inline-block text-sm' : 'font-display font-bold text-slate-800 mb-3 text-sm'}`}>Shop</p>
-              <ul className={`flex flex-col gap-2.5 ${isBrutal ? 'font-bold uppercase text-xs sm:text-sm text-gray-300' : 'font-medium text-sm text-slate-500'}`}>
-                <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">Home</Link></li>
-                <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">All Products</Link></li>
-              </ul>
-            </div>
+                {/* Quick links */}
+                <div>
+                  <p className="font-display font-bold text-slate-800 mb-3 text-sm">Shop</p>
+                  <ul className="flex flex-col gap-2.5 font-medium text-sm text-slate-500">
+                    <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">Home</Link></li>
+                    <li><Link to={`/store/${slug}`} className="hover:text-accent transition-colors">All Products</Link></li>
+                  </ul>
+                </div>
 
-            {/* Contact */}
-            <div>
-              <p className={`${isBrutal ? 'font-black uppercase tracking-widest mb-4 border-b-[2px] border-white pb-1.5 inline-block text-sm' : 'font-display font-bold text-slate-800 mb-3 text-sm'}`}>Contact</p>
-              <ul className={`flex flex-col gap-2.5 ${isBrutal ? 'font-bold uppercase text-xs sm:text-sm text-gray-300' : 'font-medium text-sm text-slate-500'}`}>
-                {business.ownerPhone && (
-                  <li className="flex items-center gap-2">
-                    <Phone className="w-4 h-4 shrink-0" strokeWidth={isBrutal ? 2.5 : 2} />
-                    <a href={`tel:${business.ownerPhone}`} className="hover:text-accent transition-colors truncate">{business.ownerPhone}</a>
-                  </li>
-                )}
-                {(business.lga || business.state) && (
-                  <li className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 shrink-0" strokeWidth={isBrutal ? 2.5 : 2} />
-                    <span className="truncate">{[business.lga, business.state].filter(Boolean).join(', ')}</span>
-                  </li>
-                )}
-              </ul>
-            </div>
-          </div>
+                {/* Contact */}
+                <div>
+                  <p className="font-display font-bold text-slate-800 mb-3 text-sm">Contact</p>
+                  <ul className="flex flex-col gap-2.5 font-medium text-sm text-slate-500">
+                    {business.ownerPhone && (
+                      <li className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 shrink-0" strokeWidth={2} />
+                        <a href={`tel:${business.ownerPhone}`} className="hover:text-accent transition-colors truncate">{business.ownerPhone}</a>
+                      </li>
+                    )}
+                    {(business.lga || business.state) && (
+                      <li className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 shrink-0" strokeWidth={2} />
+                        <span className="truncate">{[business.lga, business.state].filter(Boolean).join(', ')}</span>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+              </div>
 
-          {/* Bottom bar */}
-          <div className={`pt-6 pb-6 px-4 -mx-4 sm:-mx-6 lg:-mx-8 mt-10 flex flex-col md:flex-row items-center justify-between gap-4 ${isBrutal ? 'bg-white border-t-[3px] border-black' : 'border-t border-slate-200/60'}`}>
-            <p className={`${isBrutal ? 'font-bold uppercase text-[10px] sm:text-xs text-black text-center md:text-left' : 'font-medium text-xs text-slate-400 text-center md:text-left'}`}>
-              © {new Date().getFullYear()} {business.businessName}. ALL RIGHTS RESERVED.
-            </p>
-            <Link to="/" className="flex items-center gap-2 group">
-              <span className={`${isBrutal ? 'font-black uppercase text-black text-[10px] sm:text-xs' : 'font-bold text-[10px] sm:text-xs tracking-wider group-hover:text-primary transition-colors'}`}>POWERED BY</span>
-              <Logo className="h-5 sm:h-6" />
-            </Link>
-          </div>
+              {/* Bottom bar */}
+              <div className="pt-6 pb-6 px-4 -mx-4 sm:-mx-6 lg:-mx-8 mt-10 border-t border-slate-200/60 flex flex-col md:flex-row items-center justify-between gap-4">
+                <p className="font-medium text-xs text-slate-400 text-center md:text-left">
+                  © {new Date().getFullYear()} {business.businessName}. ALL RIGHTS RESERVED.
+                </p>
+                <Link to="/" className="flex items-center gap-2 group">
+                  <span className="font-bold text-[10px] sm:text-xs tracking-wider group-hover:text-primary transition-colors">POWERED BY</span>
+                  <Logo className="h-5 sm:h-6" />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </footer>
 
@@ -245,6 +406,92 @@ export default function StoreLayout() {
           onClose={() => setIsCartOpen(false)}
           onCheckout={() => navigate(`/store/${slug}/checkout`)}
         />
+      )}
+
+      {/* Stock Alert Modal */}
+      {isNotificationOpen && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsNotificationOpen(false)} />
+          <div className="relative w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 text-left text-slate-800">
+            <div className="flex justify-between items-start mb-4">
+              <h3 className="text-xl font-bold font-display text-red-600 flex items-center gap-2">
+                <Package className="w-6 h-6" />
+                Stock Alert!
+              </h3>
+              <button 
+                onClick={() => setIsNotificationOpen(false)}
+                className="p-1 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-sm text-slate-500 mb-5 leading-relaxed">
+              Some items in your cart have run out of stock or have limited availability. We have updated your cart to prevent checkout failures.
+            </p>
+
+            {/* Affected Items List */}
+            <div className="space-y-3 mb-6 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+              {outofStockItems.map((item, idx) => (
+                <div key={idx} className="flex justify-between items-center text-xs">
+                  <span className="font-semibold text-slate-800 max-w-[180px] truncate">{item.name}</span>
+                  <span className="font-bold text-red-500 bg-red-50 px-2 py-1 rounded-md">
+                    {item.isOut ? 'Out of Stock (Removed)' : `Adjusted to ${item.newQty} left`}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Alternatives Section */}
+            {alternatives.length > 0 && (
+              <div className="mb-6">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Recommended Alternatives</h4>
+                <div className="space-y-3">
+                  {alternatives.map(alt => (
+                    <div key={alt.id} className="flex items-center justify-between gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100/50">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
+                          {alt.imageUrl && <img src={alt.imageUrl} className="w-full h-full object-cover" alt={alt.name} />}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="block text-xs font-semibold text-slate-800 truncate max-w-[140px]">{alt.name}</span>
+                          <span className="block text-[10px] text-slate-500">{formatNaira(alt.price)}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          useCartStore.getState().addItem({
+                            productId: alt.id,
+                            productName: alt.name,
+                            quantity: 1,
+                            unitPrice: alt.price,
+                            imageUrl: alt.imageUrl
+                          });
+                          // Remove from recommended list
+                          setAlternatives(prev => prev.filter(p => p.id !== alt.id));
+                          addToast('Alternative added to cart!', 'success');
+                        }}
+                        className="px-3 py-1.5 bg-[#111111] hover:bg-slate-800 text-white rounded-full text-[10px] font-semibold transition-colors"
+                      >
+                        Add
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => setIsNotificationOpen(false)}
+                className="w-full py-3 bg-[#111111] hover:bg-slate-800 text-white font-semibold rounded-xl text-sm transition-colors text-center shadow-sm"
+              >
+                Keep Shopping
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useOutletContext } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { ShoppingBag, X, Plus, Minus, Package, ArrowRight } from 'lucide-react';
+import { ShoppingBag, X, Plus, Minus, Package, ArrowRight, Heart } from 'lucide-react';
 import { Business, Product } from '../../lib/types';
 import { productService } from '../../lib/services/productService';
-import { businessService } from '../../lib/services/businessService';
+import { businessService, getDefaultHeroImageUrl } from '../../lib/services/businessService';
 import { useCartStore } from '../../lib/store';
 import { useToast } from '../../components/Toast';
 
@@ -27,7 +27,6 @@ function ProductModal({
   business: Business;
 }) {
   const [quantity, setQuantity] = useState(1);
-  const isBrutal = theme === 'brutal';
 
   useEffect(() => {
     if (product) setQuantity(1);
@@ -44,61 +43,61 @@ function ProductModal({
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <div className={`absolute inset-0 ${isBrutal ? 'bg-black/80' : 'bg-black/60'} backdrop-blur-sm`} onClick={onClose} />
-      <div className={`relative w-full max-w-4xl flex flex-col md:flex-row max-h-[90vh] overflow-hidden ${isBrutal ? 'bg-black border-[4px] border-white shadow-[8px_8px_0px_rgba(255,255,255,1)]' : 'glass-panel bg-white/90 backdrop-blur-xl rounded-[32px] shadow-2xl border border-slate-200/60'}`}>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-4xl flex flex-col md:flex-row max-h-[90vh] overflow-hidden bg-white rounded-[32px] shadow-2xl border border-slate-200/60">
         
-        <button onClick={onClose} className={`absolute top-3 right-3 z-20 w-10 h-10 flex items-center justify-center transition-transform ${isBrutal ? 'bg-white text-black border-[2px] border-black hover:-translate-y-1 shadow-[3px_3px_0px_rgba(0,0,0,1)]' : 'bg-white/80 backdrop-blur-md rounded-full text-slate-500 shadow-sm border border-slate-200/60 hover:bg-white hover:text-primary'}`}>
-          <X className="w-5 h-5" strokeWidth={isBrutal ? 2 : 1.5} />
+        <button onClick={onClose} className="absolute top-3 right-3 z-20 w-10 h-10 flex items-center justify-center bg-white/80 backdrop-blur-md rounded-full text-slate-500 shadow-sm border border-slate-200/60 hover:bg-white hover:text-primary">
+          <X className="w-5 h-5" strokeWidth={1.5} />
         </button>
 
-        <div className={`w-full md:w-1/2 aspect-square md:aspect-auto relative flex items-center justify-center ${isBrutal ? 'bg-[var(--s-accent)] border-b-[3px] md:border-b-0 md:border-r-[3px] border-white' : 'bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100'}`}>
+        <div className="w-full md:w-1/2 aspect-square md:aspect-auto relative flex items-center justify-center bg-slate-50 border-b md:border-b-0 md:border-r border-slate-100">
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <Package className={`w-20 h-20 ${isBrutal ? 'text-black' : 'text-slate-300'}`} strokeWidth={isBrutal ? 1.5 : 1} />
+            <Package className="w-20 h-20 text-slate-300" strokeWidth={1} />
           )}
         </div>
 
-        <div className={`w-full md:w-1/2 p-4 md:p-6 lg:p-8 flex flex-col overflow-y-auto ${isBrutal ? 'bg-black text-white' : 'bg-transparent text-primary'}`}>
+        <div className="w-full md:w-1/2 p-4 md:p-6 lg:p-8 flex flex-col overflow-y-auto bg-white text-primary">
           <div className="flex-1">
-            <h2 className={`${isBrutal ? 'text-2xl md:text-4xl font-black uppercase mb-3 tracking-tighter text-white' : 'text-2xl font-display font-bold mb-2'}`}>
+            <h2 className="text-2xl font-display font-semibold mb-2">
               {product.name}
             </h2>
-            <p className={`${isBrutal ? 'text-xl sm:text-2xl font-black bg-[var(--s-accent)] text-[var(--s-accent-text)] mb-5 px-3 py-1.5 inline-block border-[2px] border-white shadow-[3px_3px_0px_rgba(255,255,255,1)]' : 'text-xl font-bold text-slate-800 mb-5'}`}>
+            <p className="text-xl font-bold text-slate-800 mb-5">
               {formatNaira(product.price)}
             </p>
 
             {product.description && (
-              <div className={`${isBrutal ? 'text-sm sm:text-base font-bold uppercase text-gray-300 mb-6 leading-relaxed' : 'text-sm font-medium text-slate-500 mb-6 leading-relaxed'}`}>
+              <div className="text-sm font-medium text-slate-500 mb-6 leading-relaxed">
                 {product.description}
               </div>
             )}
 
             {!product.isAvailable && (
-              <div className={`inline-flex items-center px-3 py-1.5 mb-5 ${isBrutal ? 'bg-[var(--s-secondary)] text-[var(--s-secondary-text)] border-[2px] border-[var(--s-secondary-text)] font-black uppercase text-sm shadow-[3px_3px_0px_var(--s-secondary-text)]' : 'bg-amber-50 text-amber-600 rounded-full font-semibold text-xs border border-amber-100'}`}>
+              <div className="inline-flex items-center px-3 py-1.5 mb-5 bg-amber-50 text-amber-600 rounded-full font-semibold text-xs border border-amber-100">
                 Sold Out
               </div>
             )}
           </div>
 
-          <div className={`pt-6 mt-auto ${isBrutal ? 'border-t-[3px] border-white' : 'border-t border-slate-200/60'}`}>
+          <div className="pt-6 mt-auto border-t border-slate-200/60">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-5">
-              <span className={`${isBrutal ? 'font-black uppercase text-lg' : 'font-semibold text-sm text-slate-700'}`}>Quantity</span>
-              <div className={`flex items-center gap-1.5 ${isBrutal ? 'bg-white p-1.5 border-[2.5px] border-black shadow-[3px_3px_0px_rgba(255,255,255,1)]' : 'glass-panel bg-white/50 border border-slate-200/60 rounded-xl p-1'}`}>
+              <span className="font-semibold text-sm text-slate-700">Quantity</span>
+              <div className="flex items-center gap-1.5 border border-slate-200 rounded-xl p-1 bg-slate-50">
                 <button 
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={!product.isAvailable || quantity <= 1}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-white disabled:opacity-50 hover:bg-gray-900' : 'text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm rounded-lg disabled:opacity-50'}`}
+                  className="text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm rounded-lg disabled:opacity-50 w-8 h-8 flex items-center justify-center"
                 >
-                  <Minus className="w-4 h-4" strokeWidth={isBrutal ? 2.5 : 2} />
+                  <Minus className="w-4 h-4" strokeWidth={2} />
                 </button>
-                <span className={`w-8 sm:w-10 text-center ${isBrutal ? 'text-black font-black text-xl' : 'font-bold text-sm text-primary'}`}>{quantity}</span>
+                <span className="w-8 sm:w-10 text-center font-bold text-sm text-primary">{quantity}</span>
                 <button 
                   onClick={() => { if (product.isAvailable) setQuantity(quantity + 1); }}
                   disabled={!product.isAvailable}
-                  className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-white disabled:opacity-50 hover:bg-gray-900' : 'text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm rounded-lg disabled:opacity-50'}`}
+                  className="text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm rounded-lg disabled:opacity-50 w-8 h-8 flex items-center justify-center"
                 >
-                  <Plus className="w-4 h-4" strokeWidth={isBrutal ? 2.5 : 2} />
+                  <Plus className="w-4 h-4" strokeWidth={2} />
                 </button>
               </div>
             </div>
@@ -106,9 +105,9 @@ function ProductModal({
             <button
               onClick={() => onAdd(product, quantity)}
               disabled={!product.isAvailable}
-              className={`w-full h-12 md:h-14 flex items-center justify-center transition-all ${isBrutal ? 'bg-[var(--s-accent)] text-[var(--s-accent-text)] font-black uppercase text-lg border-[3px] border-[var(--s-border)] shadow-[4px_4px_0px_var(--s-border)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_var(--s-border)] active:translate-y-0.5 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed' : 'bg-[var(--s-accent)] text-[var(--s-accent-text)] font-semibold rounded-[16px] shadow-sm shadow-accent/25 hover:brightness-110 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base'}`}
+              className="w-full h-12 md:h-14 flex items-center justify-center transition-all bg-[var(--s-accent)] text-[var(--s-accent-text)] font-semibold rounded-[16px] shadow-sm hover:brightness-110 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
-              {product.isAvailable ? `${business.themeConfig?.ctaText || (isBrutal ? 'Buy Now' : 'Add to Cart')} • ${formatNaira(product.price * quantity)}` : 'Sold Out'}
+              {product.isAvailable ? `${business.themeConfig?.ctaText || 'Add to Bag'} • ${formatNaira(product.price * quantity)}` : 'Sold Out'}
             </button>
           </div>
         </div>
@@ -196,119 +195,146 @@ function ModernStorefront({ business, products, onOpenProduct }: { business: Bus
 }
 
 // ─── BRUTAL STOREFRONT ──────────────────────────────────────────────────────────
-function BrutalStorefront({ business, products, onOpenProduct }: { business: Business; products: Product[]; onOpenProduct: (p: Product) => void }) {
-  const featured = products.slice(0, 1)[0];
-  const rest = products.slice(1);
+// ─── LIGHT STOREFRONT ──────────────────────────────────────────────────────────
+function LightStorefront({ 
+  business, 
+  products, 
+  onOpenProduct,
+  onAddDirect
+}: { 
+  business: Business; 
+  products: Product[]; 
+  onOpenProduct: (p: Product) => void;
+  onAddDirect: (p: Product) => void;
+}) {
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  // Extract all categories from products
+  const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
+
+  const filteredProducts = selectedCategory === 'All' 
+    ? products 
+    : products.filter(p => p.category === selectedCategory);
+
+  const heroImage = business.themeConfig?.heroImageUrl || getDefaultHeroImageUrl(business.category);
 
   return (
-    <div className="min-h-screen bg-black pb-16 font-sans text-white selection:bg-[var(--s-accent)] selection:text-black">
-      {/* Editorial Hero */}
-      <div className="pt-12 pb-10 px-4 sm:px-6 lg:px-8 border-b-[3px] border-white">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div>
+    <div className="min-h-screen bg-white pb-20 selection:bg-[var(--s-accent)] selection:text-[var(--s-accent-text)] text-[#111111] max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      {/* Hero Section */}
+      <section className="relative rounded-2xl overflow-hidden mb-12 md:mb-16 bg-slate-100 h-[500px] flex items-center group">
+        <div className="absolute inset-0 bg-cover bg-center w-full h-full transition-transform duration-1000 group-hover:scale-[1.02]" style={{ backgroundImage: `url('${heroImage}')` }}></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent"></div>
+        <div className="relative z-10 p-6 md:p-12 lg:p-16 max-w-2xl text-left">
+          <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold bg-white/10 text-white rounded-full backdrop-blur-md border border-white/20 tracking-widest uppercase">New Arrivals</span>
+          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight font-display">Glow Naturally, <br/> Every Single Day.</h1>
+          <p className="text-base sm:text-lg text-white/90 mb-8 max-w-md font-light leading-relaxed">Discover our curated collection of premium skincare essentials formulated for radiant, healthy skin.</p>
+          <button 
+            onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+            className="bg-white text-black font-semibold text-sm px-8 py-4 rounded-full flex items-center gap-3 hover:bg-gray-100 transition-colors shadow-sm"
+          >
+            Shop Collection
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </section>
 
-            <h1 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6 uppercase break-words drop-shadow-[3px_3px_0px_var(--s-accent)]">
-              {business.businessName}
-            </h1>
-            <p className="text-lg sm:text-xl font-bold uppercase text-gray-300 max-w-xl leading-relaxed mb-8 border-l-[4px] border-[var(--s-accent)] pl-4 py-1">
-              Curated selection of premium items. Built for the bold.
-            </p>
-            {featured && (
-              <a href="#products" className="inline-flex items-center justify-center h-12 sm:h-14 px-6 sm:px-8 bg-white text-black font-black uppercase text-base sm:text-lg border-[3px] border-[var(--s-accent)] shadow-[4px_4px_0px_var(--s-accent)] hover:bg-[var(--s-accent)] hover:border-white hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] transition-all active:translate-y-0.5 active:shadow-none w-full sm:w-auto">
-                EXPLORE NOW <ArrowRight className="ml-2 w-5 h-5" strokeWidth={2.5} />
-              </a>
-            )}
-          </div>
-          
-          {/* Featured Product Highlight */}
-          {featured && (
-            <div 
-              onClick={() => onOpenProduct(featured)}
-              className="relative aspect-square md:aspect-[4/3] bg-[var(--s-accent)] border-[3px] border-white group cursor-pointer overflow-hidden shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] transition-all"
+      {/* Categories & Filters */}
+      <div id="products" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200/50 pb-4">
+        <h2 className="text-2xl font-bold tracking-tight font-display text-[#111111]">Trending</h2>
+        <div className="flex overflow-x-auto pb-2 md:pb-0 hide-scrollbar w-full md:w-auto gap-2">
+          {categories.map(cat => (
+            <button 
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={`px-5 py-2 rounded-full text-sm font-semibold transition-all ${selectedCategory === cat ? 'bg-[#111111] text-white' : 'bg-transparent text-slate-500 hover:bg-slate-100'}`}
             >
-              {featured.imageUrl ? (
-                <img src={featured.imageUrl} alt={featured.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!featured.isAvailable ? 'opacity-40 grayscale' : ''}`} />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-black">
-                  <Package className="w-24 h-24 sm:w-32 sm:h-32" strokeWidth={1.5} />
-                </div>
-              )}
-              
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-5 md:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-                  <div>
-                    <span className="bg-white text-black text-[10px] sm:text-xs font-black uppercase tracking-widest px-2.5 py-1 mb-3 inline-block border-[2px] border-black shadow-[2px_2px_0px_rgba(0,0,0,1)]">FEATURED</span>
-                    <h3 className="text-lg sm:text-2xl font-black text-white uppercase group-hover:bg-[var(--s-accent)] group-hover:text-[var(--s-accent-text)] transition-colors line-clamp-2 px-1">{featured.name}</h3>
-                  </div>
-                  <div className="shrink-0">
-                    {featured.isAvailable ? (
-                      <div className="bg-[var(--s-accent)] text-[var(--s-accent-text)] px-3 py-1.5 sm:px-4 sm:py-2 border-[2.5px] sm:border-[3px] border-white font-black text-lg sm:text-xl shadow-[3px_3px_0px_rgba(255,255,255,1)]">{formatNaira(featured.price)}</div>
-                    ) : (
-                      <span className="bg-[var(--s-secondary)] text-[var(--s-secondary-text)] px-3 py-1.5 sm:px-4 sm:py-2 border-[2.5px] sm:border-[3px] border-[var(--s-secondary-text)] font-black text-lg uppercase shadow-[3px_3px_0px_var(--s-secondary-text)]">SOLD OUT</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Product grid */}
-      <div id="products" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 sm:mt-16">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-[3px] border-white pb-4 sm:pb-5">
-          <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">THE COLLECTION</h2>
-          <span className="bg-[var(--s-accent)] text-[var(--s-accent-text)] text-sm sm:text-base font-black uppercase px-3 py-1.5 sm:px-4 sm:py-2 border-[2.5px] sm:border-[3px] border-white shadow-[3px_3px_0px_rgba(255,255,255,1)] inline-block self-start sm:self-auto">{products.length} ITEMS</span>
-        </div>
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
+        {filteredProducts.map(product => {
+          const isSale = product.attributes?.isSale === 'true' || false;
+          const originalPrice = product.attributes?.originalPrice ? parseFloat(product.attributes.originalPrice) : null;
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-          {rest.map(product => (
+          return (
             <div 
               key={product.id}
               onClick={() => onOpenProduct(product)}
-              className="group cursor-pointer bg-white border-[3px] border-white flex flex-col shadow-[6px_6px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[8px_8px_0px_rgba(255,255,255,1)] transition-all"
+              className="bg-white rounded-xl overflow-hidden hover-lift flex flex-col group border border-transparent hover:border-slate-100 cursor-pointer transition-all duration-300"
             >
-              <div className="aspect-[4/5] bg-gray-100 overflow-hidden relative border-b-[3px] border-black">
+              <div className="relative aspect-[4/5] bg-slate-50 overflow-hidden rounded-xl mb-4">
                 {product.imageUrl ? (
-                  <img src={product.imageUrl} alt={product.name} className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${!product.isAvailable ? 'opacity-50 grayscale' : ''}`} />
+                  <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-300">
-                    <Package className="w-16 h-16 sm:w-20 sm:h-20" strokeWidth={1.5} />
+                  <div className="w-full h-full flex items-center justify-center bg-slate-50 text-slate-300">
+                    <Package className="w-12 h-12" strokeWidth={1} />
                   </div>
                 )}
-                {!product.isAvailable && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-                    <span className="text-[var(--s-secondary-text)] font-black uppercase text-base sm:text-lg border-[3px] border-[var(--s-secondary-text)] px-4 py-2 bg-[var(--s-secondary)] shadow-[3px_3px_0px_var(--s-secondary-text)] -rotate-6">SOLD OUT</span>
-                  </div>
-                )}
+                <button 
+                  onClick={(e) => { e.stopPropagation(); }}
+                  className="absolute top-4 right-4 p-2.5 rounded-full bg-white/90 text-slate-700 hover:text-red-500 transition-colors shadow-sm opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300"
+                >
+                  <Heart className="w-4 h-4" strokeWidth={2} />
+                </button>
                 
-                {product.isAvailable && (
-                  <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-gradient-to-t from-black/80 to-transparent">
-                    <button 
-                      onClick={e => { e.stopPropagation(); onOpenProduct(product); }}
-                      className="w-full h-12 bg-[var(--s-accent)] text-[var(--s-accent-text)] font-black uppercase text-sm sm:text-base border-[2.5px] border-[var(--s-border)] shadow-[3px_3px_0px_var(--s-border)] hover:bg-[var(--s-border)] hover:text-[var(--s-bg)]"
-                    >
-                      {business.themeConfig?.ctaText || 'QUICK ADD'}
-                    </button>
+                {!product.isAvailable ? (
+                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
+                    <span className="px-4 py-2 text-xs font-bold bg-white/90 text-[#111111] rounded-full shadow-sm tracking-widest uppercase">Out of Stock</span>
                   </div>
+                ) : (
+                  isSale && (
+                    <div className="absolute bottom-4 left-4">
+                      <span className="px-3 py-1.5 text-xs font-bold bg-black text-white rounded-full shadow-sm tracking-wider uppercase">Sale</span>
+                    </div>
+                  )
                 )}
               </div>
-              <div className="p-4 flex-1 flex flex-col bg-black text-white">
-                <h3 className="text-base md:text-lg font-black uppercase text-white line-clamp-2 mb-1.5 group-hover:bg-[var(--s-accent)] group-hover:text-[var(--s-accent-text)] transition-colors leading-tight px-1">{product.name}</h3>
-                <p className="text-lg font-black text-white mt-auto px-1">{formatNaira(product.price)}</p>
+              <div className="flex flex-col flex-grow px-2">
+                <h3 className="text-sm font-semibold text-[#111111] mb-1 line-clamp-1">{product.name}</h3>
+                <p className="text-xs text-slate-500 mb-4 flex-grow line-clamp-2">{product.description || "Premium skincare essential."}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-semibold text-[#111111]">{formatNaira(product.price)}</span>
+                    {originalPrice && (
+                      <span className="text-xs text-slate-400 line-through">{formatNaira(originalPrice)}</span>
+                    )}
+                  </div>
+                  {product.isAvailable ? (
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAddDirect(product);
+                      }}
+                      className="px-4 py-2 rounded-full bg-[#111111] text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-sm"
+                    >
+                      {business.themeConfig?.ctaText || 'Add to Bag'}
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); }}
+                      className="px-4 py-2 rounded-full border border-slate-200 text-slate-400 text-xs font-semibold hover:border-slate-800 hover:text-slate-900 transition-colors"
+                    >
+                      Notify Me
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          ))}
-        </div>
-        
-        {rest.length === 0 && !featured && (
-          <div className="text-center py-32 border-[4px] border-white bg-black shadow-[8px_8px_0px_rgba(255,255,255,1)]">
-            <Package className="w-24 h-24 text-white mx-auto mb-8" strokeWidth={1.5} />
-            <h3 className="text-4xl font-black text-white uppercase tracking-widest mb-4">COLLECTION EMPTY</h3>
-            <p className="text-xl font-bold uppercase text-gray-400">Check back later for new drops.</p>
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      {filteredProducts.length === 0 && (
+        <div className="text-center py-24 bg-slate-50 rounded-2xl border border-slate-100">
+          <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" strokeWidth={1} />
+          <h3 className="text-xl font-bold text-[#111111] mb-2 font-display">No products yet</h3>
+          <p className="text-slate-500 text-sm">Check back later for new arrivals.</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -355,12 +381,30 @@ export default function StoreHomePage() {
     setSelectedProduct(null);
   };
 
-  const theme = business.theme || 'brutal';
+  const handleAddDirect = (p: Product) => {
+    addItem({
+      productId: p.id,
+      productName: p.name,
+      quantity: 1,
+      unitPrice: p.price,
+      imageUrl: p.imageUrl
+    });
+    addToast('Added to cart', 'success');
+  };
+
+  const theme = business.theme || 'light';
 
   return (
     <>
       {theme === 'modern' && <ModernStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
-      {theme === 'brutal' && <BrutalStorefront business={business} products={products} onOpenProduct={setSelectedProduct} />}
+      {(theme === 'light' || theme === 'brutal') && (
+        <LightStorefront 
+          business={business} 
+          products={products} 
+          onOpenProduct={setSelectedProduct} 
+          onAddDirect={handleAddDirect} 
+        />
+      )}
       <ProductModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={handleAdd} theme={theme} business={business} />
     </>
   );

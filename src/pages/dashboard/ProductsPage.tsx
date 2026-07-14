@@ -38,7 +38,23 @@ export default function ProductsPage() {
     if (!phone) return;
     const b = await businessService.getBusinessByPhone(phone);
     if (b) {
-      setBusiness(b);
+      if (!b.themeConfig || !b.themeConfig.heroImageUrl) {
+        const defaultHeroUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAei2SCO828A82z9Nk8QNfFG7OaW_4XjTjOH-FkL-c719S45Y3t7z0pk4ORAE3EHBU2kGj_RqeUA8JZ7wu8A1PhozLhrANtFNBm82qZu82WAGc3yUrfAGE6SFAYFEfkuJI4QPh8tAKzitoqE866ICR3Rlih1IBwvJl5wMIBuVzuN_FML0QGmA5dTMI5scAxa_dhmnSLesA7M7RmcF2HsOsV5ZVPBgDEBVw3IEn83Kd4rDOjANhyi3hKZawQZ94mQRz65W7WwEUnob4';
+        const repairedThemeConfig = {
+          primaryColor: '#111111',
+          ctaText: 'Add to Bag',
+          heroImageUrl: defaultHeroUrl,
+          ...(b.themeConfig || {})
+        };
+        const updatedBiz = await businessService.updateBusiness(b.id, { themeConfig: repairedThemeConfig });
+        if (updatedBiz) {
+          setBusiness(updatedBiz);
+        } else {
+          setBusiness(b);
+        }
+      } else {
+        setBusiness(b);
+      }
       setBusinessId(b.id);
       const p = await productService.getProducts(b.id);
       setProducts(p);
@@ -69,6 +85,9 @@ export default function ProductsPage() {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const defaultHeroUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAei2SCO828A82z9Nk8QNfFG7OaW_4XjTjOH-FkL-c719S45Y3t7z0pk4ORAE3EHBU2kGj_RqeUA8JZ7wu8A1PhozLhrANtFNBm82qZu82WAGc3yUrfAGE6SFAYFEfkuJI4QPh8tAKzitoqE866ICR3Rlih1IBwvJl5wMIBuVzuN_FML0QGmA5dTMI5scAxa_dhmnSLesA7M7RmcF2HsOsV5ZVPBgDEBVw3IEn83Kd4rDOjANhyi3hKZawQZ94mQRz65W7WwEUnob4';
+  const activeHeroUrl = business?.themeConfig?.heroImageUrl || defaultHeroUrl;
+
   const registry = business ? getRegistry(business.category) : null;
 
   return (
@@ -89,6 +108,33 @@ export default function ProductsPage() {
           </button>
         </div>
       </header>
+
+      {/* Current Storefront Hero Banner display */}
+      {!isLoading && business && (
+        <div className="mb-8 bg-white border-2 border-slate-900 rounded-[20px] p-5 shadow-[4px_4px_0px_#0f172a] relative overflow-hidden flex flex-col md:flex-row gap-6 items-center">
+          <div className="w-full md:w-1/3 aspect-[12/5] bg-slate-100 border-2 border-slate-900 rounded-xl overflow-hidden relative shadow-[2px_2px_0px_#0f172a] shrink-0">
+            {activeHeroUrl ? (
+              <img src={activeHeroUrl} className="w-full h-full object-cover" alt="Current Storefront Hero" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">No hero image configured</div>
+            )}
+          </div>
+          <div className="flex-1 text-left space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="px-2 py-0.5 bg-[#FFD166] border-2 border-slate-900 text-slate-900 rounded-[6px] text-[10px] font-black shadow-[2px_2px_0px_#0f172a] select-none uppercase">
+                Active Storefront Hero
+              </span>
+            </div>
+            <h3 className="text-lg font-bold text-slate-900">Current Storefront Hero Banner</h3>
+            <p className="text-xs font-bold text-slate-500 max-w-md leading-relaxed">
+              This landscape image is displayed at the top of your storefront. You can select any product's image to become the hero banner below.
+            </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-600 border border-blue-100 rounded-md text-[10px] sm:text-xs font-bold">
+              <span>📏 Required dimension: 1200 x 500 px (Landscape aspect ratio)</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Action Button (Mobile) */}
       <button
@@ -130,55 +176,120 @@ export default function ProductsPage() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {filteredProducts.map(product => (
-              <div
-                key={product.id}
-                className="glass-panel overflow-hidden flex flex-col group cursor-pointer hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[6px_6px_0px_#0f172a] transition-all"
-                onClick={() => openEditModal(product)}
-              >
-                <div className="h-32 md:h-48 bg-slate-100 border-b-2 border-slate-900 relative overflow-hidden flex items-center justify-center">
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="text-4xl select-none text-slate-300 group-hover:scale-110 transition-transform duration-500">
-                      {registry?.icon ?? '📦'}
+            {filteredProducts.map(product => {
+              const isHeroImage = product.imageUrl && activeHeroUrl === product.imageUrl;
+              return (
+                <div
+                  key={product.id}
+                  className="glass-panel overflow-hidden flex flex-col group cursor-pointer hover:-translate-y-[2px] hover:-translate-x-[2px] hover:shadow-[6px_6px_0px_#0f172a] transition-all"
+                  onClick={() => openEditModal(product)}
+                >
+                  <div className="h-32 md:h-48 bg-slate-100 border-b-2 border-slate-900 relative overflow-hidden flex items-center justify-center">
+                    {product.imageUrl ? (
+                      <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <div className="text-4xl select-none text-slate-300 group-hover:scale-110 transition-transform duration-500">
+                        {registry?.icon ?? '📦'}
+                      </div>
+                    )}
+                    <div className="absolute top-2 right-2 flex gap-1.5">
+                      {product.stockCount !== undefined && product.stockCount <= 5 && (
+                        <span className="px-2 py-1 bg-[#FF6666] border-2 border-slate-900 text-white rounded-[8px] text-[10px] md:text-xs font-black shadow-[2px_2px_0px_#0f172a] select-none">
+                          {product.stockCount === 0 ? 'SOLD OUT' : `${product.stockCount} LEFT`}
+                        </span>
+                      )}
                     </div>
-                  )}
-                  <div className="absolute top-2 right-2 flex gap-1.5">
-                    {product.stockCount !== undefined && product.stockCount <= 5 && (
-                      <span className="px-2 py-1 bg-[#FF6666] border-2 border-slate-900 text-white rounded-[8px] text-[10px] md:text-xs font-black shadow-[2px_2px_0px_#0f172a] select-none">
-                        {product.stockCount === 0 ? 'SOLD OUT' : `${product.stockCount} LEFT`}
-                      </span>
+                    {isHeroImage && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-[#FFD166] border-2 border-slate-900 text-slate-900 rounded-[8px] text-[10px] md:text-xs font-black shadow-[2px_2px_0px_#0f172a] select-none">
+                        ⭐ HERO IMAGE
+                      </div>
                     )}
                   </div>
-                </div>
-                <div className="p-4 flex-1 flex flex-col">
-                  <h3 className="text-sm md:text-base font-bold text-slate-900 line-clamp-1 mb-1">{product.name}</h3>
-                  <div className="text-lg md:text-xl font-black text-slate-900 mb-3">{formatNaira(product.price)}</div>
+                  <div className="p-4 flex-1 flex flex-col">
+                    <h3 className="text-sm md:text-base font-bold text-slate-900 line-clamp-1 mb-1">{product.name}</h3>
+                    <div className="text-lg md:text-xl font-black text-slate-900 mb-3">{formatNaira(product.price)}</div>
 
-                  {product.attributes && Object.keys(product.attributes).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mb-4">
-                      {Object.entries(product.attributes).map(([key, val]) => val && (
-                        <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 border-2 border-slate-900 text-slate-900 rounded-[8px] text-[10px] md:text-xs font-bold shadow-[2px_2px_0px_#0f172a]">
-                          <Tag weight="fill" className="w-3 h-3" />
-                          {val}
-                        </span>
-                      ))}
+                    {product.attributes && Object.keys(product.attributes).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {Object.entries(product.attributes).map(([key, val]) => val && (
+                          <span key={key} className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 border-2 border-slate-900 text-slate-900 rounded-[8px] text-[10px] md:text-xs font-bold shadow-[2px_2px_0px_#0f172a]">
+                            <Tag weight="fill" className="w-3 h-3" />
+                            {val}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-auto space-y-2">
+                      <div className="pt-3 border-t-2 border-slate-100 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+                        <span className="text-xs md:text-sm font-bold text-slate-600">Available</span>
+                        <button 
+                          className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${product.isAvailable ? 'bg-[#10B981]' : 'bg-slate-200'}`}
+                          onClick={(e) => { e.stopPropagation(); handleToggleAvailable(product, !product.isAvailable); }}
+                        >
+                          <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 bg-white border-2 border-slate-900 rounded-full transition-transform ${product.isAvailable ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
+                        </button>
+                      </div>
+
+                      {product.imageUrl && (
+                        <div className="pt-2 flex flex-col gap-1 border-t border-slate-100" onClick={e => e.stopPropagation()}>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs md:text-sm font-bold text-slate-600">Storefront Hero</span>
+                            <button
+                              type="button"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (business) {
+                                  try {
+                                    const updated = await businessService.updateBusiness(business.id, {
+                                      themeConfig: {
+                                        ...business.themeConfig,
+                                        heroImageUrl: product.imageUrl
+                                      }
+                                    });
+                                    if (updated) {
+                                      setBusiness(updated);
+                                      addToast('Set as storefront hero image!', 'success');
+                                      
+                                      // Broadcast update so storefront re-renders immediately!
+                                      const channel = new BroadcastChannel('theme_updates');
+                                      channel.postMessage({ 
+                                        type: 'theme_changed', 
+                                        slug: business.storefrontSlug,
+                                        theme: business.theme,
+                                        themeConfig: {
+                                          ...business.themeConfig,
+                                          heroImageUrl: product.imageUrl
+                                        }
+                                      });
+                                      channel.close();
+                                    }
+                                  } catch {
+                                    addToast('Failed to update storefront hero image', 'error');
+                                  }
+                                }
+                              }}
+                              className={`px-2.5 py-1 text-[10px] md:text-xs font-black rounded-lg border-2 border-slate-900 transition-all ${
+                                isHeroImage 
+                                  ? 'bg-[#FFD166] text-slate-900 shadow-sm cursor-default' 
+                                  : 'bg-white text-slate-900 shadow-[2px_2px_0px_#0f172a] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none'
+                              }`}
+                              disabled={isHeroImage}
+                            >
+                              {isHeroImage ? 'Current Hero' : 'Use as Hero'}
+                            </button>
+                          </div>
+                          <span className="text-[9px] text-slate-400 font-bold self-end">
+                            Required size: 1200 x 500 px
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
 
-                  <div className="mt-auto pt-3 border-t-2 border-slate-100 flex items-center justify-between" onClick={e => e.stopPropagation()}>
-                    <span className="text-xs md:text-sm font-bold text-slate-600">Available</span>
-                    <button 
-                      className={`w-12 h-7 rounded-full border-2 border-slate-900 relative transition-colors shadow-sm ${product.isAvailable ? 'bg-[#10B981]' : 'bg-slate-200'}`}
-                      onClick={(e) => { e.stopPropagation(); handleToggleAvailable(product, !product.isAvailable); }}
-                    >
-                      <div className={`absolute top-0.5 bottom-0.5 w-5 h-5 bg-white border-2 border-slate-900 rounded-full transition-transform ${product.isAvailable ? 'translate-x-[20px]' : 'translate-x-0.5'}`} />
-                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {filteredProducts.length === 0 && searchQuery && (

@@ -1,5 +1,8 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="4" y="4" width="24" height="24" fill="#FF6666" stroke="black" stroke-width="3"/>
-  <rect x="0" y="0" width="24" height="24" fill="#E0FF4F" stroke="black" stroke-width="3"/>
-  <text x="12" y="18" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="black" text-anchor="middle">K</text>
+  <!-- Red shadow block (bottom-right offset) -->
+  <rect x="6" y="6" width="22" height="22" fill="#FF6666" stroke="black" stroke-width="2.5"/>
+  <!-- Yellow main block -->
+  <rect x="2" y="2" width="22" height="22" fill="#E0FF4F" stroke="black" stroke-width="2.5"/>
+  <!-- K letterform -->
+  <text x="13" y="19" font-family="Arial, sans-serif" font-weight="900" font-size="16" fill="black" text-anchor="middle">K</text>
 </svg>
