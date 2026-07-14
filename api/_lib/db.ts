@@ -1,6 +1,9 @@
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: true,
+});
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS otp_codes (
@@ -107,12 +110,18 @@ let schemaInitialized = false;
 
 export async function initSchema() {
   if (schemaInitialized) return;
-  const client = await pool.connect();
+  console.log('[DB] Initializing schema...');
+  let client;
   try {
+    client = await pool.connect();
     await client.query(SCHEMA_SQL);
     schemaInitialized = true;
+    console.log('[DB] Schema initialized successfully');
+  } catch (err) {
+    console.error('[DB] Schema initialization failed:', err);
+    throw err;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 }
 

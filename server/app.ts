@@ -1,7 +1,6 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
-import type { Request, Response, NextFunction } from 'express';
 import { query, initSchema } from '../api/_lib/db';
 import { signToken, hashPassword, comparePassword, verifyToken } from '../api/_lib/auth';
 import { generateOTP, sendOTP, isSmsConfigured } from '../api/_lib/sms';
@@ -9,29 +8,20 @@ import { generateOTP, sendOTP, isSmsConfigured } from '../api/_lib/sms';
 const app = express();
 
 app.use(cors());
-
-declare global {
-  namespace Express {
-    interface Request {
-      rawBody?: string;
-    }
-  }
-}
-
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  let data = '';
-  req.on('data', chunk => data += chunk);
-  req.on('end', () => {
-    req.rawBody = data;
-    next();
-  });
-});
-
+app.use('/api/webhook/paystack', express.raw({ type: '*/*' }));
 app.use(express.json());
 
 import { whatsappRouter } from './whatsapp';
 app.use('/api/whatsapp', whatsappRouter);
 
+app.get('/api/health', async (_req, res) => {
+  try {
+    const result = await query('SELECT NOW()');
+    res.json({ status: 'ok', db: 'connected', time: result.rows[0].now, service: 'Kudi API', version: '1.0' });
+  } catch (err: any) {
+    res.status(500).json({ status: 'error', db: 'disconnected', error: err.message });
+  }
+});
 app.get('/api', (_req, res) => res.json({ status: 'ok', service: 'Kudi API', version: '1.0' }));
 app.get('/', (_req, res) => res.redirect('/api'));
 
@@ -568,7 +558,7 @@ app.post('/api/score/compute', async (req, res) => {
 app.post('/api/webhook/paystack', (req, res) => {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) { console.error('PAYSTACK_SECRET_KEY not set'); return res.status(500).send('Webhook error'); }
-  const raw = req.rawBody;
+  const raw = req.body instanceof Buffer ? req.body.toString('utf8') : null;
   if (!raw) return res.status(400).send('Missing raw body');
   const hash = crypto.createHmac('sha512', secret).update(raw).digest('hex');
   if (hash !== req.headers['x-paystack-signature']) return res.status(401).send('Invalid signature');
