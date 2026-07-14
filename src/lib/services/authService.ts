@@ -12,6 +12,7 @@ async function isApiAvailable(): Promise<boolean> {
 
 export const authService = {
   async sendOTP(phone: string): Promise<boolean> {
+    this.logout();
     try {
       await api.post('/auth/request-otp', { phone });
     } catch {
@@ -63,6 +64,7 @@ export const authService = {
   },
 
   async login(phone: string, password: string): Promise<{ success: boolean; message?: string }> {
+    this.logout();
     try {
       const data = await api.post('/auth/login', { phone, password });
       if (data.success) {

@@ -5,6 +5,22 @@ function getToken(): string | null {
   return localStorage.getItem('kudi_token');
 }
 
+function toCamelCase(str: string) {
+  return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+}
+
+function keysToCamel(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(v => keysToCamel(v));
+  } else if (obj !== null && obj.constructor === Object) {
+    return Object.keys(obj).reduce((result, key) => {
+      result[toCamelCase(key)] = keysToCamel(obj[key]);
+      return result;
+    }, {} as any);
+  }
+  return obj;
+}
+
 export class ApiError extends Error {
   status: number;
   constructor(message: string, status: number) {
@@ -29,6 +45,7 @@ async function request(method: string, path: string, body?: any): Promise<any> {
   const text = await res.text();
   try {
     data = JSON.parse(text);
+    data = keysToCamel(data);
   } catch {
     throw new ApiError(`Server returned non-JSON response (status ${res.status})`, res.status);
   }
