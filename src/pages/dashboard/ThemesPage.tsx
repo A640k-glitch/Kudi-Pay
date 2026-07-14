@@ -12,14 +12,18 @@ const THEMES = [
   },
   {
     id: 'modern',
-    name: 'Modern Minimal',
-    desc: 'Clean, professional, e-commerce standard. Let your products do the talking.',
+    name: 'Dark Mode',
+    desc: 'A soft, minimal, newspaper-like dark UI with elegant typography.',
+    previewImg: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop',
   },
 ];
 
 export default function ThemesPage() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [activeTheme, setActiveTheme] = useState<'light' | 'modern'>('light');
+  const [heroLabel, setHeroLabel] = useState('');
+  const [heroHeading, setHeroHeading] = useState('');
+  const [heroSubheading, setHeroSubheading] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,6 +36,9 @@ export default function ThemesPage() {
         const raw = b.theme as string;
         const valid: 'light' | 'modern' = raw === 'brutal' || raw === 'light' ? 'light' : 'modern';
         setActiveTheme(valid);
+        setHeroLabel(b.themeConfig?.heroLabel || '');
+        setHeroHeading(b.themeConfig?.heroHeading || '');
+        setHeroSubheading(b.themeConfig?.heroSubheading || '');
       }
       setIsLoading(false);
     }
@@ -43,16 +50,22 @@ export default function ThemesPage() {
     if (!business || isLoading) return;
     const timer = setTimeout(async () => {
       try {
-        await businessService.updateBusiness(business.id, { theme: activeTheme });
+        const themeConfig = {
+          ...business.themeConfig,
+          heroLabel: heroLabel.trim() || undefined,
+          heroHeading: heroHeading.trim() || undefined,
+          heroSubheading: heroSubheading.trim() || undefined
+        };
+        await businessService.updateBusiness(business.id, { theme: activeTheme, themeConfig });
         const ch = new BroadcastChannel('theme_updates');
-        ch.postMessage({ type: 'theme_changed', slug: business.storefrontSlug, theme: activeTheme });
+        ch.postMessage({ type: 'theme_changed', slug: business.storefrontSlug, theme: activeTheme, themeConfig });
         ch.close();
       } catch (e) {
         console.error('Failed to auto-save theme', e);
       }
-    }, 500);
+    }, 800);
     return () => clearTimeout(timer);
-  }, [activeTheme, business?.id, isLoading]);
+  }, [activeTheme, heroLabel, heroHeading, heroSubheading, business?.id, isLoading]);
 
   if (!business) return null;
 
@@ -98,6 +111,58 @@ export default function ThemesPage() {
             <p className="text-sm font-bold opacity-80">{theme.desc}</p>
           </button>
         ))}
+      </div>
+
+      {/* Hero Customization */}
+      <div className="mt-12 bg-white border-2 border-slate-200 rounded-[16px] p-6 max-w-xl mx-auto shadow-sm">
+        <h2 className="text-xl font-display font-black text-slate-900 mb-6">Hero Section Content</h2>
+        
+        <div className="space-y-5">
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-bold text-slate-700">Label Text</label>
+              <span className="text-xs text-slate-400 font-medium">{heroLabel.length}/20</span>
+            </div>
+            <input
+              type="text"
+              value={heroLabel}
+              onChange={(e) => setHeroLabel(e.target.value.slice(0, 20))}
+              placeholder="e.g. New Arrivals"
+              className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg px-4 py-3 text-base font-semibold focus:border-slate-900 focus:ring-0 outline-none transition-all placeholder:font-normal"
+            />
+            <p className="text-xs text-slate-500 mt-1.5">Small pill text above the main heading.</p>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-bold text-slate-700">Main Heading</label>
+              <span className="text-xs text-slate-400 font-medium">{heroHeading.length}/50</span>
+            </div>
+            <input
+              type="text"
+              value={heroHeading}
+              onChange={(e) => setHeroHeading(e.target.value.slice(0, 50))}
+              placeholder="e.g. Glow Naturally, Every Single Day."
+              className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg px-4 py-3 text-base font-semibold focus:border-slate-900 focus:ring-0 outline-none transition-all placeholder:font-normal"
+            />
+            <p className="text-xs text-slate-500 mt-1.5">The large title text. Keep it punchy.</p>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="block text-sm font-bold text-slate-700">Subheading / Description</label>
+              <span className="text-xs text-slate-400 font-medium">{heroSubheading.length}/120</span>
+            </div>
+            <textarea
+              value={heroSubheading}
+              onChange={(e) => setHeroSubheading(e.target.value.slice(0, 120))}
+              rows={3}
+              placeholder="e.g. Discover our curated collection of premium skincare essentials formulated for radiant, healthy skin."
+              className="w-full bg-slate-50 border-2 border-slate-200 rounded-lg px-4 py-3 text-base font-medium focus:border-slate-900 focus:ring-0 outline-none transition-all resize-none placeholder:font-normal"
+            />
+            <p className="text-xs text-slate-500 mt-1.5">A short sentence supporting the main heading.</p>
+          </div>
+        </div>
       </div>
     </div>
   );

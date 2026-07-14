@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Home, Package, ShoppingBag, Settings, User, Menu, MoreHorizontal, X } from 'lucide-react';
 import { NeoStore, NeoStar, NeoCoins, NeoActivity } from '../../components/icons/NeoIcons';
@@ -9,6 +9,7 @@ import { Logo } from '../../components/Logo';
 import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '../../lib/utils';
 import { authService } from '../../lib/services/authService';
+import { businessService } from '../../lib/services/businessService';
 import { ArrowRight, PaintBrushBroad } from '@phosphor-icons/react';
 
 
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
 
 export default function DashboardLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [showCelebration, setShowCelebration] = useState(false);
   const [storeLink, setStoreLink] = useState('');
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
@@ -42,18 +44,20 @@ export default function DashboardLayout() {
       window.history.replaceState({}, '', '/dashboard');
     }
 
-    const phone = authService.getCurrentPhone();
-    if (phone) {
-      const str = localStorage.getItem('kudi_businesses');
-      if (str) {
-        const businesses = JSON.parse(str);
-        const b = businesses.find((b: any) => b.ownerPhone === phone);
+    async function checkBusiness() {
+      const phone = authService.getCurrentPhone();
+      if (phone) {
+        const b = await businessService.getBusinessByPhone(phone);
         if (b) {
           setStoreLink(`${window.location.origin}/store/${b.storefrontSlug}`);
+        } else {
+          // If they have a token but no business in DB, they haven't finished onboarding
+          navigate('/onboarding/business', { replace: true });
         }
       }
     }
-  }, [location]);
+    checkBusiness();
+  }, [location, navigate]);
 
   useEffect(() => {
     if (isMoreMenuOpen) {

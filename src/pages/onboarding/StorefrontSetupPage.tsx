@@ -14,7 +14,7 @@ type StorefrontFormValues = z.infer<typeof storefrontSchema>;
 
 const THEMES = [
   { id: 'light', name: 'Light Mode', desc: 'Clean, elegant, Shopify-inspired aesthetic' },
-  { id: 'modern', name: 'Modern Minimal', desc: 'Clean, sleek, Shopify-like experience' },
+  { id: 'modern', name: 'Dark Mode', desc: 'A soft, minimal, newspaper-like dark UI with elegant typography.' },
 ];
 
 export default function StorefrontSetupPage() {

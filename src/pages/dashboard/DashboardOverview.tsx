@@ -66,11 +66,14 @@ export default function DashboardOverview() {
       if (b) {
         setBusiness(b);
         await refreshData(b.id, b);
+      } else {
+        // Business not found in DB, redirect to onboarding
+        navigate('/onboarding/business', { replace: true });
       }
       setIsLoading(false);
     }
     load();
-  }, []);
+  }, [navigate]);
 
   const handleSyncTransactions = async () => {
     if (!business || !account) return;

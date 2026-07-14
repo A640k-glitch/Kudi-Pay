@@ -214,13 +214,22 @@ app.patch('/api/businesses/:id', async (req, res) => {
     if (!payload) return res.status(401).json({ error: 'Invalid token' });
 
     const allowedFields = ['business_name', 'category', 'state', 'lga', 'logo_url', 'theme', 'theme_config', 'kyc_tier', 'cac_verification', 'tin_number'];
+    const fieldMapping: Record<string, string> = {
+      businessName: 'business_name',
+      logoUrl: 'logo_url',
+      themeConfig: 'theme_config',
+      kycTier: 'kyc_tier',
+      cacVerification: 'cac_verification',
+      tinNumber: 'tin_number',
+    };
     const updates: string[] = [];
     const values: any[] = [];
     let idx = 1;
 
     for (const [key, value] of Object.entries(req.body)) {
-      if (allowedFields.includes(key)) {
-        updates.push(`${key} = $${idx++}`);
+      const dbKey = fieldMapping[key] || key;
+      if (allowedFields.includes(dbKey)) {
+        updates.push(`${dbKey} = $${idx++}`);
         values.push(value);
       }
     }

@@ -1,12 +1,19 @@
 import { Pool } from '@neondatabase/serverless';
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: true,
-  connectionTimeoutMillis: 5000,
-  max: 1,
-  idleTimeoutMillis: 30000,
-});
+let pool: Pool | null = null;
+
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: true,
+      connectionTimeoutMillis: 5000,
+      max: 1,
+      idleTimeoutMillis: 30000,
+    });
+  }
+  return pool;
+}
 
 const SCHEMA_SQL = `
 CREATE TABLE IF NOT EXISTS otp_codes (
@@ -107,6 +114,39 @@ CREATE TABLE IF NOT EXISTS bank_transactions (
   matched_ledger_entry_id TEXT,
   matched_order_id TEXT
 );
+
+CREATE TABLE IF NOT EXISTS loans (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  tier_id TEXT NOT NULL,
+  tier_name TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  interest_rate INTEGER NOT NULL,
+  repayment_amount INTEGER NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  disbursed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  due_at TIMESTAMPTZ NOT NULL,
+  repaid_at TIMESTAMPTZ
+);
+
+CREATE TABLE IF NOT EXISTS trust_score_snapshots (
+  id TEXT PRIMARY KEY,
+  business_id TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  score INTEGER NOT NULL,
+  tier TEXT NOT NULL,
+  UNIQUE(business_id, date)
+);
+
+CREATE TABLE IF NOT EXISTS cac_verifications (
+  business_id TEXT PRIMARY KEY REFERENCES businesses(id) ON DELETE CASCADE,
+  rc_number TEXT NOT NULL,
+  company_name TEXT NOT NULL,
+  registration_date DATE,
+  company_type TEXT,
+  status TEXT,
+  verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `;
 
 let schemaInitialized = false;
@@ -116,7 +156,7 @@ export async function initSchema() {
   console.log('[DB] Initializing schema...');
   let client;
   try {
-    client = await pool.connect();
+    client = await getPool().connect();
     await client.query(SCHEMA_SQL);
     schemaInitialized = true;
     console.log('[DB] Schema initialized successfully');
@@ -130,7 +170,7 @@ export async function initSchema() {
 
 export async function query(text: string, params?: any[]) {
   await initSchema();
-  const client = await pool.connect();
+  const client = await getPool().connect();
   try {
     const result = await client.query(text, params);
     return result;
@@ -139,4 +179,4 @@ export async function query(text: string, params?: any[]) {
   }
 }
 
-export { pool };
+export { getPool as pool };

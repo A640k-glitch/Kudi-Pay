@@ -27,8 +27,10 @@ export default function ConfirmationPage() {
     load();
   }, [orderId]);
 
-  const theme = business?.theme || 'modern';
+  const theme = business?.theme || 'light';
   const isBrutal = theme === 'brutal';
+  const isDarkMode = theme === 'modern';
+  const isLight = !isBrutal && !isDarkMode;
 
   if (isLoading) return (
     <div className="min-h-screen p-10 flex justify-center items-center">
@@ -39,8 +41,8 @@ export default function ConfirmationPage() {
   if (!order || !business) {
     return (
       <div className="p-10 text-center flex flex-col items-center">
-        <h1 className="text-3xl mb-6 font-display font-bold text-primary">Order not found</h1>
-        <Link to={`/store/${business?.storefrontSlug}`} className="flex items-center gap-2 font-semibold text-accent hover:text-emerald-400 transition-colors">
+        <h1 className={`text-3xl mb-6 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>Order not found</h1>
+        <Link to={`/store/${business?.storefrontSlug}`} className={`flex items-center gap-2 font-semibold transition-colors ${isDarkMode ? 'text-white hover:text-gray-300' : 'text-accent hover:text-emerald-400'}`}>
           <ArrowLeft className="w-5 h-5" /> Return to store
         </Link>
       </div>
@@ -48,29 +50,29 @@ export default function ConfirmationPage() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-xl mx-auto pb-24 flex flex-col items-center text-center mt-10 selection:bg-accent selection:text-white">
+    <div className={`p-4 md:p-6 max-w-xl mx-auto pb-24 flex flex-col items-center text-center mt-10 ${isDarkMode ? 'selection:bg-[var(--s-accent)] selection:text-[var(--s-accent-text)]' : 'selection:bg-accent selection:text-white'}`}>
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="mb-8 w-28 h-28 flex items-center justify-center bg-emerald-50 text-accent rounded-full shadow-sm border border-emerald-100"
+        className={`mb-8 w-28 h-28 flex items-center justify-center rounded-full shadow-sm border ${isDarkMode ? 'bg-[#18181B] text-[var(--s-accent)] border-[#27272A]' : 'bg-emerald-50 text-accent border-emerald-100'}`}
       >
         <CheckCircle2 className="w-14 h-14" strokeWidth={2} />
       </motion.div>
 
-      <h1 className="text-4xl md:text-5xl tracking-tighter mb-4 font-display font-bold text-primary">Order Successful!</h1>
-      <p className="mb-10 max-w-md text-lg md:text-xl leading-relaxed font-medium text-slate-500">
-        We've notified <span className="text-primary font-semibold">{business.businessName}</span>. They'll be in touch shortly.
+      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>Order Successful!</h1>
+      <p className={`mb-10 max-w-md text-lg md:text-xl leading-relaxed font-medium ${isDarkMode ? 'text-[#9CA3AF]' : 'text-slate-500'}`}>
+        We've notified <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-primary'}`}>{business.businessName}</span>. They'll be in touch shortly.
       </p>
 
-      <div className="w-full p-8 mb-10 glass-panel bg-white border border-slate-200/60 rounded-[32px] shadow-sm">
-        <div className="text-sm tracking-widest mb-2 font-bold text-slate-400 uppercase">Order Reference</div>
-        <div className="text-3xl tracking-widest mb-8 font-mono font-bold text-primary">#{order.id}</div>
+      <div className={`w-full p-8 mb-10 border rounded-[32px] shadow-sm ${isDarkMode ? 'bg-[#18181B] border-[#27272A]' : 'glass-panel bg-white border-slate-200/60'}`}>
+        <div className={`text-sm tracking-widest mb-2 font-bold uppercase ${isDarkMode ? 'text-[#6B7280]' : 'text-slate-400'}`}>Order Reference</div>
+        <div className={`text-3xl tracking-widest mb-8 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-primary'}`}>#{order.id}</div>
 
-        <div className="pt-6 text-left border-t border-slate-200/60">
-          <div className="flex justify-between items-center text-xl font-semibold text-primary">
+        <div className={`pt-6 text-left border-t ${isDarkMode ? 'border-[#27272A]' : 'border-slate-200/60'}`}>
+          <div className={`flex justify-between items-center text-xl font-semibold ${isDarkMode ? 'text-[#D1D5DB]' : 'text-primary'}`}>
             <span>Amount Paid</span>
-            <span className="text-slate-900 font-bold">{formatNaira(order.totalAmount)}</span>
+            <span className={`font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{formatNaira(order.totalAmount)}</span>
           </div>
         </div>
       </div>
@@ -78,13 +80,13 @@ export default function ConfirmationPage() {
       <div className="w-full flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => setShowReceipt(true)}
-          className="flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg bg-accent text-white rounded-[20px] shadow-lg shadow-accent/25 hover:bg-emerald-400 hover:shadow-xl hover:shadow-accent/30 hover:-translate-y-0.5 active:translate-y-0"
+          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 ${isDarkMode ? 'bg-[var(--s-accent)] text-[var(--s-accent-text)]' : 'bg-accent text-white shadow-lg shadow-accent/25 hover:bg-emerald-400'}`}
         >
           <Receipt className="w-5 h-5 mr-2" strokeWidth={2} /> View Receipt
         </button>
         <Link
           to={`/store/${business.storefrontSlug}`}
-          className="flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg bg-white text-slate-700 border border-slate-200/60 rounded-[20px] hover:bg-slate-50 hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:border-slate-300"
+          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg border rounded-[20px] hover:-translate-y-0.5 active:translate-y-0 shadow-sm ${isDarkMode ? 'bg-[#18181B] text-white border-[#27272A] hover:bg-[#27272A]' : 'bg-white text-slate-700 border-slate-200/60 hover:bg-slate-50 hover:border-slate-300'}`}
         >
           Continue Shopping
         </Link>

@@ -3,6 +3,9 @@ export interface ThemeConfig {
   primaryColor?: string;
   heroImageUrl?: string;
   ctaText?: string;
+  heroLabel?: string;
+  heroHeading?: string;
+  heroSubheading?: string;
 }
 
 // ── Verification & Compliance ───────────────────────────────

@@ -73,20 +73,36 @@ export const authService = {
       }
       return { success: false, message: data.message };
     } catch (err: any) {
-      // Fallback: localStorage dev mode
-      if (err instanceof ApiError && err.status === 404) {
-        return { success: false, message: "We don't recognize this number." };
-      }
       // In dev without API server, fall back to localStorage check
       const businessesStr = localStorage.getItem('kudi_businesses');
       if (businessesStr) {
         const businesses: Business[] = JSON.parse(businessesStr);
         const business = businesses.find(b => b.ownerPhone === phone);
-        if (!business) {
-          return { success: false, message: "We don't recognize this number." };
+        
+        if (business) {
+          // Attempt seamless migration to Neon DB if API returns 404 (user exists locally but not in DB)
+          if (err instanceof ApiError && err.status === 404) {
+            try {
+              await api.post('/businesses', { ...business, password });
+              // Migration successful, attempt login again to set up the OTP flow
+              const retryData = await api.post('/auth/login', { phone, password });
+              if (retryData.success) {
+                localStorage.setItem('kudi_pending_phone', phone);
+                return { success: true };
+              }
+            } catch (migrationErr) {
+              console.error('Migration to Neon DB failed:', migrationErr);
+            }
+          }
+          
+          localStorage.setItem('kudi_pending_phone', phone);
+          return { success: true };
         }
-        localStorage.setItem('kudi_pending_phone', phone);
-        return { success: true };
+      }
+
+      // If not in localStorage either, return the original error
+      if (err instanceof ApiError && err.status === 404) {
+        return { success: false, message: "We don't recognize this number." };
       }
       return { success: false, message: 'Could not connect to server. Make sure the API is running.' };
     }

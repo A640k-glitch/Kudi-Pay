@@ -34,6 +34,10 @@ export const businessService = {
       const data = await api.get(`/businesses/${slug}`);
       return data.business;
     } catch {
+      const existing = this._getAllBusinesses();
+      const localBiz = existing.find(b => b.storefrontSlug === slug);
+      if (localBiz) return localBiz;
+      
       return {
         id: `mock_biz_${slug}`,
         businessName: slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
@@ -55,8 +59,20 @@ export const businessService = {
   },
 
   async updateBusiness(id: string, updates: Partial<Business>): Promise<Business | null> {
-    const data = await api.patch(`/businesses/${id}`, updates);
-    return data.business;
+    try {
+      const data = await api.patch(`/businesses/${id}`, updates);
+      return data.business;
+    } catch (e) {
+      // Fallback for local development when backend is unreachable
+      const existing = this._getAllBusinesses();
+      const index = existing.findIndex(b => b.id === id);
+      if (index !== -1) {
+        existing[index] = { ...existing[index], ...updates };
+        localStorage.setItem('kudi_businesses', JSON.stringify(existing));
+        return existing[index];
+      }
+      throw e;
+    }
   },
 
   async checkSlugAvailable(slug: string): Promise<boolean> {
