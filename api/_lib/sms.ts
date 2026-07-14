@@ -8,6 +8,10 @@ function normalizePhone(phone: string): string {
   return cleaned;
 }
 
+export function isSmsConfigured(): boolean {
+  return !!(TERMII_API_KEY && TERMII_API_KEY !== 'your_termii_api_key_here');
+}
+
 export function generateOTP(length = 6): string {
   return Math.floor(Math.random() * Math.pow(10, length)).toString().padStart(length, '0');
 }
