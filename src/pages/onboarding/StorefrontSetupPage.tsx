@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Check, Loader2 } from 'lucide-react';
+import { Check, Loader2, AlertTriangle } from 'lucide-react';
 import BrutalButton from '../../components/ui/BrutalButton';
 import { Logo } from '../../components/Logo';
 import { storefrontSchema } from '../../lib/validation/schemas';
@@ -22,6 +22,7 @@ export default function StorefrontSetupPage() {
   const [isChecking, setIsChecking] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<StorefrontFormValues>({
     resolver: zodResolver(storefrontSchema),
@@ -60,6 +61,7 @@ export default function StorefrontSetupPage() {
     if (isAvailable === false) return;
     
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
       const stored = sessionStorage.getItem('kudi_onboarding_business');
       const businessData = stored ? JSON.parse(stored) : {};
@@ -78,8 +80,9 @@ export default function StorefrontSetupPage() {
       sessionStorage.removeItem('kudi_onboarding_business');
       sessionStorage.removeItem('kudi_temp_password');
       navigate('/onboarding/first-product');
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('[StorefrontSetup] Error:', err);
+      setSubmitError(err?.message || 'Something went wrong. Check the console for details.');
     } finally {
       setIsSubmitting(false);
     }
@@ -152,6 +155,13 @@ export default function StorefrontSetupPage() {
                 ))}
               </div>
             </div>
+
+            {submitError && (
+              <div className="flex items-start gap-3 p-4 border-[4px] border-red-500 bg-red-50 text-red-700 font-bold">
+                <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5" />
+                <span>{submitError}</span>
+              </div>
+            )}
 
             <BrutalButton type="submit" className="w-full mt-4 h-16 text-xl" disabled={isAvailable === false} isLoading={isSubmitting}>
               Create storefront &rarr;
