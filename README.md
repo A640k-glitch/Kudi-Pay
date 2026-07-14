@@ -1,12 +1,12 @@
-# Aza OS — Embedded-Finance Commerce OS
+# Kudi — Embedded-Finance Commerce OS
 ## Complete platform for Nigerian micro-merchants
 
-Aza OS is a premium digital storefront and embedded-finance platform tailored for small businesses in Nigeria. It allows merchants to create online shops, record manual sales, scan receipt invoices via AI, track credit health scores, and unlock tiered loans based on active trade activity.
+Kudi is a premium digital storefront and embedded-finance platform tailored for small businesses in Nigeria. It allows merchants to create online shops, record manual sales, scan receipt invoices via AI, track credit health scores, and unlock tiered loans based on active trade activity.
 
 ---
 
 ## Brand Details
-- **Brand Name**: Aza OS
+- **Brand Name**: Kudi
 - **Logo Symbol**: An interlocking double-loop geometric emblem representing the cycle between merchant sales (commerce) and scoring history (banking).
 - **Core Theme Color**: Primary Indigo (`#312E81`), Success Emerald (`#059669`), and Warm White base canvas (`#F5F5F4`).
 - **Typography**: Arial Rounded MT Bold is used for an approachable yet bold display aesthetic.
