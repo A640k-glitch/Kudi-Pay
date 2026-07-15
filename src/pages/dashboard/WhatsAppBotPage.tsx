@@ -3,6 +3,7 @@ import { PaperPlaneRight, Checks, CircleNotch } from '@phosphor-icons/react';
 import { ledgerService } from '../../lib/services/ledgerService';
 import { bankAccountService } from '../../lib/services/bankAccountService';
 import { trustScoreService } from '../../lib/services/trustScoreService';
+import { dashboardAgentService } from '../../lib/services/aiAgentService';
 import { formatNaira } from '../../lib/utils';
 
 interface ChatMessage {
@@ -24,7 +25,21 @@ function getFormattedTime() {
 }
 
 export default function WhatsAppBotPage() {
-  const [businessId] = useState<string>(() => {
+  const [inputText, setInputText] = useState('');
+  const [isBotTyping, setIsBotTyping] = useState(false);
+  const [messageTimestamps, setMessageTimestamps] = useState<number[]>([]);
+  const [isAiActive, setIsAiActive] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    async function checkStatus() {
+      const active = await dashboardAgentService.checkStatus();
+      setIsAiActive(active);
+    }
+    checkStatus();
+  }, []);
+
+  const [businessId, setBusinessId] = useState<string>(() => {
     const str = localStorage.getItem('kudi_businesses');
     const phone = localStorage.getItem('kudi_session_phone');
     if (str && phone) {
@@ -55,11 +70,7 @@ export default function WhatsAppBotPage() {
     return [];
   });
 
-  const [inputText, setInputText] = useState('');
-  const [isBotTyping, setIsBotTyping] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  // Initialize bot greeting and load from cache if empty
+  // Initialize bot greeting if empty
   useEffect(() => {
     if (businessId && messages.length === 0) {
       const initialMsgs: ChatMessage[] = [
@@ -104,12 +115,52 @@ export default function WhatsAppBotPage() {
       isRead: true
     };
 
+    // Rate Limiting (5 messages per minute)
+    const now = Date.now();
+    const oneMinuteAgo = now - 60000;
+    const recentMessages = messageTimestamps.filter(t => t > oneMinuteAgo);
+    
+    if (recentMessages.length >= 5) {
+      const botMsg: ChatMessage = {
+        id: `bot-limit-${Date.now()}`,
+        sender: 'bot',
+        text: `⚠️ Rate Limit Exceeded:\n\nYou have sent too many queries. To prevent Gemini API key abuse, rate limits are restricted to 5 queries per minute.\n\nPlease wait a moment before sending another query.`,
+        timestamp: getFormattedTime()
+      };
+      setMessages(prev => [...prev, userMsg, botMsg]);
+      setInputText('');
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      return;
+    }
+
+    setMessageTimestamps(prev => [...prev.filter(t => t > oneMinuteAgo), now]);
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setIsBotTyping(true);
 
     setTimeout(async () => {
-      const reply = await parseWhatsAppCommand(textToSend, businessId);
+      let reply: string;
+      const norm = textToSend.toLowerCase().trim();
+      
+      // 1. Try local matched queries first to save API tokens
+      const isLocalQuery = norm.includes('score') || norm.includes('trust') || norm.includes('readiness') ||
+                            norm.includes('profit') || norm.includes('how much') || norm.includes('revenue') ||
+                            norm.includes('sync') || norm.includes('match') || norm.includes('update');
+      
+      if (isLocalQuery) {
+        reply = await parseWhatsAppCommand(textToSend, businessId);
+      } else {
+        // 2. If it's a general query, check if the Live AI is active
+        if (isAiActive) {
+          reply = await dashboardAgentService.processQuery(businessId, textToSend);
+        } else {
+          // Fallback to instruction set
+          reply = await parseWhatsAppCommand(textToSend, businessId);
+        }
+      }
+
       const botMsg: ChatMessage = {
         id: `bot-${Date.now()}`,
         sender: 'bot',
@@ -118,7 +169,7 @@ export default function WhatsAppBotPage() {
       };
       setMessages(prev => [...prev, botMsg]);
       setIsBotTyping(false);
-    }, 1500);
+    }, 1200);
   };
 
   return (
@@ -128,11 +179,20 @@ export default function WhatsAppBotPage() {
         <div className="w-12 h-12 bg-white text-slate-900 flex items-center justify-center font-display font-black text-xl rounded-full shadow-sm">
           KD
         </div>
-        <div className="flex-1">
-          <div className="font-display font-bold text-lg text-white">Kudi Assistant</div>
+        <div className="flex-grow">
+          <div className="font-display font-bold text-lg text-white flex items-center justify-between">
+            <span>Kudi Assistant</span>
+            <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${
+              isAiActive 
+                ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' 
+                : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+            }`}>
+              {isAiActive ? 'Active' : 'Offline'}
+            </span>
+          </div>
           <div className="text-xs font-medium text-slate-300 flex items-center gap-2 mt-1">
-            <span className="w-2 h-2 bg-[#E0FF4F] rounded-full inline-block animate-pulse"></span>
-            Online
+            <span className={`w-2 h-2 rounded-full inline-block ${isAiActive ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'}`}></span>
+            {isAiActive ? 'Online' : 'Offline'}
           </div>
         </div>
       </header>

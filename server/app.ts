@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { query } from '../api/_lib/db';
 import { signToken, hashPassword, comparePassword, verifyToken } from '../api/_lib/auth';
 import { generateOTP, sendOTP, isSmsConfigured } from '../api/_lib/sms';
+import { aiAgentService } from './aiAgent';
 
 const app = express();
 
@@ -580,6 +581,24 @@ app.get('/api/proxy/kyc/nin', async (_req, res) => {
 
 app.get('/api/proxy/kyc/cac', async (_req, res) => {
   res.json({ status: 'success', message: 'Proxy placeholder for Dojah CAC' });
+});
+
+app.get('/api/assistant/status', (_req, res) => {
+  res.json({ active: !!process.env.GEMINI_API_KEY });
+});
+
+app.post('/api/assistant/chat', async (req, res) => {
+  try {
+    const { businessId, query: queryText, clientContext } = req.body;
+    if (!businessId || !queryText) {
+      return res.status(400).json({ error: 'businessId and query are required' });
+    }
+    const reply = await aiAgentService.processDashboardQuery(businessId, queryText, clientContext);
+    res.json({ reply });
+  } catch (error: any) {
+    console.error('Assistant chat error:', error);
+    res.status(500).json({ error: error.message || 'Assistant failed to generate response' });
+  }
 });
 
 // ── Global Error Handler (must be last) ─────────────────────
