@@ -29,8 +29,8 @@ export default function LoginPage() {
       } else {
         setErrorMsg(result.message || "We don't recognize this number.");
       }
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      setErrorMsg(error?.message || "We don't recognize this number.");
     } finally {
       setIsLoading(false);
     }

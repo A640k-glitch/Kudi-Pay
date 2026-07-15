@@ -34,5 +34,15 @@ export const businessService = {
   async checkSlugAvailable(slug: string): Promise<boolean> {
     const data = await api.get(`/businesses/check-slug?slug=${encodeURIComponent(slug)}`);
     return data.available;
+  },
+
+  async requestDeleteOTP(): Promise<boolean> {
+    const data = await api.post('/auth/request-delete-otp');
+    return data.success;
+  },
+
+  async deleteBusiness(id: string, code: string): Promise<boolean> {
+    const data = await api.post(`/businesses/${id}/delete`, { code });
+    return data.success;
   }
 };

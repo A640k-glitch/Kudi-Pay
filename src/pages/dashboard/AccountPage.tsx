@@ -21,6 +21,9 @@ export default function AccountPage() {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleteStep, setDeleteStep] = useState(1);
+  const [deleteOtp, setDeleteOtp] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Verification Flow State
   const [isVerificationOpen, setIsVerificationOpen] = useState(false);
@@ -73,9 +76,30 @@ export default function AccountPage() {
     navigate('/');
   };
 
-  const handleDelete = () => {
-    authService.logout();
-    navigate('/');
+  const handleDeleteRequest = async () => {
+    setIsDeleting(true);
+    try {
+      await businessService.requestDeleteOTP();
+      setDeleteStep(2);
+    } catch (err: any) {
+      alert("Failed to send OTP. " + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!business) return;
+    setIsDeleting(true);
+    try {
+      await businessService.deleteBusiness(business.id, deleteOtp);
+      authService.logout();
+      navigate('/');
+    } catch (err: any) {
+      alert("Verification failed. " + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleVerifySubmit = async () => {
@@ -524,34 +548,67 @@ export default function AccountPage() {
         </div>
       </Modal>
 
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+      <Modal isOpen={isDeleteModalOpen} onClose={() => { setIsDeleteModalOpen(false); setDeleteStep(1); setDeleteConfirm(''); setDeleteOtp(''); }}>
         <div className="p-8 bg-[#FF6666] border-2 border-slate-900 rounded-[32px] shadow-[8px_8px_0px_#0f172a] text-center max-w-sm mx-auto">
           <div className="w-16 h-16 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
             <Trash className="w-8 h-8 text-slate-900" weight="fill" />
           </div>
-          <h3 className="text-2xl font-display font-black mb-4 text-white">Delete Account?</h3>
-          <p className="font-bold mb-8 text-white/90 leading-relaxed">This action cannot be undone. All data will be lost.</p>
           
-          <div className="mb-8 text-left">
-            <label className="block font-bold text-white text-sm mb-2">Type DELETE to confirm</label>
-            <input 
-              className="w-full border-2 border-white rounded-[16px] p-4 font-black uppercase outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,0.2)] bg-white/10 text-white placeholder-white/30 transition-all"
-              value={deleteConfirm}
-              onChange={(e) => setDeleteConfirm(e.target.value)}
-              placeholder="DELETE"
-            />
-          </div>
+          {deleteStep === 1 ? (
+            <>
+              <h3 className="text-2xl font-display font-black mb-4 text-white">Delete Account?</h3>
+              <p className="font-bold mb-8 text-white/90 leading-relaxed">This action cannot be undone. All data will be lost.</p>
+              
+              <div className="mb-8 text-left">
+                <label className="block font-bold text-white text-sm mb-2">Type DELETE to confirm</label>
+                <input 
+                  className="w-full border-2 border-white rounded-[16px] p-4 font-black uppercase outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,0.2)] bg-white/10 text-white placeholder-white/30 transition-all"
+                  value={deleteConfirm}
+                  onChange={(e) => setDeleteConfirm(e.target.value.toUpperCase())}
+                  placeholder="DELETE"
+                />
+              </div>
 
-          <div className="flex gap-4">
-            <button className="flex-1 py-4 bg-white/20 text-white font-bold rounded-[16px] border-2 border-transparent hover:bg-white/30 transition-colors" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
-            <button 
-              className="flex-1 py-4 bg-[#E0FF4F] text-slate-900 font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
-              disabled={deleteConfirm !== 'DELETE'}
-              onClick={handleDelete}
-            >
-              Confirm
-            </button>
-          </div>
+              <div className="flex gap-4">
+                <button className="flex-1 py-4 bg-white/20 text-white font-bold rounded-[16px] border-2 border-transparent hover:bg-white/30 transition-colors" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
+                <button 
+                  className="flex-1 py-4 bg-[#E0FF4F] text-slate-900 font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
+                  disabled={deleteConfirm !== 'DELETE' || isDeleting}
+                  onClick={handleDeleteRequest}
+                >
+                  {isDeleting ? '...' : 'Confirm'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-2xl font-display font-black mb-4 text-white">Verify Deletion</h3>
+              <p className="font-bold mb-8 text-white/90 leading-relaxed">Enter the 6-digit code sent to your phone to permanently delete your account.</p>
+              
+              <div className="mb-8 text-left">
+                <label className="block font-bold text-white text-sm mb-2">OTP Code</label>
+                <input 
+                  type="text"
+                  maxLength={6}
+                  className="w-full border-2 border-white rounded-[16px] p-4 text-center tracking-[0.5em] font-black outline-none focus:shadow-[4px_4px_0px_rgba(0,0,0,0.2)] bg-white/10 text-white placeholder-white/30 transition-all"
+                  value={deleteOtp}
+                  onChange={(e) => setDeleteOtp(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button className="flex-1 py-4 bg-white/20 text-white font-bold rounded-[16px] border-2 border-transparent hover:bg-white/30 transition-colors" onClick={() => { setIsDeleteModalOpen(false); setDeleteStep(1); }}>Cancel</button>
+                <button 
+                  className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
+                  disabled={deleteOtp.length !== 6 || isDeleting}
+                  onClick={handleDeleteConfirm}
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete Account'}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </Modal>
     </div>

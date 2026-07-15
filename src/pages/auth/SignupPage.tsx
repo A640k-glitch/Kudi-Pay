@@ -29,7 +29,6 @@ export default function SignupPage() {
       await authService.sendOTP(data.phone);
       navigate('/verify');
     } catch (error: any) {
-      console.error(error);
       setErrorMsg(error?.message || 'Account already exists or failed to send OTP.');
     } finally {
       setIsLoading(false);

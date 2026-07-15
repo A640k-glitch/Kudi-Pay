@@ -87,6 +87,71 @@ app.post('/api/auth/verify-otp', async (req, res) => {
   }
 });
 
+app.post('/api/auth/request-delete-otp', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Unauthorized' });
+
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
+    if (!payload || !payload.phone) return res.status(401).json({ error: 'Invalid token' });
+
+    const phone = payload.phone;
+
+    // Check if account actually exists
+    const existing = await query(`SELECT id FROM businesses WHERE owner_phone = $1`, [phone]);
+    if (existing.rows.length === 0) return res.status(404).json({ error: 'Account not found' });
+
+    await query(`UPDATE otp_codes SET used = true WHERE phone = $1 AND used = false`, [phone]);
+
+    const code = generateOTP();
+    await query(`INSERT INTO otp_codes (phone, code, expires_at) VALUES ($1, $2, NOW() + INTERVAL '5 minutes')`, [phone, code]);
+    await sendOTP(phone, code);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('request-delete-otp error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/businesses/:id/delete', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Unauthorized' });
+
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
+    if (!payload || payload.businessId !== req.params.id) return res.status(401).json({ error: 'Invalid token' });
+
+    const phone = payload.phone;
+    const { code } = req.body;
+    if (!code) return res.status(400).json({ error: 'OTP code is required' });
+
+    let otpValid = false;
+    const otpResult = await query(`SELECT * FROM otp_codes WHERE phone = $1 AND code = $2 AND used = false AND expires_at > NOW()`, [phone, code]);
+    
+    if (otpResult.rows.length > 0) {
+      otpValid = true;
+      await query(`UPDATE otp_codes SET used = true WHERE phone = $1 AND code = $2`, [phone, code]);
+    }
+
+    if (!otpValid && !isSmsConfigured() && code === '123456') {
+      otpValid = true;
+    }
+
+    if (!otpValid) return res.status(401).json({ error: 'Invalid or expired OTP' });
+
+    // Execute deletion (ON DELETE CASCADE handles all related records)
+    await query(`DELETE FROM businesses WHERE id = $1`, [req.params.id]);
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('delete business error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
