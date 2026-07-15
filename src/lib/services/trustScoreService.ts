@@ -29,6 +29,7 @@ import type {
   CACVerification,
   Order,
 } from '../types';
+import { api } from '../api';
 
 // ── Constants ───────────────────────────────────────────────
 const SCORE_MIN = 0;
@@ -638,58 +639,66 @@ export const trustScoreService = {
   /**
    * Save a daily score snapshot. Only one snapshot per day.
    */
-  saveSnapshot(businessId: string, score: number): void {
+  async saveSnapshot(businessId: string, score: number): Promise<void> {
     const today = getDayKey(new Date());
-    const snapshots = this.getSnapshots(businessId);
-
-    // Update or add today's snapshot
-    const existing = snapshots.findIndex(s => s.date === today);
+    const tier = getScoreTier(score);
     const snapshot: ScoreSnapshot = {
       date: today,
       score: Math.round(score),
-      tier: getScoreTier(score),
+      tier,
     };
 
+    // Update local cache
+    const snapshots = this._getLocalSnapshots(businessId);
+    const existing = snapshots.findIndex(s => s.date === today);
     if (existing >= 0) {
       snapshots[existing] = snapshot;
     } else {
       snapshots.push(snapshot);
     }
+    localStorage.setItem(`${SCORE_SNAPSHOTS_KEY}_${businessId}`, JSON.stringify(snapshots));
 
-    // Keep last 365 days only
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 365);
-    const cutoffStr = getDayKey(cutoff);
-    const trimmed = snapshots.filter(s => s.date >= cutoffStr);
-
-    localStorage.setItem(`${SCORE_SNAPSHOTS_KEY}_${businessId}`, JSON.stringify(trimmed));
+    // Save to database
+    try {
+      await api.post('/trust-score/snapshots', { businessId, score });
+    } catch (e) {
+      console.error('Failed to save snapshot to server:', e);
+    }
   },
 
   /**
    * Get all score snapshots for a business.
    */
-  getSnapshots(businessId: string): ScoreSnapshot[] {
-    if (typeof window === 'undefined') return [];
-    const str = localStorage.getItem(`${SCORE_SNAPSHOTS_KEY}_${businessId}`);
-    return str ? JSON.parse(str) : [];
+  async getSnapshots(businessId: string): Promise<ScoreSnapshot[]> {
+    try {
+      const data = await api.get(`/trust-score/snapshots?businessId=${encodeURIComponent(businessId)}`);
+      const snaps = (data.snapshots || []).map((s: any) => ({
+        date: s.date,
+        score: Number(s.score),
+        tier: s.tier
+      }));
+      localStorage.setItem(`${SCORE_SNAPSHOTS_KEY}_${businessId}`, JSON.stringify(snaps));
+      return snaps;
+    } catch {
+      return this._getLocalSnapshots(businessId);
+    }
   },
 
   /**
    * Get the latest snapshot (yesterday's or today's earlier computation).
    */
   getLatestSnapshot(businessId: string): ScoreSnapshot | null {
-    const snapshots = this.getSnapshots(businessId);
+    const snapshots = this._getLocalSnapshots(businessId);
     if (snapshots.length === 0) return null;
     return snapshots.sort((a, b) => b.date.localeCompare(a.date))[0];
   },
 
   /**
    * Get score history for chart display.
-   * Returns snapshots from the last N days, filling gaps with previous values.
    */
   getScoreHistory(businessId: string, days: number = 90, hasLinkedAccount?: boolean): ScoreSnapshot[] {
     if (hasLinkedAccount === false) return [];
-    const snapshots = this.getSnapshots(businessId);
+    const snapshots = this._getLocalSnapshots(businessId);
     if (snapshots.length === 0) return [];
 
     // Create a filled array with all dates
@@ -725,33 +734,97 @@ export const trustScoreService = {
   },
 
   /**
-   * Get all loans for a business (from localStorage).
+   * Get all loans for a business.
    */
-  getLoans(businessId: string): ActiveLoan[] {
-    if (typeof window === 'undefined') return [];
-    const str = localStorage.getItem(`kudi_loans_${businessId}`);
-    return str ? JSON.parse(str) : [];
+  async getLoans(businessId: string): Promise<ActiveLoan[]> {
+    try {
+      const data = await api.get(`/loans?businessId=${encodeURIComponent(businessId)}`);
+      const loans = (data.loans || []).map((l: any) => ({
+        id: l.id,
+        businessId: l.business_id || l.businessId,
+        tierId: l.tier_id || l.tierId,
+        tierName: l.tier_name || l.tierName,
+        amount: Number(l.amount),
+        interestRate: Number(l.interest_rate || l.interestRate),
+        repaymentAmount: Number(l.repayment_amount || l.repaymentAmount),
+        status: l.status,
+        disbursedAt: l.disbursed_at || l.disbursedAt,
+        dueAt: l.due_at || l.dueAt,
+        repaidAt: l.repaid_at || l.repaidAt || undefined
+      }));
+      localStorage.setItem(`kudi_loans_${businessId}`, JSON.stringify(loans));
+      return loans;
+    } catch {
+      return this._getLocalLoans(businessId);
+    }
   },
 
   /**
    * Save a loan record.
    */
-  saveLoan(loan: ActiveLoan): void {
-    const loans = this.getLoans(loan.businessId);
-    const existing = loans.findIndex(l => l.id === loan.id);
-    if (existing >= 0) {
-      loans[existing] = loan;
+  async saveLoan(loan: any): Promise<ActiveLoan> {
+    let result: ActiveLoan;
+    if (loan.status === 'repaid') {
+      await api.post(`/loans/${loan.id}/repay`, { businessId: loan.businessId });
+      result = {
+        ...loan,
+        repaidAt: new Date().toISOString()
+      };
     } else {
-      loans.push(loan);
+      const data = await api.post('/loans', {
+        businessId: loan.businessId,
+        tierId: loan.tierId,
+        tierName: loan.tierName,
+        amount: loan.amount,
+        interestRate: loan.interestRate,
+        repaymentAmount: loan.repaymentAmount,
+        termDays: loan.termDays || 7
+      });
+      const l = data.loan;
+      result = {
+        id: l.id,
+        businessId: l.business_id || l.businessId,
+        tierId: l.tier_id || l.tierId,
+        tierName: l.tier_name || l.tierName,
+        amount: Number(l.amount),
+        interestRate: Number(l.interest_rate || l.interestRate),
+        repaymentAmount: Number(l.repayment_amount || l.repaymentAmount),
+        status: l.status,
+        disbursedAt: l.disbursed_at || l.disbursedAt,
+        dueAt: l.due_at || l.dueAt
+      };
+    }
+
+    // Update local cache
+    const loans = this._getLocalLoans(loan.businessId);
+    const existing = loans.findIndex(l => l.id === result.id);
+    if (existing >= 0) {
+      loans[existing] = result;
+    } else {
+      loans.push(result);
     }
     localStorage.setItem(`kudi_loans_${loan.businessId}`, JSON.stringify(loans));
+    return result;
   },
 
   /**
    * Get the active (non-repaid) loan for a business.
    */
-  getActiveLoan(businessId: string): ActiveLoan | null {
-    const loans = this.getLoans(businessId);
+  async getActiveLoan(businessId: string): Promise<ActiveLoan | null> {
+    const loans = await this.getLoans(businessId);
     return loans.find(l => l.status === 'active' || l.status === 'overdue') || null;
   },
+
+  // ── Local fallbacks ──────────────────────────────────────
+  _getLocalSnapshots(businessId: string): ScoreSnapshot[] {
+    if (typeof window === 'undefined') return [];
+    const str = localStorage.getItem(`${SCORE_SNAPSHOTS_KEY}_${businessId}`);
+    return str ? JSON.parse(str) : [];
+  },
+
+  _getLocalLoans(businessId: string): ActiveLoan[] {
+    if (typeof window === 'undefined') return [];
+    const str = localStorage.getItem(`kudi_loans_${businessId}`);
+    return str ? JSON.parse(str) : [];
+  }
 };

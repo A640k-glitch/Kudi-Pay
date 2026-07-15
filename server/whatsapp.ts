@@ -4,7 +4,7 @@ import { aiAgentService } from './aiAgent';
 export const whatsappRouter = express.Router();
 
 // Verification token for setting up the webhook with Meta
-const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'coda_os_whatsapp_verify_token';
+const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'kudi_verify_token';
 
 /**
  * GET /api/whatsapp/webhook

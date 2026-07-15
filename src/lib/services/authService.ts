@@ -13,54 +13,22 @@ async function isApiAvailable(): Promise<boolean> {
 export const authService = {
   async sendOTP(phone: string): Promise<boolean> {
     this.logout();
-    try {
-      await api.post('/auth/request-otp', { phone });
-    } catch {
-      // Fallback: localStorage mode for local dev
-    }
+    await api.post('/auth/request-otp', { phone });
     localStorage.setItem('kudi_pending_phone', phone);
     return true;
   },
 
   async verifyOTP(code: string): Promise<{ success: boolean; isNewUser?: boolean }> {
     const phone = localStorage.getItem('kudi_pending_phone') || '';
-
-    try {
-      const data = await api.post('/auth/verify-otp', { phone, code });
-      if (data.success) {
-        localStorage.setItem('kudi_session_phone', phone);
-        if (data.token) {
-          localStorage.setItem('kudi_token', data.token);
-          if (data.business) {
-            const businesses = JSON.parse(localStorage.getItem('kudi_businesses') || '[]');
-            const bizIndex = businesses.findIndex((b: any) => b.id === data.business.id);
-            if (bizIndex >= 0) {
-              businesses[bizIndex] = data.business;
-            } else {
-              businesses.push(data.business);
-            }
-            localStorage.setItem('kudi_businesses', JSON.stringify(businesses));
-          }
-        }
-        return { success: true, isNewUser: data.isNewUser };
+    const data = await api.post('/auth/verify-otp', { phone, code });
+    if (data.success) {
+      localStorage.setItem('kudi_session_phone', phone);
+      if (data.token) {
+        localStorage.setItem('kudi_token', data.token);
       }
-      return { success: false };
-    } catch {
-      // Fallback: localStorage dev mode
-      if (code === '123456') {
-        localStorage.setItem('kudi_session_phone', phone);
-        const businessesStr = localStorage.getItem('kudi_businesses');
-        let isNewUser = true;
-        if (businessesStr) {
-          const businesses: Business[] = JSON.parse(businessesStr);
-          if (businesses.some(b => b.ownerPhone === phone)) {
-            isNewUser = false;
-          }
-        }
-        return { success: true, isNewUser };
-      }
-      return { success: false };
+      return { success: true, isNewUser: data.isNewUser };
     }
+    return { success: false };
   },
 
   async login(phone: string, password: string): Promise<{ success: boolean; message?: string }> {
@@ -73,38 +41,15 @@ export const authService = {
       }
       return { success: false, message: data.message };
     } catch (err: any) {
-      // In dev without API server, fall back to localStorage check
-      const businessesStr = localStorage.getItem('kudi_businesses');
-      if (businessesStr) {
-        const businesses: Business[] = JSON.parse(businessesStr);
-        const business = businesses.find(b => b.ownerPhone === phone);
-        
-        if (business) {
-          // Attempt seamless migration to Neon DB if API returns 404 (user exists locally but not in DB)
-          if (err instanceof ApiError && err.status === 404) {
-            try {
-              await api.post('/businesses', { ...business, password });
-              // Migration successful, attempt login again to set up the OTP flow
-              const retryData = await api.post('/auth/login', { phone, password });
-              if (retryData.success) {
-                localStorage.setItem('kudi_pending_phone', phone);
-                return { success: true };
-              }
-            } catch (migrationErr) {
-              console.error('Migration to Neon DB failed:', migrationErr);
-            }
-          }
-          
-          localStorage.setItem('kudi_pending_phone', phone);
-          return { success: true };
+      if (err instanceof ApiError) {
+        if (err.status === 404) {
+          return { success: false, message: "We don't recognize this number." };
+        }
+        if (err.status === 401) {
+          return { success: false, message: "Invalid password." };
         }
       }
-
-      // If not in localStorage either, return the original error
-      if (err instanceof ApiError && err.status === 404) {
-        return { success: false, message: "We don't recognize this number." };
-      }
-      return { success: false, message: 'Could not connect to server. Make sure the API is running.' };
+      return { success: false, message: err?.message || 'Could not connect to server. Make sure the API is running.' };
     }
   },
 

@@ -144,6 +144,16 @@ const SCHEMA_STATEMENTS = [
     status TEXT,
     verified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`,
+  `CREATE TABLE IF NOT EXISTS chat_messages (
+    id TEXT PRIMARY KEY,
+    business_id TEXT NOT NULL REFERENCES businesses(id) ON DELETE CASCADE,
+    sender TEXT NOT NULL,
+    message TEXT NOT NULL,
+    msg_type TEXT DEFAULT 'text',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`,
+  `ALTER TABLE chat_messages ADD COLUMN IF NOT EXISTS msg_type TEXT DEFAULT 'text'`,
+  `CREATE INDEX IF NOT EXISTS idx_chat_messages_business_time ON chat_messages(business_id, created_at DESC)`,
 ];
 
 // Run once to set up the database schema.
@@ -166,6 +176,12 @@ export async function initSchema() {
     console.log('[DB] Cleaned up existing mock products');
   } catch (err: any) {
     console.error('[DB] Mock product cleanup failed:', err.message);
+  }
+  try {
+    await sql.query("DELETE FROM chat_messages WHERE created_at < NOW() - INTERVAL '48 hours'", []);
+    console.log('[DB] Cleaned up chat messages older than 30 days');
+  } catch (err: any) {
+    console.error('[DB] Chat message cleanup failed:', err.message);
   }
   console.log('[DB] Schema init complete');
 }

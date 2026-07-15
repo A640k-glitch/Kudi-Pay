@@ -14,7 +14,7 @@ export const orderService = {
     
     const existing = this._getAllOrders();
     existing.push(newOrder);
-    localStorage.setItem("coda_orders", JSON.stringify(existing));
+    localStorage.setItem("kudi_orders", JSON.stringify(existing));
     return newOrder;
   },
 
@@ -41,13 +41,13 @@ export const orderService = {
       }
       return o;
     });
-    localStorage.setItem("coda_orders", JSON.stringify(existing));
+    localStorage.setItem("kudi_orders", JSON.stringify(existing));
     return updatedOrder;
   },
 
   _getAllOrders(): Order[] {
     if (typeof window !== "undefined") {
-      const str = localStorage.getItem("coda_orders");
+      const str = localStorage.getItem("kudi_orders");
       return str ? JSON.parse(str) : [];
     }
     return [];

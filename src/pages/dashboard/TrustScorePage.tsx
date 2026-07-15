@@ -5,6 +5,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { trustScoreService } from '../../lib/services/trustScoreService';
 import { bankAccountService } from '../../lib/services/bankAccountService';
 import { businessVerificationService } from '../../lib/services/businessVerificationService';
+import { authService } from '../../lib/services/authService';
+import { businessService } from '../../lib/services/businessService';
 import type { TrustScoreBreakdown, FactorScore, ScoreSnapshot } from '../../lib/types';
 
 interface FactorItemProps {
@@ -49,18 +51,17 @@ export default function TrustScorePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const str = localStorage.getItem('kudi_businesses');
-        const phone = localStorage.getItem('kudi_session_phone');
-        
-        if (!str || !phone) {
+        const phone = authService.getCurrentPhone();
+        if (!phone) {
           navigate('/');
           return;
         }
 
-        const businesses = JSON.parse(str);
-        const b = businesses.find((biz: any) => biz.ownerPhone === phone);
-        
-        if (!b) return;
+        const b = await businessService.getBusinessByPhone(phone);
+        if (!b) {
+          navigate('/onboarding/business', { replace: true });
+          return;
+        }
 
         // Fetch all required data for the scoring engine
         const transactions = await bankAccountService.getTransactions(b.id);
@@ -71,7 +72,7 @@ export default function TrustScorePage() {
         const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === b.id) : [];
 
         // Loans
-        const loans = trustScoreService.getLoans(b.id);
+        const loans = await trustScoreService.getLoans(b.id);
 
         // Orders
         const ordersStr = localStorage.getItem('kudi_orders');

@@ -14,7 +14,7 @@ export const businessService = {
     
     const existing = this._getAllBusinesses();
     existing.push(newBusiness);
-    localStorage.setItem("coda_businesses", JSON.stringify(existing));
+    localStorage.setItem("kudi_businesses", JSON.stringify(existing));
     return newBusiness;
   },
 
@@ -41,7 +41,7 @@ export const businessService = {
       }
       return b;
     });
-    localStorage.setItem("coda_businesses", JSON.stringify(existing));
+    localStorage.setItem("kudi_businesses", JSON.stringify(existing));
     return updatedBusiness;
   },
 
@@ -54,7 +54,7 @@ export const businessService = {
 
   _getAllBusinesses(): Business[] {
     if (typeof window !== "undefined") {
-      const str = localStorage.getItem("coda_businesses");
+      const str = localStorage.getItem("kudi_businesses");
       return str ? JSON.parse(str) : [];
     }
     return [];

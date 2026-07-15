@@ -13,7 +13,7 @@ export const productService = {
     
     const existing = this._getAllProducts();
     existing.push(newProduct);
-    localStorage.setItem("coda_products", JSON.stringify(existing));
+    localStorage.setItem("kudi_products", JSON.stringify(existing));
     return newProduct;
   },
 
@@ -40,7 +40,7 @@ export const productService = {
       }
       return p;
     });
-    localStorage.setItem("coda_products", JSON.stringify(existing));
+    localStorage.setItem("kudi_products", JSON.stringify(existing));
     return updatedProduct;
   },
 
@@ -48,13 +48,13 @@ export const productService = {
     await delay(400);
     let existing = this._getAllProducts();
     existing = existing.filter(p => p.id !== id);
-    localStorage.setItem("coda_products", JSON.stringify(existing));
+    localStorage.setItem("kudi_products", JSON.stringify(existing));
     return true;
   },
 
   _getAllProducts(): Product[] {
     if (typeof window !== "undefined") {
-      const str = localStorage.getItem("coda_products");
+      const str = localStorage.getItem("kudi_products");
       return str ? JSON.parse(str) : [];
     }
     return [];

@@ -39,7 +39,7 @@ export default function DashboardOverview() {
       const productsStr = localStorage.getItem('kudi_products');
       const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
       setProducts(products);
-      const loans = trustScoreService.getLoans(bId);
+      const loans = await trustScoreService.getLoans(bId);
 
       const ordersStr = localStorage.getItem('kudi_orders');
       const orders = ordersStr ? JSON.parse(ordersStr).filter((o: any) => o.businessId === bId) : [];

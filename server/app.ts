@@ -169,6 +169,33 @@ app.get('/api/businesses', async (req, res) => {
   }
 });
 
+app.get('/api/businesses/by-id/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await query(`SELECT * FROM businesses WHERE id = $1`, [id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
+    const b = result.rows[0];
+    res.json({
+      business: {
+        id: b.id,
+        businessName: b.business_name,
+        ownerPhone: b.owner_phone,
+        category: b.category,
+        state: b.state,
+        lga: b.lga,
+        storefrontSlug: b.storefront_slug,
+        kycTier: b.kyc_tier,
+        tinNumber: b.tin_number,
+        cacVerification: b.cac_verification,
+        createdAt: b.created_at
+      }
+    });
+  } catch (error) {
+    console.error('get business by id error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/api/businesses/check-slug', async (req, res) => {
   try {
     const { slug } = req.query;
@@ -488,6 +515,18 @@ app.post('/api/bank/accounts', async (req, res) => {
   }
 });
 
+app.post('/api/bank/accounts/unlink', async (req, res) => {
+  try {
+    const { businessId } = req.body;
+    if (!businessId) return res.status(400).json({ error: 'businessId is required' });
+    await query('UPDATE bank_accounts SET is_active = false WHERE business_id = $1', [businessId]);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('unlink account error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/api/bank/transactions', async (req, res) => {
   try {
     const { businessId } = req.query;
@@ -589,15 +628,169 @@ app.get('/api/assistant/status', (_req, res) => {
 
 app.post('/api/assistant/chat', async (req, res) => {
   try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Unauthorized' });
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
+    if (!payload) return res.status(401).json({ error: 'Invalid token' });
+
     const { businessId, query: queryText, clientContext } = req.body;
     if (!businessId || !queryText) {
       return res.status(400).json({ error: 'businessId and query are required' });
+    }
+    if (payload.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
     }
     const reply = await aiAgentService.processDashboardQuery(businessId, queryText, clientContext);
     res.json({ reply });
   } catch (error: any) {
     console.error('Assistant chat error:', error);
     res.status(500).json({ error: error.message || 'Assistant failed to generate response' });
+  }
+});
+
+app.get('/api/assistant/history', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Unauthorized' });
+    const payload = verifyToken(authHeader.split(' ')[1]);
+    if (!payload) return res.status(401).json({ error: 'Invalid token' });
+
+    const result = await query(
+      "SELECT id, sender, message, msg_type, created_at FROM chat_messages WHERE business_id = $1 AND created_at > NOW() - INTERVAL '48 hours' ORDER BY created_at ASC LIMIT 200",
+      [payload.businessId]
+    );
+    res.json({ messages: result.rows });
+  } catch (error: any) {
+    console.error('Assistant history error:', error);
+    res.status(500).json({ error: 'Failed to load chat history' });
+  }
+});
+
+app.post('/api/assistant/history', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) return res.status(401).json({ error: 'Unauthorized' });
+    const payload = verifyToken(authHeader.split(' ')[1]);
+    if (!payload) return res.status(401).json({ error: 'Invalid token' });
+
+    const { messages } = req.body;
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return res.status(400).json({ error: 'messages array required' });
+    }
+    for (const msg of messages) {
+      await query(
+        'INSERT INTO chat_messages (id, business_id, sender, message, msg_type, created_at) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO UPDATE SET msg_type = EXCLUDED.msg_type, message = EXCLUDED.message',
+        [msg.id, payload.businessId, msg.sender, msg.text, msg.msg_type || 'text', msg.created_at || new Date().toISOString()]
+      );
+    }
+    const cleanupResult = await query(
+      "DELETE FROM chat_messages WHERE business_id = $1 AND created_at < NOW() - INTERVAL '48 hours'",
+      [payload.businessId]
+    );
+    res.json({ saved: messages.length, pruned: cleanupResult.rows.length });
+  } catch (error: any) {
+    console.error('Assistant history save error:', error);
+    res.status(500).json({ error: 'Failed to save chat history' });
+  }
+});
+
+app.get('/api/trust-score/snapshots', async (req, res) => {
+  try {
+    const { businessId } = req.query;
+    if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    const result = await query('SELECT * FROM trust_score_snapshots WHERE business_id = $1 ORDER BY date ASC', [businessId]);
+    res.json({ snapshots: result.rows });
+  } catch (error) {
+    console.error('get snapshots error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/trust-score/snapshots', async (req, res) => {
+  try {
+    const { businessId, score } = req.body;
+    if (!businessId || score === undefined) return res.status(400).json({ error: 'businessId and score are required' });
+    
+    const today = new Date().toISOString().split('T')[0];
+    const tier = score >= 800 ? 'Excellent' : score >= 600 ? 'Very Good' : score >= 400 ? 'Good' : score >= 200 ? 'Fair' : 'Poor';
+    
+    const result = await query(
+      `INSERT INTO trust_score_snapshots (id, business_id, date, score, tier)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (business_id, date) DO UPDATE SET score = EXCLUDED.score, tier = EXCLUDED.tier
+       RETURNING *`,
+      [`snap_${businessId}_${today}`, businessId, today, score, tier]
+    );
+    res.status(201).json({ snapshot: result.rows[0] });
+  } catch (error) {
+    console.error('save snapshot error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/loans', async (req, res) => {
+  try {
+    const { businessId } = req.query;
+    if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    const result = await query('SELECT * FROM loans WHERE business_id = $1 ORDER BY disbursed_at DESC', [businessId]);
+    res.json({ loans: result.rows });
+  } catch (error) {
+    console.error('get loans error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/loans', async (req, res) => {
+  try {
+    const { businessId, tierId, tierName, amount, interestRate, repaymentAmount, termDays } = req.body;
+    if (!businessId || !tierId || !amount) return res.status(400).json({ error: 'Missing required loan fields' });
+
+    const id = `loan_${Date.now()}`;
+    const dueAt = new Date(Date.now() + termDays * 24 * 60 * 60 * 1000).toISOString();
+
+    const result = await query(
+      `INSERT INTO loans (id, business_id, tier_id, tier_name, amount, interest_rate, repayment_amount, status, disbursed_at, due_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', NOW(), $8) RETURNING *`,
+      [id, businessId, tierId, tierName, amount, interestRate, repaymentAmount, dueAt]
+    );
+    
+    const entryId = `ent_${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    await query(
+      `INSERT INTO ledger_entries (id, business_id, type, amount, source, verification_status, verification_source, metadata)
+       VALUES ($1, $2, 'revenue', $3, 'Loan Disbursal', 'verified', 'bank_api', $4)`,
+      [entryId, businessId, amount, JSON.stringify({ loanId: id })]
+    );
+
+    res.status(201).json({ loan: result.rows[0] });
+  } catch (error) {
+    console.error('create loan error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/loans/:id/repay', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { businessId } = req.body;
+    
+    const loanResult = await query('SELECT * FROM loans WHERE id = $1', [id]);
+    const loan = loanResult.rows[0];
+    if (!loan) return res.status(404).json({ error: 'Loan not found' });
+    
+    await query(`UPDATE loans SET status = 'repaid', repaid_at = NOW() WHERE id = $1`, [id]);
+    
+    const entryId = `ent_${Math.floor(Math.random() * 1000000).toString().padStart(6, '0')}`;
+    await query(
+      `INSERT INTO ledger_entries (id, business_id, type, amount, source, verification_status, verification_source, metadata)
+       VALUES ($1, $2, 'expense', $3, 'Loan Repayment', 'verified', 'bank_api', $4)`,
+      [entryId, businessId, loan.repayment_amount, JSON.stringify({ loanId: id })]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('repay loan error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

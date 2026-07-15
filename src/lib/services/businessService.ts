@@ -13,89 +13,26 @@ export const businessService = {
     if (data.token) {
       localStorage.setItem('kudi_token', data.token);
     }
-    const businesses = JSON.parse(localStorage.getItem('kudi_businesses') || '[]');
-    businesses.push(data.business);
-    localStorage.setItem('kudi_businesses', JSON.stringify(businesses));
     return data.business;
   },
 
   async getBusinessByPhone(phone: string): Promise<Business | null> {
-    try {
-      const data = await api.get(`/businesses?phone=${encodeURIComponent(phone)}`);
-      return data.business;
-    } catch {
-      const existing = this._getAllBusinesses();
-      return existing.find(b => b.ownerPhone === phone) || null;
-    }
+    const data = await api.get(`/businesses?phone=${encodeURIComponent(phone)}`);
+    return data.business;
   },
 
   async getBusinessBySlug(slug: string): Promise<Business | null> {
-    try {
-      const data = await api.get(`/businesses/${slug}`);
-      if (data.business && data.business.id.startsWith('mock_biz_')) {
-        const existing = this._getAllBusinesses();
-        const localBiz = existing.find(b => b.storefrontSlug === slug);
-        if (localBiz) return localBiz;
-      }
-      return data.business;
-    } catch {
-      const existing = this._getAllBusinesses();
-      const localBiz = existing.find(b => b.storefrontSlug === slug);
-      if (localBiz) return localBiz;
-      
-      return {
-        id: `mock_biz_${slug}`,
-        businessName: slug.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
-        storefrontSlug: slug,
-        ownerPhone: '08000000000',
-        category: 'Fashion',
-        state: 'Lagos',
-        lga: 'Ikeja',
-        kycTier: 3,
-        createdAt: new Date().toISOString(),
-        theme: 'light' as const,
-        themeConfig: {
-          primaryColor: '#111111',
-          ctaText: 'Add to Bag',
-          heroImageUrl: DEFAULT_HERO_IMAGE_URL
-        }
-      };
-    }
+    const data = await api.get(`/businesses/${slug}`);
+    return data.business || null;
   },
 
   async updateBusiness(id: string, updates: Partial<Business>): Promise<Business | null> {
-    try {
-      const data = await api.patch(`/businesses/${id}`, updates);
-      return data.business;
-    } catch (e) {
-      // Fallback for local development when backend is unreachable
-      const existing = this._getAllBusinesses();
-      const index = existing.findIndex(b => b.id === id);
-      if (index !== -1) {
-        existing[index] = { ...existing[index], ...updates };
-        localStorage.setItem('kudi_businesses', JSON.stringify(existing));
-        return existing[index];
-      }
-      throw e;
-    }
+    const data = await api.patch(`/businesses/${id}`, updates);
+    return data.business;
   },
 
   async checkSlugAvailable(slug: string): Promise<boolean> {
-    try {
-      const data = await api.get(`/businesses/check-slug?slug=${encodeURIComponent(slug)}`);
-      return data.available;
-    } catch {
-      if (slug === 'test' || slug === 'demo') return false;
-      const existing = this._getAllBusinesses();
-      return !existing.some(b => b.storefrontSlug === slug);
-    }
-  },
-
-  _getAllBusinesses(): Business[] {
-    if (typeof window !== 'undefined') {
-      const str = localStorage.getItem('kudi_businesses');
-      return str ? JSON.parse(str) : [];
-    }
-    return [];
+    const data = await api.get(`/businesses/check-slug?slug=${encodeURIComponent(slug)}`);
+    return data.available;
   }
 };

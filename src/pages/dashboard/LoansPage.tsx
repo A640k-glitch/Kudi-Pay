@@ -19,6 +19,7 @@ export default function LoansPage() {
   const [inputAmount, setInputAmount] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+  const [allLoans, setAllLoans] = useState<ActiveLoan[]>([]);
 
   const loadData = async (bId: string, biz: Business) => {
     // Ledger Balance
@@ -26,7 +27,7 @@ export default function LoansPage() {
     setBalance(stats.balance);
     
     // Active Loan
-    const loan = trustScoreService.getActiveLoan(bId);
+    const loan = await trustScoreService.getActiveLoan(bId);
     setActiveLoan(loan);
 
     // Compute Score to get eligibility
@@ -34,7 +35,8 @@ export default function LoansPage() {
     const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
     const productsStr = localStorage.getItem('kudi_products');
     const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
-    const loans = trustScoreService.getLoans(bId);
+    const loans = await trustScoreService.getLoans(bId);
+    setAllLoans(loans);
 
     // Orders
     const ordersStr = localStorage.getItem('kudi_orders');
@@ -333,7 +335,6 @@ export default function LoansPage() {
 
       {/* Past Loans History */}
       {(() => {
-        const allLoans = business ? trustScoreService.getLoans(business.id) : [];
         const pastLoans = allLoans.filter(l => l.status === 'repaid' || l.status === 'overdue');
         if (pastLoans.length === 0) return null;
         return (
