@@ -25,7 +25,12 @@ const getInitialItems = (): OrderItem[] => {
       try {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed)) {
-          return parsed;
+          // Immediately filter out and clean up any remaining mock products
+          const cleaned = parsed.filter((item: any) => item && item.productId && !item.productId.startsWith('prod_mock'));
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem('kudi_store_cart_items', JSON.stringify(cleaned));
+          }
+          return cleaned;
         }
       } catch (e) {
         console.error('Failed to parse cached cart items', e);

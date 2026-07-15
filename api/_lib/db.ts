@@ -161,5 +161,11 @@ export async function initSchema() {
       }
     }
   }
+  try {
+    await sql.query("DELETE FROM products WHERE id LIKE 'prod_mock%'", []);
+    console.log('[DB] Cleaned up existing mock products');
+  } catch (err: any) {
+    console.error('[DB] Mock product cleanup failed:', err.message);
+  }
   console.log('[DB] Schema init complete');
 }

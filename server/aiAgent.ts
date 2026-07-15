@@ -43,7 +43,7 @@ export const aiAgentService = {
         `,
       });
       
-      return response.text;
+      return response.text || "Sorry, I am unable to process your request at this moment.";
     } catch (err) {
       console.error("AI Agent Error:", err);
       return "Sorry, I am having trouble connecting to the financial engine right now. Please try again later.";

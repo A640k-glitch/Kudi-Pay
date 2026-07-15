@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { PaperPlaneRight, Checks, CircleNotch } from '@phosphor-icons/react';
 import { ledgerService } from '../../lib/services/ledgerService';
+import { bankAccountService } from '../../lib/services/bankAccountService';
 import { trustScoreService } from '../../lib/services/trustScoreService';
 import { formatNaira } from '../../lib/utils';
 
@@ -281,9 +282,13 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
 
   // Match trust score query
   if (norm.includes('score') || norm.includes('trust') || norm.includes('readiness')) {
+    const hasLinked = await bankAccountService.hasLinkedAccount(bId);
+    if (!hasLinked) {
+      return `⭐️ Credit Status:\n\n• Rating: N/A\n• Trust Score: 0 / 1000 PTS\n\nLink your bank account on the Dashboard to activate your trust score!`;
+    }
     const latest = trustScoreService.getLatestSnapshot(bId);
     if (!latest) {
-      return `⭐️ Credit Status:\n\n• Rating: Fair\n• Trust Score: 0 / 1000 PTS\n\nKeep transacting to build your score!`;
+      return `⭐️ Credit Status:\n\n• Rating: Poor\n• Trust Score: 0 / 1000 PTS\n\nKeep transacting to build your score!`;
     }
     return `⭐️ Credit Status:\n\n• Rating: ${latest.tier}\n• Trust Score: ${latest.score} / 1000 PTS\n\nGo to the Lending page to view funding eligibility.`;
   }

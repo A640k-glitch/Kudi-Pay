@@ -29,6 +29,15 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
 
   if (!isOpen || !mounted) return null;
 
+  // Load products to verify stock limits
+  const productsStr = localStorage.getItem('kudi_products');
+  const products = productsStr ? JSON.parse(productsStr) : [];
+
+  const getProductStockLimit = (productId: string): number => {
+    const p = products.find((prod: any) => prod.id === productId);
+    return p && p.stockCount !== undefined ? p.stockCount : 9999;
+  };
+
   return createPortal(
     <>
       {/* Backdrop */}
@@ -89,7 +98,7 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
                   </div>
 
                   <div className="flex-1 flex flex-col justify-between">
-                    <div className="flex justify-between items-start gap-2">
+                     <div className="flex justify-between items-start gap-2">
                       <h3 className={`line-clamp-2 font-display font-semibold text-base ${isLight ? 'text-primary' : 'text-white'}`}>{item.productName}</h3>
                       <button
                         onClick={() => removeItem(item.productId)}
@@ -111,8 +120,14 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
                         </button>
                         <span className={`w-8 text-center text-sm font-bold ${isLight ? 'text-primary' : 'text-white'}`}>{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm ${isLight ? 'text-slate-600 hover:bg-white' : 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white'}`}
+                          onClick={() => {
+                            const maxVal = getProductStockLimit(item.productId);
+                            if (item.quantity < maxVal) {
+                              updateQuantity(item.productId, item.quantity + 1);
+                            }
+                          }}
+                          disabled={item.quantity >= getProductStockLimit(item.productId)}
+                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm disabled:opacity-30 disabled:hover:bg-transparent ${isLight ? 'text-slate-600 hover:bg-white' : 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white'}`}
                         >
                           <Plus className="w-3 h-3" strokeWidth={2} />
                         </button>

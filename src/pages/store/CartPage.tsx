@@ -12,6 +12,15 @@ export default function CartPage() {
   const storeItems = useCartStore(state => state.items);
   const items = Array.isArray(storeItems) ? storeItems : [];
 
+  // Load products to verify stock limits
+  const productsStr = localStorage.getItem('kudi_products');
+  const products = productsStr ? JSON.parse(productsStr) : [];
+
+  const getProductStockLimit = (productId: string): number => {
+    const p = products.find((prod: any) => prod.id === productId);
+    return p && p.stockCount !== undefined ? p.stockCount : 9999;
+  };
+
   const theme = business?.theme || 'light';
   const isBrutal = theme === 'brutal';
   const isDarkMode = theme === 'modern';
@@ -74,8 +83,14 @@ export default function CartPage() {
                   </button>
                   <span className={`w-10 text-center text-xl ${isBrutal ? 'font-black text-black' : isDarkMode ? 'font-bold text-white' : 'font-bold text-primary'}`}>{item.quantity}</span>
                   <button 
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                    className={`w-10 h-10 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
+                    onClick={() => {
+                      const maxVal = getProductStockLimit(item.productId);
+                      if (item.quantity < maxVal) {
+                        updateQuantity(item.productId, item.quantity + 1);
+                      }
+                    }}
+                    disabled={item.quantity >= getProductStockLimit(item.productId)}
+                    className={`w-10 h-10 flex items-center justify-center transition-colors disabled:opacity-30 ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
                   >
                     <Plus className="w-4 h-4" strokeWidth={isBrutal ? 2.5 : 2} />
                   </button>

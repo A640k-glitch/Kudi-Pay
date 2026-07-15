@@ -96,8 +96,13 @@ function ProductModal({
                 </button>
                 <span className={`w-8 sm:w-10 text-center font-bold text-sm ${isLight ? 'text-primary' : 'text-white'}`}>{quantity}</span>
                 <button 
-                  onClick={() => { if (product.isAvailable) setQuantity(quantity + 1); }}
-                  disabled={!product.isAvailable}
+                  onClick={() => {
+                    const maxVal = product.stockCount !== undefined ? product.stockCount : 9999;
+                    if (product.isAvailable && quantity < maxVal) {
+                      setQuantity(quantity + 1); 
+                    }
+                  }}
+                  disabled={!product.isAvailable || (product.stockCount !== undefined && quantity >= product.stockCount)}
                   className={`rounded-lg disabled:opacity-50 w-8 h-8 flex items-center justify-center ${isLight ? 'text-slate-500 hover:bg-white hover:text-primary hover:shadow-sm' : 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white'}`}
                 >
                   <Plus className="w-4 h-4" strokeWidth={2} />
@@ -442,6 +447,15 @@ export default function StoreHomePage() {
   if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-2xl uppercase">Store not found</div>;
 
   const handleAdd = (p: Product, qty: number) => {
+    const existingCartItem = items.find(item => item.productId === p.id);
+    const currentQtyInCart = existingCartItem ? existingCartItem.quantity : 0;
+    const maxAvailable = p.stockCount !== undefined ? p.stockCount : 9999;
+
+    if (currentQtyInCart + qty > maxAvailable) {
+      addToast(`Cannot add more. Only ${maxAvailable} items in stock (${currentQtyInCart} already in cart).`, 'error');
+      return;
+    }
+
     addItem({
       productId: p.id,
       productName: p.name,
@@ -454,6 +468,15 @@ export default function StoreHomePage() {
   };
 
   const handleAddDirect = (p: Product) => {
+    const existingCartItem = items.find(item => item.productId === p.id);
+    const currentQtyInCart = existingCartItem ? existingCartItem.quantity : 0;
+    const maxAvailable = p.stockCount !== undefined ? p.stockCount : 9999;
+
+    if (currentQtyInCart + 1 > maxAvailable) {
+      addToast(`Cannot add more. Only ${maxAvailable} items in stock (${currentQtyInCart} already in cart).`, 'error');
+      return;
+    }
+
     addItem({
       productId: p.id,
       productName: p.name,

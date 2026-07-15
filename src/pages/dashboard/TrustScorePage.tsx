@@ -73,6 +73,13 @@ export default function TrustScorePage() {
         // Loans
         const loans = trustScoreService.getLoans(b.id);
 
+        // Orders
+        const ordersStr = localStorage.getItem('kudi_orders');
+        const orders = ordersStr ? JSON.parse(ordersStr).filter((o: any) => o.businessId === b.id) : [];
+
+        // Linked bank account status
+        const hasLinkedAccount = await bankAccountService.hasLinkedAccount(b.id);
+
         // Compute the score
         const computedScore = trustScoreService.computeScore({
           businessId: b.id,
@@ -80,13 +87,15 @@ export default function TrustScorePage() {
           cacVerification,
           transactions,
           products,
-          loans
+          loans,
+          orders,
+          hasLinkedAccount
         });
 
         setScoreData(computedScore);
 
         // Load score history for the chart
-        const history = trustScoreService.getScoreHistory(b.id, 30); // Last 30 days
+        const history = trustScoreService.getScoreHistory(b.id, 30, hasLinkedAccount); // Last 30 days
         setHistoryData(history.reverse()); // recharts expects chronological order
         
       } catch (err) {

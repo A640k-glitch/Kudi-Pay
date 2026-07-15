@@ -47,6 +47,15 @@ export default function CheckoutPage() {
   const { getTotal, clearCart, updateQuantity, removeItem } = store;
   const { addToast } = useToast();
 
+  // Load products to verify stock limits
+  const productsStr = localStorage.getItem('kudi_products');
+  const products = productsStr ? JSON.parse(productsStr) : [];
+
+  const getProductStockLimit = (productId: string): number => {
+    const p = products.find((prod: any) => prod.id === productId);
+    return p && p.stockCount !== undefined ? p.stockCount : 9999;
+  };
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'card' | 'bank_transfer' | 'ussd'>('card');
   const [discountCode, setDiscountCode] = useState('');
@@ -324,8 +333,14 @@ export default function CheckoutPage() {
                         </button>
                         <span className={`text-sm font-bold w-6 text-center ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors ${isDarkMode ? 'border-[#3F3F46] text-gray-400 hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                          onClick={() => {
+                            const maxVal = getProductStockLimit(item.productId);
+                            if (item.quantity < maxVal) {
+                              updateQuantity(item.productId, item.quantity + 1);
+                            }
+                          }}
+                          disabled={item.quantity >= getProductStockLimit(item.productId)}
+                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors disabled:opacity-30 ${isDarkMode ? 'border-[#3F3F46] text-gray-400 hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                         >
                           <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </button>

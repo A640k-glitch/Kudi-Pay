@@ -36,13 +36,22 @@ export default function LoansPage() {
     const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
     const loans = trustScoreService.getLoans(bId);
 
+    // Orders
+    const ordersStr = localStorage.getItem('kudi_orders');
+    const orders = ordersStr ? JSON.parse(ordersStr).filter((o: any) => o.businessId === bId) : [];
+
+    // Linked bank account status
+    const hasLinkedAccount = await bankAccountService.hasLinkedAccount(bId);
+
     const score = trustScoreService.computeScore({
       businessId: bId,
       businessCreatedAt: biz.createdAt,
       cacVerification,
       transactions,
       products,
-      loans
+      loans,
+      orders,
+      hasLinkedAccount
     });
     setScoreData(score);
   };

@@ -118,7 +118,19 @@ export default function StoreLayout() {
         const item = updatedItems[i];
         const fresh = freshProducts.find(p => p.id === item.productId);
 
-        if (!fresh) continue;
+        if (!fresh) {
+          affected.push({
+            name: item.productName,
+            originalQty: item.quantity,
+            newQty: 0,
+            isOut: true,
+            category: undefined
+          });
+          updatedItems.splice(i, 1);
+          i--;
+          cartChanged = true;
+          continue;
+        }
 
         const isOut = !fresh.isAvailable || (fresh.stockCount !== undefined && fresh.stockCount <= 0);
         const maxAvailable = fresh.stockCount !== undefined ? fresh.stockCount : 9999;

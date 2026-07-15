@@ -32,27 +32,30 @@ export default function DashboardOverview() {
       const acc = await bankAccountService.getAccount(bId);
       setAccount(acc);
 
-      if (acc) {
-        const txs = await bankAccountService.getTransactions(bId);
-        setTransactions(txs);
+      const txs = acc ? await bankAccountService.getTransactions(bId) : [];
+      setTransactions(txs);
 
-        const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
-        const productsStr = localStorage.getItem('kudi_products');
-        const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
-        setProducts(products);
-        const loans = trustScoreService.getLoans(bId);
+      const cacVerification = await businessVerificationService.getCACVerification(bId) || undefined;
+      const productsStr = localStorage.getItem('kudi_products');
+      const products = productsStr ? JSON.parse(productsStr).filter((p: any) => p.businessId === bId) : [];
+      setProducts(products);
+      const loans = trustScoreService.getLoans(bId);
 
-        const score = trustScoreService.computeScore({
-          businessId: bId,
-          businessCreatedAt: biz.createdAt,
-          cacVerification,
-          transactions: txs,
-          products,
-          loans
-        });
-        
-        setScoreData(score);
-      }
+      const ordersStr = localStorage.getItem('kudi_orders');
+      const orders = ordersStr ? JSON.parse(ordersStr).filter((o: any) => o.businessId === bId) : [];
+
+      const score = trustScoreService.computeScore({
+        businessId: bId,
+        businessCreatedAt: biz.createdAt,
+        cacVerification,
+        transactions: txs,
+        products,
+        loans,
+        orders,
+        hasLinkedAccount: !!acc
+      });
+      
+      setScoreData(score);
     } catch (err) {
       console.error(err);
     }

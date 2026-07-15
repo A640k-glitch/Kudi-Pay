@@ -91,43 +91,26 @@ export const productService = {
   _getAllProducts(): Product[] {
     if (typeof window !== 'undefined') {
       const str = localStorage.getItem('kudi_products');
-      return str ? JSON.parse(str) : [];
+      if (str) {
+        try {
+          const products = JSON.parse(str);
+          // Filter out existing mock/dummy products if any exist
+          const cleaned = products.filter((p: any) => p && p.id && !p.id.startsWith('prod_mock'));
+          if (cleaned.length !== products.length) {
+            localStorage.setItem('kudi_products', JSON.stringify(cleaned));
+          }
+          return cleaned;
+        } catch {
+          return [];
+        }
+      }
+      return [];
     }
     return [];
   },
 
   _getLocalProducts(businessId: string): Product[] {
     const all = this._getAllProducts().filter(p => p.businessId === businessId);
-    if (all.length === 0) {
-      const mockProducts: Product[] = [
-        {
-          id: `prod_mock1_${businessId}`, businessId,
-          name: 'Royal Silk Ankara Dress', price: 25000, isAvailable: true,
-          description: 'Handcrafted premium grade Ankara fabric silk dress with custom gold lining.',
-          category: 'Clothing',
-          imageUrl: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80',
-          createdAt: new Date().toISOString(), stockCount: 15
-        },
-        {
-          id: `prod_mock2_${businessId}`, businessId,
-          name: 'Italian Suede Stiletto Heels', price: 35000, isAvailable: true,
-          description: 'Authentic custom Italian suede dress shoes designed for extreme comfort and elegance.',
-          category: 'Footwear',
-          imageUrl: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80',
-          createdAt: new Date().toISOString(), stockCount: 8
-        },
-        {
-          id: `prod_mock3_${businessId}`, businessId,
-          name: 'Luxury Traditional Coral Beads', price: 18000, isAvailable: true,
-          description: 'Stunning handcrafted traditional wedding coral bead accessories, imported from Edo state.',
-          category: 'Accessories',
-          imageUrl: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80',
-          createdAt: new Date().toISOString(), stockCount: 20
-        }
-      ];
-      localStorage.setItem('kudi_products', JSON.stringify(mockProducts));
-      return mockProducts;
-    }
     return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }
 };

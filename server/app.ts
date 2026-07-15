@@ -252,20 +252,6 @@ app.get('/api/products', async (req, res) => {
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
 
     const result = await query(`SELECT * FROM products WHERE business_id = $1 ORDER BY created_at DESC`, [businessId]);
-
-    if (result.rows.length === 0) {
-      const mockProducts = [
-        { id: `prod_mock1_${businessId}`, business_id: businessId, name: 'Royal Silk Ankara Dress', price: 25000, is_available: true, description: 'Handcrafted premium grade Ankara fabric silk dress with custom gold lining.', category: 'Clothing', image_url: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=400&q=80', created_at: new Date().toISOString(), stock_count: 15, attributes: {} },
-        { id: `prod_mock2_${businessId}`, business_id: businessId, name: 'Italian Suede Stiletto Heels', price: 35000, is_available: true, description: 'Authentic custom Italian suede dress shoes designed for extreme comfort and elegance.', category: 'Footwear', image_url: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=400&q=80', created_at: new Date().toISOString(), stock_count: 8, attributes: {} },
-        { id: `prod_mock3_${businessId}`, business_id: businessId, name: 'Luxury Traditional Coral Beads', price: 18000, is_available: true, description: 'Stunning handcrafted traditional wedding coral bead accessories, imported from Edo state.', category: 'Accessories', image_url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&w=400&q=80', created_at: new Date().toISOString(), stock_count: 20, attributes: {} },
-      ];
-      for (const p of mockProducts) {
-        await query(`INSERT INTO products (id, business_id, name, price, is_available, description, category, image_url, created_at, stock_count, attributes) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT DO NOTHING`,
-          [p.id, p.business_id, p.name, p.price, p.is_available, p.description, p.category, p.image_url, p.created_at, p.stock_count, JSON.stringify(p.attributes)]);
-      }
-      return res.json({ products: mockProducts });
-    }
-
     res.json({ products: result.rows });
   } catch (error) {
     console.error('list products error:', error);
