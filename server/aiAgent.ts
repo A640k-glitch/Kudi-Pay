@@ -7,7 +7,17 @@ import { GoogleGenAI } from '@google/genai';
  */
 
 // NOTE: Ensure process.env.GEMINI_API_KEY is set
-const ai = new GoogleGenAI({});
+// Lazy-loaded to avoid crash when key is missing at cold start
+let _ai: GoogleGenAI | null = null;
+function getAI(): GoogleGenAI {
+  if (!_ai) {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error('GEMINI_API_KEY is not set');
+    }
+    _ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+  }
+  return _ai;
+}
 
 export const aiAgentService = {
   /**
@@ -15,6 +25,7 @@ export const aiAgentService = {
    */
   async processWhatsAppQuery(phoneNumber: string, messageText: string, businessData: any) {
     try {
+      const ai = getAI();
       const response = await ai.models.generateContent({
         model: 'gemini-2.5',
         contents: `
