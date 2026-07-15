@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
-import { query, initSchema } from '../api/_lib/db';
+import { query } from '../api/_lib/db';
 import { signToken, hashPassword, comparePassword, verifyToken } from '../api/_lib/auth';
 import { generateOTP, sendOTP, isSmsConfigured } from '../api/_lib/sms';
 

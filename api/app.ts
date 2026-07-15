@@ -1,17 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
-import { query, initSchema } from './_lib/db';
+import { query } from './_lib/db';
 import { signToken, hashPassword, comparePassword, verifyToken } from './_lib/auth';
 import { generateOTP, sendOTP, isSmsConfigured } from './_lib/sms';
+import { whatsappRouter } from './whatsapp';
 
 const app = express();
 
 app.use(cors());
 app.use('/api/webhook/paystack', express.raw({ type: '*/*' }));
 app.use(express.json());
-
-import { whatsappRouter } from './whatsapp';
 app.use('/api/whatsapp', whatsappRouter);
 
 app.get('/api/health', async (_req, res) => {
