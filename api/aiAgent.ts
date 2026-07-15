@@ -1,5 +1,5 @@
 import { GoogleGenAI } from '@google/genai';
-import { query } from './_lib/db';
+import { query } from './_lib/db.js';
 
 /**
  * Server-side AI Agent Service for WhatsApp queries.
