@@ -25,18 +25,20 @@ const localCheckoutSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().regex(/^(080|070|090|081|091|\+234)\d{8,9}$/, 'Please enter a valid Nigerian phone number'),
-  address: z.string().min(5, 'Delivery address is required'),
+  address: z.string().min(5, 'Address is required'),
   address2: z.string().optional(),
   city: z.string().min(2, 'City is required'),
   state: z.string().min(1, 'Please select a state'),
   note: z.string().optional(),
+  bookingDate: z.string().optional(),
+  bookingTime: z.string().optional(),
 });
 
 type CheckoutFormValues = z.infer<typeof localCheckoutSchema>;
 
 const inputClsLight = 'w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-3 text-base focus:border-accent focus:ring-2 focus:ring-accent/10 outline-none transition-all text-[#191b23]';
 const labelClsLight = 'block text-sm font-semibold font-display text-slate-600 mb-1.5';
-const inputClsDark = 'w-full bg-[#27272A] border border-[#3F3F46] rounded-lg px-3 py-3 text-base focus:border-white focus:ring-2 focus:ring-white/20 outline-none transition-all text-white placeholder-gray-400';
+const inputClsDark = 'w-full bg-[#27272A] border border-[#3F3F46] rounded-lg px-3 py-3 text-base focus:border-white focus:ring-2 focus:ring-white/20 outline-none transition-all text-white placeholder-gray-400 [color-scheme:dark]';
 const labelClsDark = 'block text-sm font-semibold font-display text-gray-200 mb-1.5';
 
 export default function CheckoutPage() {
@@ -71,7 +73,7 @@ export default function CheckoutPage() {
           try { return JSON.parse(cached); } catch { /* ignore */ }
         }
       }
-      return { email: '', firstName: '', lastName: '', phone: '', address: '', address2: '', city: '', state: 'Lagos', note: '' };
+      return { email: '', firstName: '', lastName: '', phone: '', address: '', address2: '', city: '', state: 'Lagos', note: '', bookingDate: '', bookingTime: '' };
     })()
   });
 
@@ -88,6 +90,7 @@ export default function CheckoutPage() {
   }
 
   const isDarkMode = business.theme === 'modern';
+  const isBrutal = business.theme === 'brutal';
   const inputCls = isDarkMode ? inputClsDark : inputClsLight;
   const labelCls = isDarkMode ? labelClsDark : labelClsLight;
 
@@ -134,6 +137,8 @@ export default function CheckoutPage() {
             description: `Storefront sale to ${data.firstName} ${data.lastName}`,
             email: data.email,
             deliveryAddress: `${data.address}${data.address2 ? ', ' + data.address2 : ''}, ${data.city}, ${data.state}`,
+            bookingDate: data.bookingDate || undefined,
+            bookingTime: data.bookingTime || undefined,
             discountApplied: appliedDiscount || undefined,
           },
         });
@@ -165,7 +170,7 @@ export default function CheckoutPage() {
       className={`flex-1 flex flex-col items-center gap-1.5 py-4 px-2 rounded-xl border-2 transition-all text-sm font-semibold ${
         paymentMethod === id
           ? (isDarkMode ? 'border-white bg-white/10 text-white' : 'border-accent bg-accent/5 text-accent')
-          : (isDarkMode ? 'border-[#3F3F46] text-gray-400 hover:border-gray-500 bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white')
+          : (isDarkMode ? 'border-[#3F3F46] text-gray-200 hover:border-gray-400 bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:border-slate-300 bg-white')
       }`}
     >
       <Icon className="w-5 h-5" strokeWidth={1.5} />
@@ -181,8 +186,12 @@ export default function CheckoutPage() {
           {/* ── LEFT: Forms ─────────────────────────────────────────── */}
           <div className="lg:col-span-7 space-y-6">
             <div>
-              <h1 className={`text-4xl font-bold font-display tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>Checkout</h1>
-              <p className={`text-base ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>Please enter your details to complete your order.</p>
+              <h1 className={`text-4xl font-bold font-display tracking-tight mb-2 ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>
+                {business.category === 'Services' ? 'Book Service' : 'Checkout'}
+              </h1>
+              <p className={`text-base ${isDarkMode ? 'text-gray-200' : 'text-slate-500'}`}>
+                {business.category === 'Services' ? 'Please enter your details to complete your booking.' : 'Please enter your details to complete your order.'}
+              </p>
             </div>
 
             <form id="checkout-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -191,7 +200,7 @@ export default function CheckoutPage() {
               <section className={`${isDarkMode ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-slate-200'} rounded-2xl border p-5 sm:p-6 shadow-sm`}>
                 <h2 className={`text-lg font-semibold font-display mb-6 flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>
                   <Truck className={`w-4 h-4 ${isDarkMode ? 'text-gray-300' : 'text-accent'}`} />
-                  Delivery Details
+                  {business.category === 'Services' ? 'Booking Details' : 'Delivery Details'}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
@@ -215,11 +224,24 @@ export default function CheckoutPage() {
                     {errors.phone && <p className="text-xs mt-1 text-red-500">{errors.phone.message}</p>}
                   </div>
                   <div className="sm:col-span-2 space-y-2">
-                    <label className={labelCls}>Delivery Address</label>
+                    <label className={labelCls}>{business.category === 'Services' ? 'Service Location' : 'Delivery Address'}</label>
                     <input type="text" {...register('address')} className={inputCls} placeholder="123 Main St" />
                     {errors.address && <p className="text-xs mt-1 text-red-500">{errors.address.message}</p>}
                     <input type="text" {...register('address2')} className={inputCls} placeholder="Apartment, suite, etc. (optional)" />
                   </div>
+                  
+                  {business.category === 'Services' && (
+                    <>
+                      <div>
+                        <label className={labelCls}>Booking Date</label>
+                        <input type="date" {...register('bookingDate')} className={inputCls} min={new Date().toISOString().split('T')[0]} required />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Booking Time</label>
+                        <input type="time" {...register('bookingTime')} className={inputCls} required />
+                      </div>
+                    </>
+                  )}
                   <div>
                     <label className={labelCls}>City</label>
                     <input type="text" {...register('city')} className={inputCls} placeholder="Lagos" />
@@ -234,8 +256,8 @@ export default function CheckoutPage() {
                     {errors.state && <p className="text-xs mt-1 text-red-500">{errors.state.message}</p>}
                   </div>
                   <div className="sm:col-span-2">
-                    <label className={labelCls}>Order Note <span className="text-slate-400 font-normal">(Optional)</span></label>
-                    <textarea {...register('note')} rows={2} className={`${inputCls} resize-none`} placeholder="Any special instructions for your order…" />
+                    <label className={labelCls}>{business.category === 'Services' ? 'Booking Notes' : 'Order Note'} <span className="text-slate-400 font-normal">(Optional)</span></label>
+                    <textarea {...register('note')} rows={2} className={`${inputCls} resize-none`} placeholder={business.category === 'Services' ? 'Any special instructions for your service...' : 'Any special instructions for your order…'} />
                   </div>
                 </div>
               </section>
@@ -277,11 +299,11 @@ export default function CheckoutPage() {
 
                 {paymentMethod === 'bank_transfer' && (
                   <div className={`p-4 rounded-xl border text-sm space-y-2 pt-4 border-t mt-4 ${isDarkMode ? 'bg-[#121212] border-[#27272A]' : 'bg-slate-50 border-slate-100'}`}>
-                    <p className={`font-semibold ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>Transfer to:</p>
-                    <p className={isDarkMode ? 'text-gray-400' : 'text-slate-600'}><span className="font-bold">Bank:</span> First Bank Nigeria</p>
-                    <p className={isDarkMode ? 'text-gray-400' : 'text-slate-600'}><span className="font-bold">Account Number:</span> 3012345678</p>
-                    <p className={isDarkMode ? 'text-gray-400' : 'text-slate-600'}><span className="font-bold">Account Name:</span> {business.businessName}</p>
-                    <p className={`text-[11px] mt-2 ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>Your order will be confirmed once payment is verified.</p>
+                    <p className={`font-semibold ${isDarkMode ? 'text-white' : 'text-slate-700'}`}>Transfer to:</p>
+                    <p className={isDarkMode ? 'text-gray-200' : 'text-slate-600'}><span className="font-bold">Bank:</span> First Bank Nigeria</p>
+                    <p className={isDarkMode ? 'text-gray-200' : 'text-slate-600'}><span className="font-bold">Account Number:</span> 3012345678</p>
+                    <p className={isDarkMode ? 'text-gray-200' : 'text-slate-600'}><span className="font-bold">Account Name:</span> {business.businessName}</p>
+                    <p className={`text-[11px] mt-2 ${isDarkMode ? 'text-gray-400' : 'text-slate-400'}`}>Your order will be confirmed once payment is verified.</p>
                   </div>
                 )}
 
@@ -295,7 +317,7 @@ export default function CheckoutPage() {
               </section>
 
               {/* Security badges */}
-              <div className={`flex flex-wrap items-center justify-center gap-4 text-xs py-2 ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+              <div className={`flex flex-wrap items-center justify-center gap-4 text-xs py-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-400'}`}>
                 <span className="flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> SSL Encrypted</span>
                 <span className="flex items-center gap-1.5"><ShieldCheck className="w-3.5 h-3.5" /> Secure Checkout</span>
                 <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5" /> Kudi Business OS</span>
@@ -308,7 +330,7 @@ export default function CheckoutPage() {
             <div className={`${isDarkMode ? 'bg-[#18181B] border-[#27272A]' : 'bg-white border-slate-200'} rounded-2xl border shadow-sm p-5 sm:p-6`}>
               <h2 className={`text-lg font-semibold font-display mb-6 ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>
                 Order Summary
-                <span className={`ml-2 text-sm font-normal ${isDarkMode ? 'text-gray-400' : 'text-slate-400'}`}>({items.length} item{items.length !== 1 ? 's' : ''})</span>
+                <span className={`ml-2 text-sm font-normal ${isDarkMode ? 'text-gray-200' : 'text-slate-400'}`}>({items.reduce((total, item) => total + item.quantity, 0)} item{items.reduce((total, item) => total + item.quantity, 0) !== 1 ? 's' : ''})</span>
               </h2>
 
               {/* Cart Items */}
@@ -323,11 +345,11 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm font-semibold line-clamp-1 ${isDarkMode ? 'text-white' : 'text-[#191b23]'}`}>{item.productName}</p>
-                      <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>{formatNaira(item.unitPrice)} each</p>
+                      <p className={`text-sm mt-1 ${isDarkMode ? 'text-gray-200' : 'text-slate-500'}`}>{formatNaira(item.unitPrice)} each</p>
                       <div className="flex items-center gap-2 mt-2">
                         <button
                           onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors ${isDarkMode ? 'border-[#3F3F46] text-gray-400 hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors ${isDarkMode ? 'border-[#3F3F46] text-white hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                         >
                           <Minus className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </button>
@@ -340,7 +362,7 @@ export default function CheckoutPage() {
                             }
                           }}
                           disabled={item.quantity >= getProductStockLimit(item.productId)}
-                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors disabled:opacity-30 ${isDarkMode ? 'border-[#3F3F46] text-gray-400 hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
+                          className={`w-7 h-7 flex items-center justify-center rounded-md border transition-colors disabled:opacity-30 ${isDarkMode ? 'border-[#3F3F46] text-white hover:bg-[#27272A]' : 'border-slate-200 text-slate-500 hover:bg-slate-100'}`}
                         >
                           <Plus className="w-3.5 h-3.5" strokeWidth={2.5} />
                         </button>
@@ -382,15 +404,15 @@ export default function CheckoutPage() {
 
               {/* Price Breakdown */}
               <div className={`space-y-3 pt-5 text-base border-t ${isDarkMode ? 'border-[#27272A]' : 'border-slate-100'}`}>
-                <div className={`flex justify-between ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+                <div className={`flex justify-between ${isDarkMode ? 'text-gray-200' : 'text-slate-500'}`}>
                   <span>Subtotal</span>
                   <span>{formatNaira(subtotal)}</span>
                 </div>
-                <div className={`flex justify-between ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
-                  <span>Delivery Fee</span>
+                <div className={`flex justify-between ${isDarkMode ? 'text-gray-200' : 'text-slate-500'}`}>
+                  <span>{business.category === 'Services' ? 'Call-out Fee' : 'Delivery Fee'}</span>
                   <span>{formatNaira(deliveryFee)}</span>
                 </div>
-                <div className={`flex justify-between ${isDarkMode ? 'text-gray-400' : 'text-slate-500'}`}>
+                <div className={`flex justify-between ${isDarkMode ? 'text-gray-200' : 'text-slate-500'}`}>
                   <span>Tax</span>
                   <span>{formatNaira(taxes)}</span>
                 </div>
@@ -411,14 +433,14 @@ export default function CheckoutPage() {
                 type="submit"
                 form="checkout-form"
                 disabled={isSubmitting}
-                className={`mt-6 w-full flex items-center justify-center gap-2 h-14 font-semibold rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed text-lg ${isDarkMode ? 'bg-[var(--s-accent)] text-[var(--s-accent-text)]' : 'bg-[#191b23] hover:bg-slate-800 text-white'}`}
+                className={`mt-6 w-full flex items-center justify-center gap-2 h-14 font-semibold rounded-xl transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-70 disabled:cursor-not-allowed text-lg ${isBrutal ? 'font-black uppercase border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none bg-[var(--s-accent)] text-[var(--s-accent-text)]' : 'bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-full'}`}
               >
                 {isSubmitting
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
-                  : <><Lock className="w-4 h-4" strokeWidth={2} /> Place Order · {formatNaira(total)}</>
+                  : <><Lock className="w-4 h-4" strokeWidth={2} /> {business.category === 'Services' ? 'Confirm Booking' : 'Place Order'} · {formatNaira(total)}</>
                 }
               </button>
-              <p className={`text-center text-[11px] mt-3 flex items-center justify-center gap-1 ${isDarkMode ? 'text-gray-500' : 'text-slate-400'}`}>
+              <p className={`text-center text-[11px] mt-3 flex items-center justify-center gap-1 ${isDarkMode ? 'text-gray-400' : 'text-slate-400'}`}>
                 <ShieldCheck className="w-3.5 h-3.5" strokeWidth={2} /> Your payment info is 256-bit SSL encrypted
               </p>
             </div>

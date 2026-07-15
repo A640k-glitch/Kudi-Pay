@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useOutletContext } from 'react-router-dom';
+import { useParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { ShoppingBag, X, Plus, Minus, Package, ArrowRight } from 'lucide-react';
 import { Business, Product } from '../../lib/types';
 import { productService } from '../../lib/services/productService';
-import { businessService, getDefaultHeroImageUrl } from '../../lib/services/businessService';
+import { businessService, getDefaultHeroImageUrl, getDefaultThemeConfig } from '../../lib/services/businessService';
 import { useCartStore } from '../../lib/store';
 import { useToast } from '../../components/Toast';
+import { getRegistry } from '../../lib/config/productRegistries';
 
 const formatNaira = (amount: number) => {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
@@ -84,6 +85,24 @@ function ProductModal({
           </div>
 
           <div className={`pt-6 mt-auto border-t ${isLight ? 'border-slate-200/60' : 'border-[#27272A]'}`}>
+            
+            {/* Modal Attribute Display */}
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
+              <div className="mb-6 grid grid-cols-2 gap-4 bg-black/5 rounded-xl p-4">
+                {Object.entries(product.attributes).map(([key, val]) => {
+                  if (!val) return null;
+                  const field = getRegistry(business.category).fields.find(f => f.key === key);
+                  const label = field ? field.label : key;
+                  return (
+                    <div key={key}>
+                      <span className={`block text-xs uppercase tracking-wider font-bold mb-1 ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>{label}</span>
+                      <span className={`text-sm font-semibold ${isLight ? 'text-slate-900' : 'text-white'}`}>{val}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-5">
               <span className={`font-semibold text-sm ${isLight ? 'text-slate-700' : 'text-[#9CA3AF]'}`}>Quantity</span>
               <div className={`flex items-center gap-1.5 border rounded-xl p-1 ${isLight ? 'border-slate-200 bg-slate-50' : 'border-[#3F3F46] bg-[#121212]'}`}>
@@ -115,7 +134,7 @@ function ProductModal({
               disabled={!product.isAvailable}
               className="w-full h-12 md:h-14 flex items-center justify-center transition-all bg-[var(--s-accent)] text-[var(--s-accent-text)] font-semibold rounded-[16px] shadow-sm hover:brightness-110 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base"
             >
-              {product.isAvailable ? `${business.themeConfig?.ctaText || 'Add to Bag'} • ${formatNaira(product.price * quantity)}` : 'Sold Out'}
+              {product.isAvailable ? `${business.themeConfig?.ctaText || getDefaultThemeConfig(business.category).ctaText} • ${formatNaira(product.price * quantity)}` : 'Sold Out'}
             </button>
           </div>
         </div>
@@ -138,13 +157,21 @@ function ModernStorefront({
   onAddDirect: (p: Product) => void;
 }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
+  const registry = getRegistry(business.category);
+  const filterableFields = registry.fields.filter(f => f.isFilterable);
+
   // Extract all categories from products
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  const filteredProducts = products.filter(p => {
+    if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
+    for (const [key, val] of Object.entries(activeFilters)) {
+      if (val && p.attributes?.[key] !== val) return false;
+    }
+    return true;
+  });
 
   const heroImage = business.themeConfig?.heroImageUrl || getDefaultHeroImageUrl(business.category);
 
@@ -156,13 +183,13 @@ function ModernStorefront({
         <div className="absolute inset-0 bg-gradient-to-r from-[#121212]/90 via-[#121212]/50 to-transparent"></div>
         <div className="relative z-10 p-6 md:p-12 lg:p-16 max-w-2xl text-left">
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold bg-[#27272A]/80 text-[#E5E7EB] rounded-full backdrop-blur-md border border-[#3F3F46] tracking-widest uppercase font-sans">
-            {business.themeConfig?.heroLabel || 'New Arrivals'}
+            {business.themeConfig?.heroLabel || getDefaultThemeConfig(business.category).heroLabel}
           </span>
           <h1 className="text-3xl md:text-5xl font-bold font-display text-white mb-4 leading-tight whitespace-pre-wrap">
-            {business.themeConfig?.heroHeading || 'Glow Naturally, Every Single Day.'}
+            {business.themeConfig?.heroHeading || getDefaultThemeConfig(business.category).heroHeading}
           </h1>
           <p className="text-base sm:text-lg text-white/80 mb-8 max-w-md font-light leading-relaxed font-sans whitespace-pre-wrap">
-            {business.themeConfig?.heroSubheading || 'Discover our curated collection of premium skincare essentials formulated for radiant, healthy skin.'}
+            {business.themeConfig?.heroSubheading || getDefaultThemeConfig(business.category).heroSubheading}
           </p>
           <button 
             onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
@@ -175,7 +202,7 @@ function ModernStorefront({
       </section>
 
       {/* Categories & Filters */}
-      <div id="products" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 border-b border-[#27272A] pb-6">
+      <div id="products" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6 border-b border-[#27272A] pb-6">
         <h2 className="text-3xl font-bold font-display text-white">Our Collection</h2>
         <div className="flex overflow-x-auto pb-2 md:pb-0 hide-scrollbar w-full md:w-auto gap-2">
           {categories.map(cat => (
@@ -189,6 +216,25 @@ function ModernStorefront({
           ))}
         </div>
       </div>
+
+      {filterableFields.length > 0 && (
+        <div className="flex flex-wrap items-center gap-4 mb-10">
+          {filterableFields.map(field => (
+            <div key={field.key} className="flex items-center gap-2">
+              <select 
+                className="bg-[#18181B] text-sm text-[#E5E7EB] border border-[#3F3F46] rounded-full px-4 py-2 outline-none focus:border-[var(--s-accent)] cursor-pointer hover:bg-[#27272A] transition-colors [color-scheme:dark]"
+                value={activeFilters[field.key] || ''}
+                onChange={(e) => setActiveFilters(prev => ({...prev, [field.key]: e.target.value}))}
+              >
+                <option value="">{field.label}: All</option>
+                {field.options?.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
@@ -214,7 +260,9 @@ function ModernStorefront({
                 
                 {!product.isAvailable ? (
                   <div className="absolute inset-0 bg-[#121212]/60 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="px-4 py-2 text-xs font-bold bg-[#18181B] text-white rounded-full shadow-sm tracking-widest uppercase border border-[#27272A]">Out of Stock</span>
+                    <span className="px-4 py-2 text-xs font-bold bg-[#18181B] text-white rounded-full shadow-sm tracking-widest uppercase border border-[#27272A]">
+                      {business.category === 'Services' ? 'Unavailable' : 'Out of Stock'}
+                    </span>
                   </div>
                 ) : (
                   isSale && (
@@ -226,6 +274,20 @@ function ModernStorefront({
               </div>
               <div className="flex flex-col flex-grow px-5 pb-5">
                 <h3 className="text-base sm:text-lg font-bold font-display text-white mb-2 line-clamp-1">{product.name}</h3>
+                
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {registry.fields.map(field => {
+                    if (product.attributes?.[field.key]) {
+                      return (
+                         <span key={field.key} className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded bg-[#27272A] text-gray-300">
+                           {field.label}: {product.attributes[field.key]}
+                         </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
                 <p className="text-sm sm:text-base text-[#9CA3AF] mb-5 flex-grow line-clamp-2">{product.description || "Premium skincare essential."}</p>
                 <div className="flex items-center justify-between mt-auto">
                   <div className="flex items-center gap-2">
@@ -242,14 +304,14 @@ function ModernStorefront({
                       }}
                       className="px-4 py-2 rounded-full bg-[var(--s-accent)] text-[var(--s-accent-text)] text-xs font-semibold hover:opacity-90 transition-opacity shadow-sm"
                     >
-                      {business.themeConfig?.ctaText || 'Add to Bag'}
+                      {business.themeConfig?.ctaText || getDefaultThemeConfig(business.category).ctaText}
                     </button>
                   ) : (
                     <button 
                       onClick={(e) => { e.stopPropagation(); }}
                       className="px-4 py-2 rounded-full border border-[#3F3F46] text-[#9CA3AF] text-xs font-semibold hover:border-[#6B7280] hover:text-[#E5E7EB] transition-colors"
                     >
-                      Notify Me
+                      {business.category === 'Services' ? 'Unavailable' : 'Notify Me'}
                     </button>
                   )}
                 </div>
@@ -284,13 +346,21 @@ function LightStorefront({
   onAddDirect: (p: Product) => void;
 }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>({});
   
+  const registry = getRegistry(business.category);
+  const filterableFields = registry.fields.filter(f => f.isFilterable);
+
   // Extract all categories from products
   const categories = ['All', ...Array.from(new Set(products.map(p => p.category).filter(Boolean)))];
 
-  const filteredProducts = selectedCategory === 'All' 
-    ? products 
-    : products.filter(p => p.category === selectedCategory);
+  const filteredProducts = products.filter(p => {
+    if (selectedCategory !== 'All' && p.category !== selectedCategory) return false;
+    for (const [key, val] of Object.entries(activeFilters)) {
+      if (val && p.attributes?.[key] !== val) return false;
+    }
+    return true;
+  });
 
   const heroImage = business.themeConfig?.heroImageUrl || getDefaultHeroImageUrl(business.category);
 
@@ -302,13 +372,13 @@ function LightStorefront({
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/20 to-transparent"></div>
         <div className="relative z-10 p-6 md:p-12 lg:p-16 max-w-2xl text-left">
           <span className="inline-block px-4 py-1.5 mb-4 text-xs font-semibold bg-white/10 text-white rounded-full backdrop-blur-md border border-white/20 tracking-widest uppercase">
-            {business.themeConfig?.heroLabel || 'New Arrivals'}
+            {business.themeConfig?.heroLabel || getDefaultThemeConfig(business.category).heroLabel}
           </span>
           <h1 className="text-3xl md:text-5xl font-bold font-display text-white mb-4 leading-tight whitespace-pre-wrap">
-            {business.themeConfig?.heroHeading || 'Glow Naturally, Every Single Day.'}
+            {business.themeConfig?.heroHeading || getDefaultThemeConfig(business.category).heroHeading}
           </h1>
           <p className="text-base sm:text-lg text-white/90 mb-8 max-w-md font-light leading-relaxed whitespace-pre-wrap">
-            {business.themeConfig?.heroSubheading || 'Discover our curated collection of premium skincare essentials formulated for radiant, healthy skin.'}
+            {business.themeConfig?.heroSubheading || getDefaultThemeConfig(business.category).heroSubheading}
           </p>
           <button 
             onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
@@ -321,7 +391,7 @@ function LightStorefront({
       </section>
 
       {/* Categories & Filters */}
-      <div id="products" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 border-b border-slate-200/50 pb-4">
+      <div id="products" className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-200/50 pb-4">
         <h2 className="text-2xl font-bold tracking-tight font-display text-[#111111]">Trending</h2>
         <div className="flex overflow-x-auto pb-2 md:pb-0 hide-scrollbar w-full md:w-auto gap-2">
           {categories.map(cat => (
@@ -335,6 +405,25 @@ function LightStorefront({
           ))}
         </div>
       </div>
+
+      {filterableFields.length > 0 && (
+        <div className="flex flex-wrap items-center gap-4 mb-8">
+          {filterableFields.map(field => (
+            <div key={field.key} className="flex items-center gap-2">
+              <select 
+                className="bg-slate-50 text-sm text-slate-700 border border-slate-200 rounded-full px-4 py-2 outline-none focus:border-slate-900 appearance-none cursor-pointer hover:bg-slate-100 transition-colors shadow-sm"
+                value={activeFilters[field.key] || ''}
+                onChange={(e) => setActiveFilters(prev => ({...prev, [field.key]: e.target.value}))}
+              >
+                <option value="">{field.label}: All</option>
+                {field.options?.map(opt => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-12">
@@ -359,8 +448,10 @@ function LightStorefront({
 
                 
                 {!product.isAvailable ? (
-                  <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] flex items-center justify-center">
-                    <span className="px-4 py-2 text-xs font-bold bg-white/90 text-[#111111] rounded-full shadow-sm tracking-widest uppercase">Out of Stock</span>
+                  <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+                    <span className={`px-4 py-2 text-xs font-bold rounded-full shadow-sm tracking-widest uppercase border ${business.theme === 'brutal' ? 'bg-black text-white border-black shadow-[2px_2px_0px_#E0FF4F]' : 'bg-white text-slate-800 border-slate-200'}`}>
+                      {business.category === 'Services' ? 'Unavailable' : 'Out of Stock'}
+                    </span>
                   </div>
                 ) : (
                   isSale && (
@@ -372,6 +463,20 @@ function LightStorefront({
               </div>
               <div className="flex flex-col flex-grow px-5 pb-5">
                 <h3 className="text-base sm:text-lg font-bold font-display text-[#111111] mb-2 line-clamp-1">{product.name}</h3>
+
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {registry.fields.map(field => {
+                    if (product.attributes?.[field.key]) {
+                      return (
+                         <span key={field.key} className="text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                           {field.label}: {product.attributes[field.key]}
+                         </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+
                 <p className="text-sm sm:text-base text-slate-500 mb-5 flex-grow line-clamp-2">{product.description || "Premium skincare essential."}</p>
                 <div className="flex items-center justify-between mt-auto">
                   <div className="flex items-center gap-2">
@@ -386,16 +491,16 @@ function LightStorefront({
                         e.stopPropagation();
                         onAddDirect(product);
                       }}
-                      className="px-4 py-2 rounded-full bg-[#111111] text-white text-xs font-semibold hover:bg-slate-800 transition-colors shadow-sm"
+                      className={`px-4 py-2 rounded-full text-xs font-semibold shadow-sm transition-all ${business.theme === 'brutal' ? 'bg-white text-black border-2 border-black hover:-translate-y-0.5 shadow-[2px_2px_0px_rgba(0,0,0,1)]' : 'bg-[var(--s-accent)] text-[var(--s-accent-text)] hover:opacity-90 hover:-translate-y-0.5'}`}
                     >
                       {business.themeConfig?.ctaText || 'Add to Bag'}
                     </button>
                   ) : (
                     <button 
                       onClick={(e) => { e.stopPropagation(); }}
-                      className="px-4 py-2 rounded-full border border-slate-200 text-slate-400 text-xs font-semibold hover:border-slate-800 hover:text-slate-900 transition-colors"
+                      className={`px-4 py-2 text-xs font-semibold transition-all ${business.theme === 'brutal' ? 'bg-white text-black border-2 border-black rounded-[8px]' : 'rounded-full border border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'}`}
                     >
-                      Notify Me
+                      {business.category === 'Services' ? 'Unavailable' : 'Notify Me'}
                     </button>
                   )}
                 </div>
@@ -418,11 +523,12 @@ function LightStorefront({
 
 export default function StoreHomePage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { business } = useOutletContext<{ business: Business }>();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const { items, addItem } = useCartStore();
+  const { items, addItem, clearCart } = useCartStore();
   const { addToast } = useToast();
 
   useEffect(() => {
@@ -441,12 +547,25 @@ export default function StoreHomePage() {
       }
     };
     return () => channel.close();
-  }, [business?.id, slug]);
+  }, [business?.id, business?.category, slug]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" /></div>;
   if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-2xl uppercase">Store not found</div>;
 
   const handleAdd = (p: Product, qty: number) => {
+    if (business.category === 'Services') {
+      clearCart();
+      addItem({
+        productId: p.id,
+        productName: p.name,
+        quantity: qty,
+        unitPrice: p.price,
+        imageUrl: p.imageUrl
+      });
+      navigate(`/store/${slug}/checkout`);
+      return;
+    }
+
     const existingCartItem = items.find(item => item.productId === p.id);
     const currentQtyInCart = existingCartItem ? existingCartItem.quantity : 0;
     const maxAvailable = p.stockCount !== undefined ? p.stockCount : 9999;
@@ -468,6 +587,19 @@ export default function StoreHomePage() {
   };
 
   const handleAddDirect = (p: Product) => {
+    if (business.category === 'Services') {
+      clearCart();
+      addItem({
+        productId: p.id,
+        productName: p.name,
+        quantity: 1,
+        unitPrice: p.price,
+        imageUrl: p.imageUrl
+      });
+      navigate(`/store/${slug}/checkout`);
+      return;
+    }
+
     const existingCartItem = items.find(item => item.productId === p.id);
     const currentQtyInCart = existingCartItem ? existingCartItem.quantity : 0;
     const maxAvailable = p.stockCount !== undefined ? p.stockCount : 9999;

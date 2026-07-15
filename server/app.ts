@@ -233,7 +233,24 @@ app.get('/api/businesses', async (req, res) => {
     if (!phone) return res.status(400).json({ error: 'Phone query parameter required' });
 
     const result = await query(`SELECT * FROM businesses WHERE owner_phone = $1`, [phone]);
-    res.json({ business: result.rows[0] || null });
+    if (!result.rows[0]) return res.json({ business: null });
+    const b = result.rows[0];
+    res.json({
+      business: {
+        id: b.id,
+        businessName: b.business_name,
+        ownerPhone: b.owner_phone,
+        category: b.category,
+        state: b.state,
+        lga: b.lga,
+        storefrontSlug: b.storefront_slug,
+        theme: b.theme,
+        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+        logoUrl: b.logo_url,
+        kycTier: b.kyc_tier,
+        createdAt: b.created_at
+      }
+    });
   } catch (error) {
     console.error('get business error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -255,6 +272,9 @@ app.get('/api/businesses/by-id/:id', async (req, res) => {
         state: b.state,
         lga: b.lga,
         storefrontSlug: b.storefront_slug,
+        theme: b.theme,
+        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+        logoUrl: b.logo_url,
         kycTier: b.kyc_tier,
         tinNumber: b.tin_number,
         cacVerification: b.cac_verification,
@@ -296,7 +316,23 @@ app.get('/api/businesses/:slug', async (req, res) => {
         }
       });
     }
-    res.json({ business: result.rows[0] });
+    const b = result.rows[0];
+    res.json({
+      business: {
+        id: b.id,
+        businessName: b.business_name,
+        ownerPhone: b.owner_phone,
+        category: b.category,
+        state: b.state,
+        lga: b.lga,
+        storefrontSlug: b.storefront_slug,
+        theme: b.theme,
+        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+        logoUrl: b.logo_url,
+        kycTier: b.kyc_tier,
+        createdAt: b.created_at
+      }
+    });
   } catch (error) {
     console.error('get business by slug error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -312,11 +348,12 @@ app.patch('/api/businesses/:id', async (req, res) => {
     const payload = verifyToken(token);
     if (!payload) return res.status(401).json({ error: 'Invalid token' });
 
-    const allowedFields = ['business_name', 'category', 'state', 'lga', 'logo_url', 'theme', 'theme_config', 'kyc_tier', 'cac_verification', 'tin_number'];
+    const allowedFields = ['business_name', 'category', 'state', 'lga', 'logo_url', 'theme', 'theme_config', 'storefront_slug', 'kyc_tier', 'cac_verification', 'tin_number'];
     const fieldMapping: Record<string, string> = {
       businessName: 'business_name',
       logoUrl: 'logo_url',
       themeConfig: 'theme_config',
+      storefrontSlug: 'storefront_slug',
       kycTier: 'kyc_tier',
       cacVerification: 'cac_verification',
       tinNumber: 'tin_number',
@@ -329,7 +366,12 @@ app.patch('/api/businesses/:id', async (req, res) => {
       const dbKey = fieldMapping[key] || key;
       if (allowedFields.includes(dbKey)) {
         updates.push(`${dbKey} = $${idx++}`);
-        values.push(value);
+        // Always stringify objects going into JSON columns
+        if (dbKey === 'theme_config' && value !== null && typeof value === 'object') {
+          values.push(JSON.stringify(value));
+        } else {
+          values.push(value);
+        }
       }
     }
 
@@ -338,7 +380,25 @@ app.patch('/api/businesses/:id', async (req, res) => {
     values.push(payload.businessId);
     const result = await query(`UPDATE businesses SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`, values);
 
-    res.json({ business: result.rows[0] || null });
+    const b = result.rows[0];
+    if (!b) return res.status(404).json({ error: 'Business not found' });
+
+    res.json({
+      business: {
+        id: b.id,
+        businessName: b.business_name,
+        ownerPhone: b.owner_phone,
+        category: b.category,
+        state: b.state,
+        lga: b.lga,
+        storefrontSlug: b.storefront_slug,
+        theme: b.theme,
+        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+        logoUrl: b.logo_url,
+        kycTier: b.kyc_tier,
+        createdAt: b.created_at
+      }
+    });
   } catch (error) {
     console.error('update business error:', error);
     res.status(500).json({ error: 'Internal server error' });

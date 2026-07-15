@@ -10,6 +10,7 @@ export interface AttributeField {
   placeholder?: string;
   options?: string[];   // for select type
   required?: boolean;
+  isFilterable?: boolean; // Can be used as a top-level filter on the storefront
 }
 
 export interface ProductRegistry {
@@ -40,6 +41,7 @@ export const PRODUCT_REGISTRIES: Record<string, ProductRegistry> = {
         label: 'Target Gender',
         type: 'select',
         options: ['Unisex', 'Women', 'Men', 'Kids'],
+        isFilterable: true,
       },
       {
         key: 'material',
@@ -59,6 +61,7 @@ export const PRODUCT_REGISTRIES: Record<string, ProductRegistry> = {
         label: 'Dietary Type',
         type: 'select',
         options: ['None', 'Halal', 'Vegan', 'Vegetarian', 'Gluten-Free'],
+        isFilterable: true,
       },
       {
         key: 'weight',
@@ -90,6 +93,7 @@ export const PRODUCT_REGISTRIES: Record<string, ProductRegistry> = {
         label: 'Condition',
         type: 'select',
         options: ['New', 'UK Used', 'Nigerian Used', 'Refurbished'],
+        isFilterable: true,
       },
       {
         key: 'warranty',
@@ -121,6 +125,7 @@ export const PRODUCT_REGISTRIES: Record<string, ProductRegistry> = {
         label: 'Suitable For',
         type: 'select',
         options: ['All Skin Types', 'Oily Skin', 'Dry Skin', 'Combination', 'Sensitive'],
+        isFilterable: true,
       },
       {
         key: 'volume',
@@ -152,6 +157,7 @@ export const PRODUCT_REGISTRIES: Record<string, ProductRegistry> = {
         label: 'Service Location',
         type: 'select',
         options: ['Remote / Online', 'At Your Location', 'At Our Location', 'Flexible'],
+        isFilterable: true,
       },
       {
         key: 'deliveryTime',

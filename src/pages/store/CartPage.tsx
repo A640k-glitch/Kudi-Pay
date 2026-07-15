@@ -35,7 +35,7 @@ export default function CartPage() {
         <h1 className={`text-3xl sm:text-4xl mb-3 font-display ${isBrutal ? 'font-black uppercase text-white' : 'font-bold'}`}>Your cart is empty</h1>
         <p className={`mb-8 text-base sm:text-lg ${isBrutal ? 'font-bold uppercase text-gray-400' : isDarkMode ? 'text-[#9CA3AF]' : 'font-medium text-slate-500'}`}>Looks like you haven't added anything yet.</p>
         <Link to={`/store/${business?.storefrontSlug}`}>
-          <button className={`px-8 h-14 transition-all ${isBrutal ? 'font-black uppercase text-lg bg-white text-black border-[3px] border-black shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none' : isDarkMode ? 'font-semibold text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-full hover:opacity-90 shadow-sm hover:shadow-md hover:-translate-y-0.5' : 'font-semibold text-lg bg-accent text-white rounded-xl hover:bg-emerald-400 shadow-sm hover:shadow-md hover:-translate-y-0.5'}`}>
+          <button className={`px-8 h-14 transition-all ${isBrutal ? 'font-black uppercase text-lg bg-white text-black border-[3px] border-black shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none' : 'font-semibold text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-full hover:opacity-90 shadow-sm hover:shadow-md hover:-translate-y-0.5'}`}>
             Continue Shopping
           </button>
         </Link>
@@ -77,7 +77,7 @@ export default function CartPage() {
                 <div className={`flex items-center gap-1.5 ${isBrutal ? 'bg-white p-1 border-[2px] border-black shadow-[3px_3px_0px_rgba(0,0,0,1)]' : isDarkMode ? 'border border-[#3F3F46] rounded-lg p-1 bg-[#121212]' : 'border border-slate-200 rounded-lg p-1 bg-slate-50'}`}>
                   <button 
                     onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                    className={`w-10 h-10 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
+                    className={`w-10 h-10 flex items-center justify-center transition-colors ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-white bg-[#27272A] hover:bg-[#3F3F46] rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
                   >
                     <Minus className="w-4 h-4" strokeWidth={isBrutal ? 2.5 : 2} />
                   </button>
@@ -90,7 +90,7 @@ export default function CartPage() {
                       }
                     }}
                     disabled={item.quantity >= getProductStockLimit(item.productId)}
-                    className={`w-10 h-10 flex items-center justify-center transition-colors disabled:opacity-30 ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
+                    className={`w-10 h-10 flex items-center justify-center transition-colors disabled:opacity-30 ${isBrutal ? 'bg-black text-[var(--s-accent)] hover:bg-gray-900' : isDarkMode ? 'text-white bg-[#27272A] hover:bg-[#3F3F46] rounded-md' : 'text-slate-600 hover:bg-white rounded-md hover:shadow-sm'}`}
                   >
                     <Plus className="w-4 h-4" strokeWidth={isBrutal ? 2.5 : 2} />
                   </button>
@@ -109,7 +109,7 @@ export default function CartPage() {
           </div>
           <button 
             onClick={() => navigate(`/store/${business?.storefrontSlug}/checkout`)}
-            className={`w-full sm:w-auto flex items-center justify-center px-10 h-14 transition-all ${isBrutal ? 'font-black uppercase text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none' : isDarkMode ? 'font-semibold text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-full shadow-sm hover:opacity-90 hover:-translate-y-0.5' : 'font-semibold text-lg bg-accent text-white rounded-[16px] shadow-sm hover:bg-emerald-400 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'}`} 
+            className={`w-full sm:w-auto flex items-center justify-center px-10 h-14 transition-all ${isBrutal ? 'font-black uppercase text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none' : 'font-semibold text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-full shadow-sm hover:opacity-90 hover:shadow-md hover:-translate-y-0.5 active:translate-y-0'}`} 
           >
             {isBrutal ? 'CHECKOUT' : 'Checkout'} <ArrowRight className="w-5 h-5 ml-2" strokeWidth={isBrutal ? 2.5 : 2} />
           </button>

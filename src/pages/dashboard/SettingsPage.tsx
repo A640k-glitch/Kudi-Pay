@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { ArrowSquareOut } from '@phosphor-icons/react';
 import { Business } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
-import { businessService } from '../../lib/services/businessService';
+import { businessService, getDefaultHeroImageUrl, getDefaultThemeConfig } from '../../lib/services/businessService';
 import { businessSchema, storefrontSchema } from '../../lib/validation/schemas';
 import { useToast } from '../../components/Toast';
 
@@ -15,18 +15,36 @@ const combinedSchema = z.object({
   state: businessSchema.shape.state,
   lga: businessSchema.shape.lga,
   storefrontSlug: storefrontSchema.shape.storefrontSlug,
-  theme: storefrontSchema.shape.theme,
-  logoUrl: z.string().optional(),
+  theme: storefrontSchema.shape.theme.optional(),
+  logoUrl: z.string().nullable().optional(),
 });
 
 type SettingsFormValues = z.infer<typeof combinedSchema>;
 
-const NIGERIAN_STATES = [{ label: 'Lagos', value: 'lagos' }, { label: 'Abuja (FCT)', value: 'fct' }];
+const NIGERIAN_STATES = [
+  { label: 'Lagos', value: 'lagos' },
+  { label: 'Abuja (FCT)', value: 'fct' },
+  { label: 'Rivers', value: 'rivers' },
+  { label: 'Oyo', value: 'oyo' },
+  { label: 'Kano', value: 'kano' },
+];
+
 const LGAS_BY_STATE: Record<string, { label: string, value: string }[]> = {
-  lagos: [{ label: 'Ikeja', value: 'ikeja' }, { label: 'Surulere', value: 'surulere' }],
+  lagos: [{ label: 'Ikeja', value: 'ikeja' }, { label: 'Surulere', value: 'surulere' }, { label: 'Eti-Osa', value: 'eti-osa' }],
   fct: [{ label: 'AMAC', value: 'amac' }, { label: 'Bwari', value: 'bwari' }],
+  rivers: [{ label: 'Port Harcourt', value: 'port-harcourt' }, { label: 'Obio/Akpor', value: 'obio-akpor' }],
+  oyo: [{ label: 'Ibadan North', value: 'ibadan-north' }, { label: 'Ibadan South West', value: 'ibadan-south-west' }],
+  kano: [{ label: 'Kano Municipal', value: 'kano-municipal' }, { label: 'Tarauni', value: 'tarauni' }],
 };
-const CATEGORIES = [{ label: 'Fashion & Clothing', value: 'Fashion' }, { label: 'Food & Beverages', value: 'Food & Beverages' }, { label: 'Other', value: 'Other' }];
+
+const CATEGORIES = [
+  { label: 'Fashion & Clothing', value: 'Fashion' },
+  { label: 'Food & Beverages', value: 'Food & Beverages' },
+  { label: 'Electronics', value: 'Electronics' },
+  { label: 'Services', value: 'Services' },
+  { label: 'Health & Beauty', value: 'Beauty' },
+  { label: 'Other', value: 'Other' },
+];
 
 export default function SettingsPage() {
   const [business, setBusiness] = useState<Business | null>(null);
@@ -86,12 +104,76 @@ export default function SettingsPage() {
     
     setIsSubmitting(true);
     try {
-      await businessService.updateBusiness(business.id, data);
+      const updates: Partial<Business> = { ...data };
+
+      if (business.category !== data.category && business.themeConfig) {
+        const prevDefaults = getDefaultThemeConfig(business.category);
+        const newDefaults = getDefaultThemeConfig(data.category);
+        const prevHeroImage = getDefaultHeroImageUrl(business.category);
+        const newHeroImage = getDefaultHeroImageUrl(data.category);
+
+        const tc = { ...business.themeConfig };
+
+        const allImages = [
+          '/images/heroes/hero_fashion.png',
+          '/images/heroes/hero_food.png',
+          '/images/heroes/hero_electronics.png',
+          '/images/heroes/hero_services.png',
+          '/images/heroes/hero_beauty.png',
+          '/images/heroes/hero_other.png',
+          'https://lh3.googleusercontent.com/aida-public/AB6AXuAei2SCO828A82z9Nk8QNfFG7OaW_4XjTjOH-FkL-c719S45Y3t7z0pk4ORAE3EHBU2kGj_RqeUA8JZ7wu8A1PhozLhrANtFNBm82qZu82WAGc3yUrfAGE6SFAYFEfkuJI4QPh8tAKzitoqE866ICR3Rlih1IBwvJl5wMIBuVzuN_FML0QGmA5dTMI5scAxa_dhmnSLesA7M7RmcF2HsOsV5ZVPBgDEBVw3IEn83Kd4rDOjANhyi3hKZawQZ94mQRz65W7WwEUnob4'
+        ];
+
+        if (allImages.includes(tc.heroImageUrl) || tc.heroImageUrl === prevHeroImage) {
+          tc.heroImageUrl = newHeroImage;
+        }
+
+        const allConfigs = [
+          getDefaultThemeConfig('Fashion'),
+          getDefaultThemeConfig('Food & Beverages'),
+          getDefaultThemeConfig('Electronics'),
+          getDefaultThemeConfig('Services'),
+          getDefaultThemeConfig('Beauty'),
+          getDefaultThemeConfig('Other')
+        ];
+
+        if (allConfigs.some(c => c.heroHeading === tc.heroHeading) || tc.heroHeading === prevDefaults.heroHeading) {
+          tc.heroHeading = newDefaults.heroHeading;
+        }
+        if (allConfigs.some(c => c.heroSubheading === tc.heroSubheading) || tc.heroSubheading === prevDefaults.heroSubheading) {
+          tc.heroSubheading = newDefaults.heroSubheading;
+        }
+        if (allConfigs.some(c => c.heroLabel === tc.heroLabel) || tc.heroLabel === prevDefaults.heroLabel) {
+          tc.heroLabel = newDefaults.heroLabel;
+        }
+        if (allConfigs.some(c => c.ctaText === tc.ctaText) || tc.ctaText === prevDefaults.ctaText || tc.ctaText === 'Add to Bag' || tc.ctaText === 'Book Now') {
+          tc.ctaText = newDefaults.ctaText;
+        }
+
+        updates.themeConfig = tc;
+      }
+
+      const updated = await businessService.updateBusiness(business.id, updates);
+      if (updated) {
+        setBusiness(updated);
+        reset({
+          businessName: updated.businessName,
+          category: updated.category,
+          state: updated.state,
+          lga: updated.lga,
+          storefrontSlug: updated.storefrontSlug,
+          theme: updated.theme,
+          logoUrl: updated.logoUrl,
+        });
+      }
       addToast('Settings updated successfully', 'success');
-      reset(data); // Reset isDirty state
       
-      const channel = new BroadcastChannel('theme_updates');
-      channel.postMessage({ type: 'theme_changed', slug: data.storefrontSlug || business.storefrontSlug });
+      const channel = new BroadcastChannel('business_updates');
+      channel.postMessage({ 
+        type: 'business_updated', 
+        slug: updated?.storefrontSlug || data.storefrontSlug || business.storefrontSlug,
+        business: updated 
+      });
       channel.close();
     } catch (err) {
       addToast('Failed to update settings', 'error');
@@ -223,6 +305,13 @@ export default function SettingsPage() {
                 {isSubmitting ? 'Saving...' : 'Save'}
               </button>
             </div>
+          </div>
+        )}
+        
+        {Object.keys(errors).length > 0 && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 bg-red-500 text-white p-4 rounded z-50 shadow-lg">
+            <p className="font-bold">Validation Errors:</p>
+            <pre className="text-xs">{JSON.stringify(errors, null, 2)}</pre>
           </div>
         )}
       </form>

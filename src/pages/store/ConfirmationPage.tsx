@@ -41,9 +41,11 @@ export default function ConfirmationPage() {
   if (!order || !business) {
     return (
       <div className="p-10 text-center flex flex-col items-center">
-        <h1 className={`text-3xl mb-6 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>Order not found</h1>
+        <h1 className={`text-3xl mb-6 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>
+          {business?.category === 'Services' ? 'Booking not found' : 'Order not found'}
+        </h1>
         <Link to={`/store/${business?.storefrontSlug}`} className={`flex items-center gap-2 font-semibold transition-colors ${isDarkMode ? 'text-white hover:text-gray-300' : 'text-accent hover:text-emerald-400'}`}>
-          <ArrowLeft className="w-5 h-5" /> Return to store
+          <ArrowLeft className="w-5 h-5" /> Return to {business?.category === 'Services' ? 'bookings' : 'store'}
         </Link>
       </div>
     );
@@ -60,13 +62,17 @@ export default function ConfirmationPage() {
         <CheckCircle2 className="w-14 h-14" strokeWidth={2} />
       </motion.div>
 
-      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>Order Successful!</h1>
+      <h1 className={`text-4xl md:text-5xl tracking-tighter mb-4 font-bold font-display ${isDarkMode ? 'text-white' : 'text-primary'}`}>
+        {business.category === 'Services' ? 'Booking Successful!' : 'Order Successful!'}
+      </h1>
       <p className={`mb-10 max-w-md text-lg md:text-xl leading-relaxed font-medium ${isDarkMode ? 'text-[#9CA3AF]' : 'text-slate-500'}`}>
         We've notified <span className={`font-semibold ${isDarkMode ? 'text-white' : 'text-primary'}`}>{business.businessName}</span>. They'll be in touch shortly.
       </p>
 
       <div className={`w-full p-8 mb-10 border rounded-[32px] shadow-sm ${isDarkMode ? 'bg-[#18181B] border-[#27272A]' : 'glass-panel bg-white border-slate-200/60'}`}>
-        <div className={`text-sm tracking-widest mb-2 font-bold uppercase ${isDarkMode ? 'text-[#6B7280]' : 'text-slate-400'}`}>Order Reference</div>
+        <div className={`text-sm tracking-widest mb-2 font-bold uppercase ${isDarkMode ? 'text-[#6B7280]' : 'text-slate-400'}`}>
+          {business.category === 'Services' ? 'Booking Reference' : 'Order Reference'}
+        </div>
         <div className={`text-3xl tracking-widest mb-8 font-mono font-bold ${isDarkMode ? 'text-white' : 'text-primary'}`}>#{order.id}</div>
 
         <div className={`pt-6 text-left border-t ${isDarkMode ? 'border-[#27272A]' : 'border-slate-200/60'}`}>
@@ -80,16 +86,16 @@ export default function ConfirmationPage() {
       <div className="w-full flex flex-col sm:flex-row gap-4">
         <button
           onClick={() => setShowReceipt(true)}
-          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 ${isDarkMode ? 'bg-[var(--s-accent)] text-[var(--s-accent-text)]' : 'bg-accent text-white shadow-lg shadow-accent/25 hover:bg-emerald-400'}`}
+          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg rounded-[20px] shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 bg-[var(--s-accent)] text-[var(--s-accent-text)]`}
         >
           <Receipt className="w-5 h-5 mr-2" strokeWidth={2} /> View Receipt
         </button>
-        <Link
-          to={`/store/${business.storefrontSlug}`}
-          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all font-semibold text-base md:text-lg border rounded-[20px] hover:-translate-y-0.5 active:translate-y-0 shadow-sm ${isDarkMode ? 'bg-[#18181B] text-white border-[#27272A] hover:bg-[#27272A]' : 'bg-white text-slate-700 border-slate-200/60 hover:bg-slate-50 hover:border-slate-300'}`}
+        <button 
+          onClick={() => window.location.href = `/store/${business?.storefrontSlug}`}
+          className={`flex-1 h-14 md:h-16 flex items-center justify-center transition-all ${isBrutal ? 'font-black uppercase text-base bg-[var(--s-accent)] text-[var(--s-accent-text)] border-[3px] border-white shadow-[4px_4px_0px_rgba(255,255,255,1)] hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(255,255,255,1)] active:translate-y-0.5 active:shadow-none' : 'font-semibold text-base md:text-lg bg-[var(--s-accent)] text-[var(--s-accent-text)] rounded-[20px] hover:opacity-90 shadow-sm hover:-translate-y-0.5'}`}
         >
           Continue Shopping
-        </Link>
+        </button>
       </div>
 
       <Modal isOpen={showReceipt} onClose={() => setShowReceipt(false)}>
@@ -97,7 +103,7 @@ export default function ConfirmationPage() {
           <div id="receipt-container" className="bg-white border border-slate-200 p-8 rounded-2xl mx-auto max-w-sm font-mono text-sm text-black shadow-md">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold uppercase tracking-widest border-b border-slate-200 pb-4 inline-block">{business.businessName}</h2>
-              <p className="font-bold text-xs mt-4 uppercase">Receipt for Order #{order.id}</p>
+              <p className="font-bold text-xs mt-4 uppercase">Receipt for {business.category === 'Services' ? 'Booking' : 'Order'} #{order.id}</p>
               <p className="font-bold text-xs mt-1 uppercase text-gray-500">{format(new Date(order.createdAt), 'dd MMM yyyy, HH:mm')}</p>
             </div>
 

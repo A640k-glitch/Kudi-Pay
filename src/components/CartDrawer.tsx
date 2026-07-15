@@ -54,8 +54,8 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
             <ShoppingBag className={`w-5 h-5 ${isLight ? 'text-primary' : 'text-white'}`} strokeWidth={1.5} />
             <h2 className={`text-xl font-display font-semibold ${isLight ? 'text-primary' : 'text-white font-serif'}`} style={!isLight ? { fontFamily: '"Playfair Display", "Source Serif Pro", serif' } : {}}>Your Cart</h2>
             {items.length > 0 && (
-              <span className={`w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full ${isLight ? 'bg-[#111111] text-white' : 'bg-white text-[#111111]'} shadow-sm`}>
-                {items.length}
+              <span className="w-6 h-6 flex items-center justify-center text-xs font-bold rounded-full bg-[var(--s-accent)] text-[var(--s-accent-text)] shadow-sm">
+                {items.reduce((total, item) => total + item.quantity, 0)}
               </span>
             )}
           </div>
@@ -114,7 +114,7 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
                       <div className={`flex items-center p-0.5 rounded-lg border ${isLight ? 'border-slate-200/60 bg-slate-50' : 'border-[#3F3F46] bg-[#121212]'}`}>
                         <button
                           onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
-                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm ${isLight ? 'text-slate-600 hover:bg-white' : 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white'}`}
+                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm ${isLight ? 'text-slate-600 hover:bg-white' : 'text-white bg-[#27272A] hover:bg-[#3F3F46]'}`}
                         >
                           <Minus className="w-3 h-3" strokeWidth={2} />
                         </button>
@@ -127,7 +127,7 @@ export default function CartDrawer({ business, isOpen, onClose, onCheckout }: Ca
                             }
                           }}
                           disabled={item.quantity >= getProductStockLimit(item.productId)}
-                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm disabled:opacity-30 disabled:hover:bg-transparent ${isLight ? 'text-slate-600 hover:bg-white' : 'text-[#9CA3AF] hover:bg-[#27272A] hover:text-white'}`}
+                          className={`w-6 h-6 flex items-center justify-center transition-colors rounded-md hover:shadow-sm disabled:opacity-30 disabled:hover:bg-transparent ${isLight ? 'text-slate-600 hover:bg-white' : 'text-white bg-[#27272A] hover:bg-[#3F3F46]'}`}
                         >
                           <Plus className="w-3 h-3" strokeWidth={2} />
                         </button>

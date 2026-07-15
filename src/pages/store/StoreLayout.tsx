@@ -209,7 +209,27 @@ export default function StoreLayout() {
         } : null);
       }
     };
-    return () => themeChannel.close();
+    
+    const businessChannel = new BroadcastChannel('business_updates');
+    businessChannel.onmessage = async (event) => {
+      if (event.data.type === 'business_updated' && event.data.slug === slug) {
+        if (event.data.business) {
+          setBusiness(event.data.business);
+        } else {
+          try {
+            const data = await businessService.getBusinessBySlug(slug!);
+            setBusiness(data);
+          } catch (err) {
+            console.error('Failed to refetch business:', err);
+          }
+        }
+      }
+    };
+
+    return () => {
+      themeChannel.close();
+      businessChannel.close();
+    };
   }, [slug]);
 
   useEffect(() => {
@@ -254,7 +274,7 @@ export default function StoreLayout() {
           {isCheckoutPage ? (
             <>
               {/* Back to Store link */}
-              <Link to={`/store/${slug}`} className="flex items-center gap-2 text-slate-500 hover:text-[#111111] transition-colors">
+              <Link to={`/store/${slug}`} className={`flex items-center gap-2 transition-colors ${isDarkMode ? 'text-gray-400 hover:text-white' : 'text-slate-500 hover:text-[#111111]'}`}>
                 <ArrowLeft className="w-4 h-4" />
                 <span className="font-semibold text-sm hidden sm:inline">Back to Store</span>
               </Link>
@@ -273,21 +293,23 @@ export default function StoreLayout() {
 
               {/* Secured checkout and cart */}
               <div className="flex items-center gap-3 text-slate-600">
-                <div className="flex items-center gap-1.5 text-slate-500 bg-slate-100 px-3 py-1 rounded-full text-xs font-semibold">
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${isDarkMode ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-500'}`}>
                   <Lock className="w-3.5 h-3.5" />
                   <span className="hidden xs:inline">Secured Checkout</span>
                 </div>
-                <button
-                  onClick={() => setIsCartOpen(true)}
-                  className="relative flex items-center justify-center p-2 text-slate-500 hover:text-[#111111] transition-colors"
-                >
-                  <ShoppingBag className="w-5 h-5" strokeWidth={1.5} />
-                  {cartItemCount > 0 && (
-                    <span className="absolute -top-1 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[#111111] text-white min-w-[16px] h-4 px-1 rounded-full">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </button>
+                {business.category !== 'Services' && (
+                  <button
+                    onClick={() => setIsCartOpen(true)}
+                    className={`relative flex items-center justify-center p-2 transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-[#111111]'}`}
+                  >
+                    <ShoppingBag className="w-5 h-5" strokeWidth={1.5} />
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-1 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[var(--s-accent)] text-[var(--s-accent-text)] min-w-[16px] h-4 px-1 rounded-full shadow-sm">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           ) : (
@@ -306,24 +328,20 @@ export default function StoreLayout() {
 
               {/* Cart */}
               <div className="flex items-center gap-4 text-slate-600">
-                <button
-                  onClick={() => setIsCartOpen(true)}
-                  className={`relative flex items-center justify-center p-2 transition-colors hover:text-[var(--s-accent)] ${isLight ? 'text-slate-500' : 'text-[#9CA3AF]'}`}
-                >
-                  <ShoppingBag className={`w-5 h-5 ${isLight ? '' : 'text-white'}`} strokeWidth={1.5} />
-                  {!isLight && <span className="hidden sm:inline ml-2 text-xs uppercase tracking-wider font-semibold text-white">CART</span>}
-                  {cartItemCount > 0 && (
-                    isLight ? (
-                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[#111111] text-white min-w-[16px] h-4 px-1 rounded-full">
+                {business.category !== 'Services' && (
+                  <button
+                    onClick={() => setIsCartOpen(true)}
+                    className={`relative flex items-center justify-center p-2 transition-colors hover:text-[var(--s-accent)] ${isLight ? 'text-slate-500' : 'text-[#9CA3AF]'}`}
+                  >
+                    <ShoppingBag className={`w-5 h-5 ${isLight ? '' : 'text-white'}`} strokeWidth={1.5} />
+                    {!isLight && <span className="hidden sm:inline ml-2 text-xs uppercase tracking-wider font-semibold text-white">CART</span>}
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center text-[9px] font-bold bg-[var(--s-accent)] text-[var(--s-accent-text)] min-w-[16px] h-4 px-1 rounded-full shadow-sm">
                         {cartItemCount}
                       </span>
-                    ) : (
-                      <span className={`flex items-center justify-center text-[10px] sm:text-xs min-w-[20px] h-[20px] px-1 bg-accent text-white rounded-full font-bold shadow-sm ml-1`}>
-                        {cartItemCount}
-                      </span>
-                    )
-                  )}
-                </button>
+                    )}
+                  </button>
+                )}
               </div>
             </>
           )}

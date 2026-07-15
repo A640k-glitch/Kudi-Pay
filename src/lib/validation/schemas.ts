@@ -21,7 +21,7 @@ export const businessSchema = z.object({
   category: z.string().min(1, "Please select a category"),
   state: z.string().min(1, "Please select a state"),
   lga: z.string().min(1, "Please select an LGA"),
-  logoUrl: z.string().optional(),
+  logoUrl: z.string().nullable().optional(),
 });
 
 export const storefrontSchema = z.object({

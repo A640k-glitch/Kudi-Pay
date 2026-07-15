@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Product } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
-import { businessService, DEFAULT_HERO_IMAGE_URL } from '../../lib/services/businessService';
+import { businessService, getDefaultHeroImageUrl } from '../../lib/services/businessService';
 import { productService } from '../../lib/services/productService';
 import { Modal } from '../../components/Modal';
 import { formatNaira } from '../../lib/utils';
@@ -39,7 +39,7 @@ export default function ProductsPage() {
     const b = await businessService.getBusinessByPhone(phone);
     if (b) {
       if (!b.themeConfig || !b.themeConfig.heroImageUrl) {
-        const defaultHeroUrl = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAei2SCO828A82z9Nk8QNfFG7OaW_4XjTjOH-FkL-c719S45Y3t7z0pk4ORAE3EHBU2kGj_RqeUA8JZ7wu8A1PhozLhrANtFNBm82qZu82WAGc3yUrfAGE6SFAYFEfkuJI4QPh8tAKzitoqE866ICR3Rlih1IBwvJl5wMIBuVzuN_FML0QGmA5dTMI5scAxa_dhmnSLesA7M7RmcF2HsOsV5ZVPBgDEBVw3IEn83Kd4rDOjANhyi3hKZawQZ94mQRz65W7WwEUnob4';
+        const defaultHeroUrl = getDefaultHeroImageUrl(b.category);
         const repairedThemeConfig = {
           primaryColor: '#111111',
           ctaText: 'Add to Bag',
@@ -87,7 +87,7 @@ export default function ProductsPage() {
       const updated = await businessService.updateBusiness(business.id, {
         themeConfig: {
           ...business.themeConfig,
-          heroImageUrl: DEFAULT_HERO_IMAGE_URL
+          heroImageUrl: getDefaultHeroImageUrl(business.category)
         }
       });
       if (updated) {
@@ -98,7 +98,7 @@ export default function ProductsPage() {
           type: 'theme_changed',
           slug: business.storefrontSlug,
           theme: business.theme,
-          themeConfig: { ...business.themeConfig, heroImageUrl: DEFAULT_HERO_IMAGE_URL }
+          themeConfig: { ...business.themeConfig, heroImageUrl: getDefaultHeroImageUrl(business.category) }
         });
         channel.close();
       }
@@ -263,7 +263,7 @@ export default function ProductsPage() {
                             <span className="text-xs md:text-sm font-bold text-slate-600">Storefront Hero</span>
                             <div className="flex items-center gap-1.5">
                               {/* Reset to default — only shown when a custom hero is active */}
-                              {isHeroImage && activeHeroUrl !== DEFAULT_HERO_IMAGE_URL && (
+                              {isHeroImage && activeHeroUrl !== getDefaultHeroImageUrl(business?.category) && (
                                 <button
                                   type="button"
                                   onClick={async (e) => { e.stopPropagation(); await handleResetHero(); }}
