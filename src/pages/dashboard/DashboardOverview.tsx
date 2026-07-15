@@ -216,7 +216,7 @@ export default function DashboardOverview() {
             <span className="bg-slate-800 border-2 border-slate-700 text-white px-3 py-1 font-bold rounded-full text-xs inline-block mb-4">
               Bank Balance
             </span>
-            <div className="text-4xl md:text-5xl font-display font-black tracking-tight mt-2 text-[#E0FF4F]">
+            <div className="text-3xl sm:text-4xl lg:text-5xl font-display font-black tracking-tight mt-2 text-[#E0FF4F] whitespace-nowrap overflow-hidden text-ellipsis w-full">
               {account ? formatNaira(account.balance) : '₦0'}
             </div>
           </div>

@@ -85,6 +85,8 @@ export default function DashboardLayout() {
     };
   }, [isMoreMenuOpen]);
 
+  const isBotPage = location.pathname === '/dashboard/whatsapp';
+
   return (
     <div className="h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900 overflow-hidden">
       
@@ -142,33 +144,55 @@ export default function DashboardLayout() {
 
       {/* ── Mobile Top Bar ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b-2 border-slate-900 flex items-center justify-between px-4 h-[72px] shadow-[0_4px_0px_#0f172a]">
-        <Logo className="h-7 text-slate-900" />
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="group flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 bg-white hover:bg-[#FF6666] transition-colors shadow-[2px_2px_0px_#0f172a]"
-            aria-label="Log Out"
-          >
-            <SignOut className="w-5 h-5 text-[#FF6666] drop-shadow-[0_0_8px_rgba(255,102,102,0.6)] group-hover:text-white group-hover:drop-shadow-none transition-all" strokeWidth={2} />
-          </button>
-          <Link
-            to="/dashboard/account"
-            className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 transition-colors shadow-[2px_2px_0px_#0f172a]",
-              location.pathname === '/dashboard/account'
-                ? 'bg-[#E0FF4F] text-slate-900'
-                : 'bg-white text-slate-900 hover:bg-[#E0FF4F]'
-            )}
-            aria-label="Account"
-          >
-            <User className="w-5 h-5" strokeWidth={2} />
-          </Link>
-        </div>
+        {isBotPage ? (
+          <div className="flex items-center gap-3 w-full">
+            <div className="w-10 h-10 flex items-center justify-center shrink-0">
+              <Logo iconOnly className="h-10" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-black text-slate-900 leading-tight">Kudi Assistant</span>
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-[#10B981]"></span>
+                <span className="text-xs font-bold text-slate-500">Online</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <Logo className="h-7 text-slate-900" />
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsLogoutModalOpen(true)}
+                className="group flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 bg-white hover:bg-[#FF6666] transition-colors shadow-[2px_2px_0px_#0f172a]"
+                aria-label="Log Out"
+              >
+                <SignOut className="w-5 h-5 text-[#FF6666] drop-shadow-[0_0_8px_rgba(255,102,102,0.6)] group-hover:text-white group-hover:drop-shadow-none transition-all" strokeWidth={2} />
+              </button>
+              <Link
+                to="/dashboard/account"
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 transition-colors shadow-[2px_2px_0px_#0f172a]",
+                  location.pathname === '/dashboard/account'
+                    ? 'bg-[#E0FF4F] text-slate-900'
+                    : 'bg-white text-slate-900 hover:bg-[#E0FF4F]'
+                )}
+                aria-label="Account"
+              >
+                <User className="w-5 h-5" strokeWidth={2} />
+              </Link>
+            </div>
+          </>
+        )}
       </header>
 
       {/* ── Main Content ── */}
-      <main id="dashboard-main" className="flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto h-full relative">
-        <div className="p-3 sm:p-5 md:p-8 max-w-7xl mx-auto">
+      <main id="dashboard-main" className={cn(
+        "flex-1 pt-[72px] md:pt-0 pb-[80px] md:pb-0 overflow-y-auto h-full relative"
+      )}>
+        <div className={cn(
+          "max-w-7xl mx-auto h-full",
+          isBotPage ? "p-0 md:p-8" : "p-3 sm:p-5 md:p-8"
+        )}>
           <Outlet />
         </div>
       </main>

@@ -9,6 +9,7 @@ import { orderService } from '../../lib/services/orderService';
 import { authService } from '../../lib/services/authService';
 import { formatNaira } from '../../lib/utils';
 import { api } from '../../lib/api';
+import { Logo } from '../../components/Logo';
 
 interface ChatMessage {
   id: string;
@@ -284,11 +285,11 @@ export default function WhatsAppBotPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-136px)] md:h-[calc(100vh-64px)] max-w-md mx-auto bg-slate-50 border-2 border-slate-200 rounded-[24px] overflow-hidden shadow-sm relative font-sans my-4">
+    <div className="flex flex-col h-full md:h-[calc(100vh-64px)] w-full md:max-w-md mx-auto bg-slate-50 md:border-2 md:border-slate-200 md:rounded-[24px] overflow-hidden md:shadow-sm relative font-sans md:my-4">
       {/* Header */}
-      <header className="bg-slate-900 border-b-2 border-slate-900 text-white p-4 flex items-center gap-4 shrink-0 select-none z-20">
-        <div className="w-12 h-12 bg-white text-slate-900 flex items-center justify-center font-display font-black text-xl rounded-full shadow-sm">
-          KD
+      <header className="hidden md:flex bg-slate-900 border-b-2 border-slate-900 text-white p-4 items-center gap-4 shrink-0 select-none z-20">
+        <div className="w-12 h-12 flex items-center justify-center shrink-0">
+          <Logo iconOnly className="h-10" />
         </div>
         <div className="flex-grow">
           <div className="font-display font-bold text-lg text-white flex items-center justify-between">
@@ -362,39 +363,41 @@ export default function WhatsAppBotPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Command Quick-buttons */}
-      <div className="absolute bottom-[72px] left-0 right-0 p-3 flex flex-wrap gap-2 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent pt-10 justify-center z-10 max-h-[140px] overflow-y-auto">
-        {PRESET_COMMANDS.map((cmd, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleSendMessage(cmd.text)}
-            className="text-xs font-bold bg-white border-2 border-slate-900 text-slate-700 px-3 py-2 rounded-full cursor-pointer shadow-[2px_2px_0px_#0f172a] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-[1px_1px_0px_#0f172a] hover:bg-slate-50 hover:text-slate-900 active:translate-y-[2px] active:translate-x-[2px] active:shadow-none transition-all truncate whitespace-nowrap"
-            title={cmd.text}
-          >
-            {cmd.label}
-          </button>
-        ))}
-      </div>
-
       {/* Footer Text Input Bar */}
-      <footer className="bg-white p-3 border-t-2 border-slate-200 flex items-center gap-3 shrink-0 z-20 shadow-sm relative">
-        <input
-          type="text"
-          placeholder="Ask me anything about your business..."
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handleSendMessage(inputText);
-          }}
-          className="flex-1 bg-slate-50 border-2 border-slate-200 rounded-[12px] px-4 py-3 text-sm font-medium placeholder-slate-400 focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-all"
-        />
-        <button
-          onClick={() => handleSendMessage(inputText)}
-          disabled={!inputText.trim() || isBotTyping}
-          className="w-12 h-12 bg-slate-900 text-white rounded-[12px] flex items-center justify-center hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100"
-        >
-          <PaperPlaneRight className="w-5 h-5" weight="fill" />
-        </button>
+      <footer className="p-3 pb-safe bg-transparent shrink-0 z-20 relative">
+        {/* Floating Command Quick-buttons directly on top of input */}
+        <div className="absolute bottom-full left-0 right-0 px-3 pb-2 flex flex-nowrap overflow-x-auto gap-2 scrollbar-hide">
+          {PRESET_COMMANDS.map((cmd, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleSendMessage(cmd.text)}
+              className="text-xs font-bold bg-slate-900 text-white border-2 border-slate-900 px-3 py-2 rounded-full cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:translate-x-[1px] hover:shadow-none hover:bg-slate-800 active:translate-y-[2px] active:translate-x-[2px] transition-all whitespace-nowrap shrink-0"
+              title={cmd.text}
+            >
+              {cmd.label}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex items-center gap-2 bg-white border-2 border-slate-900 rounded-[20px] p-1.5 shadow-[4px_4px_0px_#0f172a] focus-within:shadow-[2px_2px_0px_#0f172a] focus-within:translate-y-[2px] focus-within:translate-x-[2px] transition-all w-full relative z-10">
+          <input
+            type="text"
+            placeholder="Ask me anything about your business..."
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSendMessage(inputText);
+            }}
+            className="flex-1 bg-transparent px-4 py-2 text-sm font-medium placeholder-slate-400 focus:outline-none"
+          />
+          <button
+            onClick={() => handleSendMessage(inputText)}
+            disabled={!inputText.trim() || isBotTyping}
+            className="w-10 h-10 bg-[#E0FF4F] text-slate-900 border-2 border-slate-900 rounded-full flex items-center justify-center hover:bg-[#d4f542] active:scale-95 transition-all disabled:opacity-50 disabled:active:scale-100 shrink-0"
+          >
+            <PaperPlaneRight className="w-5 h-5" weight="bold" />
+          </button>
+        </div>
       </footer>
     </div>
   );
