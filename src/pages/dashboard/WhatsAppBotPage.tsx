@@ -14,10 +14,9 @@ interface ChatMessage {
 }
 
 const PRESET_COMMANDS = [
-  { label: 'Log 2x Ankara sales (30k)', text: 'Sold 2x Ankara fabrics for 30000' },
   { label: 'Query weekly profit', text: 'What is my profit this week?' },
-  { label: 'Log generator fuel (12k)', text: 'Paid Oando fuel station 12000 for generator fuel' },
-  { label: 'Check trust score', text: 'What is my trust score?' }
+  { label: 'Check trust score', text: 'What is my trust score?' },
+  { label: 'Sync bank account', text: 'Sync my bank transactions' }
 ];
 
 function getFormattedTime() {
@@ -219,54 +218,31 @@ export default function WhatsAppBotPage() {
 async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
   const norm = msg.toLowerCase().trim();
 
-  // Match sale patterns
-  if (norm.startsWith('sold ') || norm.includes('for ')) {
-    const match = norm.match(/\b\d{4,7}\b/);
-    if (match) {
-      const amount = parseFloat(match[0]);
-      const descMatch = msg.match(/sold\s+(.*?)\s+for/i);
-      const desc = descMatch ? descMatch[1] : 'Sales via WhatsApp';
-      
-      try {
-        await ledgerService.addEntry({
-          businessId: bId,
-          type: 'revenue',
-          amount,
-          source: 'order_payment',
-          verificationStatus: 'pending',
-          verificationSource: 'manual_unverified',
-          metadata: { description: `WhatsApp: ${desc}` }
-        });
-        
-        return `✅ Transaction logged!\n\nRevenue: +${formatNaira(amount)}\nNote: ${desc}\n\nYour score improved (+5 PTS)! 🚀`;
-      } catch (err) {
-        return `❌ Error saving transaction. Please try again.`;
-      }
+  // Match bank account sync/match query
+  if (norm.includes('sync') || norm.includes('match') || norm.includes('update')) {
+    const hasLinked = await bankAccountService.hasLinkedAccount(bId);
+    if (!hasLinked) {
+      return `❌ No linked bank account found.\n\nPlease link your bank account on the dashboard to sync and verify transactions!`;
     }
-  }
-
-  // Match expense patterns
-  if (norm.startsWith('paid ') || norm.startsWith('expense ') || norm.includes('bought ')) {
-    const match = norm.match(/\b\d{4,7}\b/);
-    if (match) {
-      const amount = parseFloat(match[0]);
-      const desc = msg.replace(/\b\d{4,7}\b/g, '').replace(/(paid|bought|expense)/gi, '').trim() || 'Business Expense';
+    try {
+      const syncResult = await bankAccountService.syncTransactions(bId);
       
-      try {
-        await ledgerService.addEntry({
-          businessId: bId,
-          type: 'expense',
-          amount,
-          source: 'receipt_ocr',
-          verificationStatus: 'pending',
-          verificationSource: 'manual_unverified',
-          metadata: { vendor: 'WhatsApp Log', description: desc, category: 'Operations' }
-        });
-        
-        return `✅ Expense logged!\n\nAmount: -${formatNaira(amount)}\nNote: ${desc}\n\nLogged in Operations (+10 PTS).`;
-      } catch (err) {
-        return `❌ Error saving transaction.`;
+      // Notify other pages (e.g. Overview) via broadcast channel
+      const channel = new BroadcastChannel('dashboard_updates');
+      channel.postMessage({ type: 'dashboard_sync' });
+      channel.close();
+
+      if (syncResult.newCount === 0) {
+        return `🔄 Bank Account Synced!\n\nNo new transactions found since last sync.\n\nAll your storefront and credit records are up to date.`;
       }
+      
+      const lines = syncResult.transactions.map(t => 
+        `• ${t.type === 'credit' ? '✅ CREDIT' : '❌ DEBIT'}: ${formatNaira(t.amount)} (${t.narration})`
+      ).join('\n');
+      
+      return `🔄 Bank Account Synced!\n\nFound ${syncResult.newCount} new verified transaction(s):\n\n${lines}\n\nYour dashboard and trust score have been dynamically updated! 🚀`;
+    } catch (err) {
+      return `❌ Failed to sync bank account. Please try again.`;
     }
   }
 
@@ -294,5 +270,5 @@ async function parseWhatsAppCommand(msg: string, bId: string): Promise<string> {
   }
 
   // Fallback / instructions
-  return `ℹ️ Kudi Assistant Commands:\n\n1. "Sold [item] for [amount]"\n2. "Paid [recipient] [amount] for [reason]"\n3. "What is my profit this week?"\n4. "What is my trust score?"`;
+  return `ℹ️ Kudi Assistant Commands:\n\n1. "What is my profit this week?"\n2. "What is my trust score?"\n3. "Sync my bank transactions"`;
 }

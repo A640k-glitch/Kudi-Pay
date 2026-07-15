@@ -62,11 +62,13 @@ export default function DashboardOverview() {
   };
 
   useEffect(() => {
+    let activeBiz: Business | null = null;
     async function load() {
       const phone = authService.getCurrentPhone();
       if (!phone) return;
       const b = await businessService.getBusinessByPhone(phone);
       if (b) {
+        activeBiz = b;
         setBusiness(b);
         await refreshData(b.id, b);
       } else {
@@ -76,6 +78,14 @@ export default function DashboardOverview() {
       setIsLoading(false);
     }
     load();
+
+    const channel = new BroadcastChannel('dashboard_updates');
+    channel.onmessage = (e) => {
+      if (e.data.type === 'dashboard_sync' && activeBiz) {
+        refreshData(activeBiz.id, activeBiz);
+      }
+    };
+    return () => channel.close();
   }, [navigate]);
 
   const handleSyncTransactions = async () => {
