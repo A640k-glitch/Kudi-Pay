@@ -1,4 +1,9 @@
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import ws from 'ws';
+
+// Required for @neondatabase/serverless to work in Node.js serverless environments (Vercel)
+// Without this, the Pool cannot open WebSocket connections to Neon
+neonConfig.webSocketConstructor = ws;
 
 let pool: Pool | null = null;
 
@@ -7,7 +12,7 @@ function getPool() {
     pool = new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: true,
-      connectionTimeoutMillis: 5000,
+      connectionTimeoutMillis: 10000,
       max: 1,
       idleTimeoutMillis: 30000,
     });
