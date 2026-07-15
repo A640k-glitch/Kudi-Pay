@@ -182,7 +182,7 @@ export default function DashboardOverview() {
         
         {/* Trust Score Card */}
         <div className="lg:col-span-2 glass-panel p-3 sm:p-4 md:p-5 flex flex-col justify-between">
-          <div className="flex flex-col md:flex-row items-start justify-between relative z-10 gap-6">
+          <div className="flex flex-col lg:flex-row items-start justify-between relative z-10 gap-6">
             <div className="flex-1">
               <h2 className="text-3xl md:text-4xl font-display font-black text-slate-900 mb-3">
                 Score: {scoreData ? scoreData.totalScore : '0'}/1000
@@ -191,14 +191,14 @@ export default function DashboardOverview() {
                 {!account 
                   ? "Link your bank account to activate your trust score."
                   : scoreData?.isBuilding 
-                    ? "Your score is building. Keep transacting to unlock loans."
-                    : `You qualify for ${scoreData?.tier} tier benefits. Check eligibility below.`
+                  ? "Your score is building. Keep transacting to unlock loans."
+                  : `You qualify for ${scoreData?.tier} tier benefits. Check eligibility below.`
                 }
               </p>
             </div>
             
             {/* Giant Graphic Number */}
-            <div className="w-24 h-24 md:w-32 md:h-32 bg-[#10B981] border-2 border-slate-900 rounded-full flex items-center justify-center shadow-[4px_4px_0px_#0f172a] shrink-0 self-center md:self-start">
+            <div className="w-24 h-24 lg:w-32 lg:h-32 bg-[#10B981] border-2 border-slate-900 rounded-full flex items-center justify-center shadow-[4px_4px_0px_#0f172a] shrink-0 self-center lg:self-start">
                <span className="text-3xl md:text-5xl font-display font-black text-white">{readinessPercent}%</span>
             </div>
           </div>
@@ -237,8 +237,8 @@ export default function DashboardOverview() {
       </div>
 
       {/* Store Link Card */}
-      <div className={`glass-panel p-3 sm:p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 ${products.length > 0 ? 'bg-[#E0FF4F]' : 'bg-slate-100'}`}>
-        <div>
+      <div className={`glass-panel p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4 ${products.length > 0 ? 'bg-[#E0FF4F]' : 'bg-slate-100'}`}>
+        <div className="min-w-0 flex-1">
           <h4 className="text-xl md:text-2xl font-display font-black text-slate-900 mb-2 flex items-center gap-2">
             {products.length > 0 ? <>Store is LIVE! <span className="text-2xl">🚀</span></> : <>Finish Setting Up <span className="text-2xl">⚙️</span></>}
           </h4>
@@ -248,15 +248,15 @@ export default function DashboardOverview() {
               : 'Add your first product to go live and start accepting orders.'}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch gap-3 shrink-0">
-          <div className="bg-white border-2 border-slate-900 px-4 py-3 rounded-[12px] flex items-center font-bold text-slate-900 max-w-sm truncate">
-            {storeLink}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto min-w-0 shrink-0">
+          <div className="bg-white border-2 border-slate-900 px-4 py-3 rounded-[12px] flex items-center font-bold text-slate-900 truncate min-w-0 flex-1 lg:max-w-xs">
+            <span className="truncate">{storeLink}</span>
           </div>
-          <div className="flex gap-2">
-            <button className="bg-slate-900 text-white px-6 font-bold rounded-[12px] shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all" onClick={handleCopyLink}>
+          <div className="flex gap-2 shrink-0">
+            <button className="bg-slate-900 text-white px-6 py-3 font-bold rounded-[12px] shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex-1 sm:flex-none text-center" onClick={handleCopyLink}>
               {isCopied ? 'COPIED!' : 'COPY'}
             </button>
-            <button className="bg-white text-slate-900 border-2 border-slate-900 px-4 rounded-[12px] shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center" onClick={() => setShowQR(true)}>
+            <button className="bg-white text-slate-900 border-2 border-slate-900 px-4 py-3 rounded-[12px] shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all flex items-center justify-center" onClick={() => setShowQR(true)}>
               <QrCode weight="bold" className="w-5 h-5" />
             </button>
           </div>

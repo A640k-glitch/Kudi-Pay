@@ -109,12 +109,20 @@ export default function AccountPage() {
       // Simulate real API calls via the adapter
       await businessVerificationService.verifyBVN(bvn);
       await businessVerificationService.verifyNIN(nin);
+      let cacVerification = null;
       if (rcNumber) {
-        await businessVerificationService.verifyCACNumber(rcNumber, business.id);
+        cacVerification = await businessVerificationService.verifyCACNumber(rcNumber, business.id);
       }
 
-      await businessService.updateBusiness(business.id, { kycTier: rcNumber ? 3 : 2 });
-      setBusiness({ ...business, kycTier: rcNumber ? 3 : 2 });
+      await businessService.updateBusiness(business.id, { 
+        kycTier: rcNumber ? 3 : 2,
+        cacVerification: cacVerification || undefined
+      });
+      setBusiness({ 
+        ...business, 
+        kycTier: rcNumber ? 3 : 2,
+        cacVerification: cacVerification || undefined
+      });
       setVerifyStep(6);
     } catch (err) {
       alert("Verification failed. Check your details.");

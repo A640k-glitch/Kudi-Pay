@@ -91,7 +91,7 @@ export default function DashboardLayout() {
     <div className="h-screen bg-slate-50 flex flex-col md:flex-row font-sans text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900 overflow-hidden">
       
       {/* ── Desktop Sidebar ── */}
-      <aside className="hidden md:flex flex-col w-[260px] bg-white border-r-2 border-slate-900 h-screen sticky top-0 z-30">
+      <aside className="hidden md:flex flex-col w-[220px] lg:w-[260px] bg-white border-r-2 border-slate-900 h-screen sticky top-0 z-30">
         <div className="p-6 flex flex-col justify-between h-full overflow-y-auto">
           <div>
             <div className="mb-10 flex items-center px-2">

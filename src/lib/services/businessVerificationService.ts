@@ -7,6 +7,7 @@
  */
 
 import type { CACVerification } from '../types';
+import { api } from '../api';
 
 const isDev = () => {
   try {
@@ -66,7 +67,27 @@ export const businessVerificationService = {
     if (isDev()) {
       return this._devVerifyCAC(rcNumber, businessId);
     }
-    throw new Error('Production CAC verification requires server API. See Phase 2.');
+    try {
+      const data = await api.get(`/proxy/kyc/cac?rcNumber=${encodeURIComponent(rcNumber)}`);
+      if (data.entity) {
+        const ent = data.entity;
+        const verification: CACVerification = {
+          rcNumber: ent.rcNumber || ent.rc_number || rcNumber,
+          companyName: ent.companyName || ent.company_name || 'VERIFIED CAC COMPANY',
+          registrationDate: ent.registrationDate || ent.registration_date || new Date().toISOString().split('T')[0],
+          companyType: ent.companyType || ent.company_type || 'RC',
+          status: ent.status || 'active',
+          verifiedAt: new Date().toISOString(),
+        };
+        // Also save it locally for speed/compatibility
+        this._saveCACVerification(businessId, verification);
+        return verification;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to verify CAC in production:', error);
+      throw error;
+    }
   },
 
   /**
@@ -78,7 +99,22 @@ export const businessVerificationService = {
     if (isDev()) {
       return this._devVerifyTIN(tinNumber);
     }
-    throw new Error('Production TIN verification requires server API. See Phase 2.');
+    try {
+      const data = await api.get(`/proxy/kyc/tin?tin=${encodeURIComponent(tinNumber)}`);
+      if (data.entity) {
+        const ent = data.entity;
+        return {
+          valid: true,
+          taxId: ent.taxId || ent.tin || tinNumber,
+          companyName: ent.companyName || ent.company_name || 'VERIFIED TAXPAYER',
+          status: ent.status || 'active',
+        };
+      }
+      return { valid: false };
+    } catch (error) {
+      console.error('Failed to verify TIN in production:', error);
+      return { valid: false };
+    }
   },
 
   /**
@@ -90,7 +126,24 @@ export const businessVerificationService = {
     if (isDev()) {
       return this._devVerifyBVN(bvnNumber);
     }
-    throw new Error('Production BVN verification requires server API. See Phase 2.');
+    try {
+      const data = await api.get(`/proxy/kyc/bvn?bvn=${encodeURIComponent(bvnNumber)}`);
+      if (data.entity) {
+        const ent = data.entity;
+        return {
+          valid: true,
+          firstName: ent.firstName || ent.first_name,
+          lastName: ent.lastName || ent.last_name,
+          dateOfBirth: ent.dateOfBirth || ent.date_of_birth,
+          phoneNumber: ent.phoneNumber || ent.phone_number,
+          enrollmentBank: ent.enrollmentBank || ent.enrollment_bank,
+        };
+      }
+      return { valid: false };
+    } catch (error) {
+      console.error('Failed to verify BVN in production:', error);
+      return { valid: false };
+    }
   },
 
   /**
@@ -102,7 +155,23 @@ export const businessVerificationService = {
     if (isDev()) {
       return this._devVerifyNIN(ninNumber);
     }
-    throw new Error('Production NIN verification requires server API. See Phase 2.');
+    try {
+      const data = await api.get(`/proxy/kyc/nin?nin=${encodeURIComponent(ninNumber)}`);
+      if (data.entity) {
+        const ent = data.entity;
+        return {
+          valid: true,
+          firstName: ent.firstName || ent.first_name,
+          lastName: ent.lastName || ent.last_name,
+          dateOfBirth: ent.dateOfBirth || ent.date_of_birth,
+          gender: ent.gender,
+        };
+      }
+      return { valid: false };
+    } catch (error) {
+      console.error('Failed to verify NIN in production:', error);
+      return { valid: false };
+    }
   },
 
   /**
