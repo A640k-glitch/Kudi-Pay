@@ -99,9 +99,6 @@ export default function SignupPage() {
             {errorMsg && (
               <div className="p-4 bg-red-50 border-2 border-red-500 rounded-[12px] text-red-600 font-bold text-sm shadow-[2px_2px_0px_#EF4444]">
                 <span>{errorMsg}</span>
-                {errorMsg.includes('exists') && (
-                  <Link to="/login" className="underline ml-2">Log In Here</Link>
-                )}
               </div>
             )}
 
@@ -117,7 +114,7 @@ export default function SignupPage() {
           <div className="mt-6 pt-5 border-t-2 border-slate-100 text-center">
             <p className="text-sm font-bold text-slate-600">
               Already a merchant?{' '}
-              <Link to="/login" className="text-[#4F46E5] underline decoration-2 hover:bg-[#E0FF4F] hover:text-slate-900 transition-colors px-1 py-0.5 rounded">
+              <Link to="/login" className={`text-[#4F46E5] underline decoration-2 hover:bg-[#E0FF4F] hover:text-slate-900 transition-colors px-2 py-1 rounded inline-block ${errorMsg.includes('exists') ? 'animate-bounce text-lg bg-[#E0FF4F] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]' : ''}`}>
                 Log in
               </Link>
             </p>

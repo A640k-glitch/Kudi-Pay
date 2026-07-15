@@ -251,7 +251,7 @@ export const LandingPage: React.FC = () => {
         {/* RED SLIM BAND */}
         <BrutalMarquee
           className="bg-[#EF4444] border-y-[3px] border-black py-2.5 text-white font-black uppercase text-sm tracking-widest hover:[&>div]:[animation-play-state:paused] cursor-default z-20 relative shadow-[0_4px_0px_#0f172a]"
-          speed="normal"
+          speed="slow"
         >
           <span className="mx-4">INSTANT STOREFRONTS</span>
           <span className="mx-4 text-slate-900">•</span>

@@ -101,7 +101,7 @@ export default function LoginPage() {
           <div className="mt-6 pt-5 border-t-2 border-slate-100 text-center">
             <p className="text-sm font-bold text-slate-600">
               No store yet?{' '}
-              <Link to="/signup" className="text-[#4F46E5] underline decoration-2 hover:bg-[#E0FF4F] hover:text-slate-900 transition-colors px-1 py-0.5 rounded">
+              <Link to="/signup" className={`text-[#4F46E5] underline decoration-2 hover:bg-[#E0FF4F] hover:text-slate-900 transition-colors px-2 py-1 rounded inline-block ${errorMsg.includes('recognize') ? 'animate-bounce text-lg bg-[#E0FF4F] text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_#0f172a]' : ''}`}>
                 Create one now
               </Link>
             </p>
