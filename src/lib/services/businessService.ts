@@ -32,6 +32,11 @@ export const businessService = {
   async getBusinessBySlug(slug: string): Promise<Business | null> {
     try {
       const data = await api.get(`/businesses/${slug}`);
+      if (data.business && data.business.id.startsWith('mock_biz_')) {
+        const existing = this._getAllBusinesses();
+        const localBiz = existing.find(b => b.storefrontSlug === slug);
+        if (localBiz) return localBiz;
+      }
       return data.business;
     } catch {
       const existing = this._getAllBusinesses();
