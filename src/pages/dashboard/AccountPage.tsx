@@ -124,7 +124,7 @@ export default function AccountPage() {
   const isNinValid = /^\d{11}$/.test(nin) || /^[A-Za-z0-9]{16}$/.test(nin);
 
   return (
-    <div className="p-3 sm:p-5 md:p-6 max-w-2xl mx-auto pb-20 md:pb-10 animate-fade-in text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900">
+    <div className="p-3 sm:p-5 md:p-6 max-w-2xl mx-auto pb-32 md:pb-10 animate-fade-in text-slate-900 selection:bg-[#E0FF4F] selection:text-slate-900">
       <header className="mb-8 border-b-2 border-slate-200 pb-4 flex items-center justify-between">
         <div>
           <h1 className="text-3xl md:text-4xl font-display font-black tracking-tight mb-2">Account</h1>
@@ -545,7 +545,7 @@ export default function AccountPage() {
           <div className="flex gap-4">
             <button className="flex-1 py-4 bg-white/20 text-white font-bold rounded-[16px] border-2 border-transparent hover:bg-white/30 transition-colors" onClick={() => setIsDeleteModalOpen(false)}>Cancel</button>
             <button 
-              className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
+              className="flex-1 py-4 bg-[#E0FF4F] text-slate-900 font-bold rounded-[16px] shadow-[4px_4px_0px_rgba(0,0,0,0.5)] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_rgba(0,0,0,0.5)] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all disabled:opacity-50 disabled:shadow-none disabled:translate-x-0 disabled:translate-y-0"
               disabled={deleteConfirm !== 'DELETE'}
               onClick={handleDelete}
             >

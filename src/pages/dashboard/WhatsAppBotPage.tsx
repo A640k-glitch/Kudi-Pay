@@ -100,6 +100,9 @@ function isBusinessQuery(text: string): boolean {
     'what is my', 'how many', 'give me', 'show me', 'tell me',
     'business', 'finance', 'money', 'naira', 'kyc',
     '/commands', '/help',
+    'whats', "what's", 'details', 'about', 'info', 'who am i', 'profile',
+    'when', 'join', 'register', 'old', 'age', 'created',
+    'yes', 'no', 'ok', 'okay', 'thanks', 'thank you', 'sure'
   ];
   for (const kw of businessKeywords) {
     if (q.includes(kw)) return true;
@@ -506,9 +509,9 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     try {
       const account = await bankAccountService.getAccount(bId);
       if (!account) {
-        return `🏦 Bank Account: Not Linked\n\nDo you want me to explain further?`;
+        return `🏦 Bank Account: Not Linked\n\nWould you like more details?`;
       }
-      return `🏦 Bank Account\n\n• Bank: ${account.institution}\n• Balance: ${formatNaira(account.balance)}\n\nDo you want me to explain further?`;
+      return `🏦 Bank Account\n\n• Bank: ${account.institution}\n• Balance: ${formatNaira(account.balance)}\n\nWould you like more details?`;
     } catch {
       return `❌ Could not load bank account details. Please make sure the server is running.`;
     }
@@ -533,9 +536,9 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       const data = await api.get(`/businesses/by-id/${bId}`);
       const slug = data.business?.storefrontSlug || data.business?.storefront_slug;
       if (slug) {
-        return `🔗 Your Storefront Link:\nhttps://kudipay.com/store/${slug}\n\nDo you want me to explain further?`;
+        return `🔗 Your Storefront Link:\nhttps://kudipay.com/store/${slug}\n\nWould you like more details?`;
       }
-      return `🔗 Storefront Link: Not Set Up\n\nDo you want me to explain further?`;
+      return `🔗 Storefront Link: Not Set Up\n\nWould you like more details?`;
     } catch {
       return `❌ Could not retrieve storefront link.`;
     }
@@ -549,7 +552,7 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       if (!b) return `❌ Could not load verification details.`;
       const tier = b.kycTier ?? b.kyc_tier ?? 0;
       
-      return `🔐 KYC Status: Tier ${tier}\n\nDo you want me to explain further?`;
+      return `🔐 KYC Status: Tier ${tier}\n\nWould you like more details?`;
     } catch {
       return `❌ Could not load verification details. Please make sure the server is running.`;
     }
@@ -560,11 +563,11 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     try {
       const txs = await bankAccountService.getTransactions(bId);
       if (txs.length === 0) {
-        return `📋 Transactions: None found.\n\nDo you want me to explain further?`;
+        return `📋 Transactions: None found.\n\nWould you like more details?`;
       }
       const recent = txs.slice(0, 5);
       const lines = recent.map(t => `${new Date(t.date).toLocaleDateString()}: ${t.type === 'credit' ? '+' : '-'}${formatNaira(t.amount)} ${t.narration ? `— ${t.narration}` : ''}`);
-      return `📋 Recent Transactions:\n${lines.join('\n')}\n\nDo you want me to explain further?`;
+      return `📋 Recent Transactions:\n${lines.join('\n')}\n\nWould you like more details?`;
     } catch {
       return `❌ Could not load transactions. Please make sure the server is running.`;
     }
@@ -597,13 +600,56 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       }
       if (bank) lines.push(`🏦 Bank: Linked`);
       else lines.push(`🏦 Bank: Not linked`);
-      
-      lines.push(`\nDo you want me to explain further?`);
 
+      lines.push(`\nWould you like more details?`);
       return lines.join('\n');
     } catch {
       return `❌ Could not load business overview. Please make sure the server is running.`;
     }
+  }
+
+  // ── General Business Info / About ──
+  if (norm.includes('about') || norm.includes('details') || norm.includes('who am i') || norm.includes('what is my business') || norm.includes('whats my') || norm.includes('profile') || norm.includes('info')) {
+    try {
+      const bizData = await api.get(`/businesses/by-id/${bId}`);
+      const b = bizData.business;
+      if (!b) return `❌ Could not load business details.`;
+      
+      const lines = [`🏢 Business Name: ${b.businessName || b.name || 'Not set'}`];
+      if (b.description) lines.push(`📝 About: ${b.description}`);
+      if (b.state || b.lga) lines.push(`📍 Location: ${b.lga ? b.lga + ', ' : ''}${b.state || ''}`);
+      if (b.email) lines.push(`📧 Email: ${b.email}`);
+      if (b.phoneNumber) lines.push(`📞 Phone: ${b.phoneNumber}`);
+      
+      lines.push(`\nWould you like more details?`);
+      return lines.join('\n');
+    } catch {
+      // If we fail, just fallback
+    }
+  }
+
+  // ── Account Age / Join Date ──
+  if (norm.includes('when') || norm.includes('join') || norm.includes('register') || norm.includes('old') || norm.includes('created')) {
+    try {
+      const bizData = await api.get(`/businesses/by-id/${bId}`);
+      const b = bizData.business;
+      if (!b || !b.createdAt) return `❌ Could not load registration date.`;
+      const joinDate = new Date(b.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      return `📅 Account Created: You joined Kudi on ${joinDate}.`;
+    } catch {
+      // Ignore
+    }
+  }
+
+  // ── Conversational Acknowledgements ──
+  if (norm === 'yes' || norm === 'yep' || norm === 'yeah' || norm === 'sure') {
+    return "Great! Type your specific question or use /commands to see options.";
+  }
+  if (norm === 'no' || norm === 'nope') {
+    return "Alright. Let me know if you need anything else.";
+  }
+  if (norm === 'ok' || norm === 'okay' || norm === 'thanks' || norm === 'thank you') {
+    return "You're welcome! Let me know if you need help with anything else.";
   }
 
   // Generic fallback — redirect to commands

@@ -30,6 +30,12 @@ app.post('/api/auth/request-otp', async (req, res) => {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ error: 'Phone is required' });
 
+    // SECURITY FIX: Prevent password bypass. If account exists, they must use /login
+    const existing = await query(`SELECT id FROM businesses WHERE owner_phone = $1`, [phone]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'Account already exists. Please log in.' });
+    }
+
     await query(`UPDATE otp_codes SET used = true WHERE phone = $1 AND used = false`, [phone]);
 
     const code = generateOTP();

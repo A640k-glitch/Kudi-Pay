@@ -14,6 +14,7 @@ export default function SignupPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -21,13 +22,15 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupFormValues) => {
     setIsLoading(true);
+    setErrorMsg('');
     try {
       // Save password temporarily in sessionStorage for simulation
       sessionStorage.setItem('kudi_temp_password', data.password);
       await authService.sendOTP(data.phone);
       navigate('/verify');
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
+      setErrorMsg(error?.message || 'Account already exists or failed to send OTP.');
     } finally {
       setIsLoading(false);
     }
@@ -93,6 +96,15 @@ export default function SignupPage() {
               />
               {errors.password?.message && <span className="text-sm font-bold text-red-600 mt-2 block">{errors.password?.message}</span>}
             </div>
+
+            {errorMsg && (
+              <div className="p-4 bg-red-50 border-2 border-red-500 rounded-[12px] text-red-600 font-bold text-sm shadow-[2px_2px_0px_#EF4444]">
+                <span>{errorMsg}</span>
+                {errorMsg.includes('exists') && (
+                  <Link to="/login" className="underline ml-2">Log In Here</Link>
+                )}
+              </div>
+            )}
 
             <button 
               type="submit" 
