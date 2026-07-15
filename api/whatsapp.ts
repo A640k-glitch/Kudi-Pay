@@ -1,5 +1,5 @@
 import express from 'express';
-import { aiAgentService } from './aiAgent';
+import { aiAgentService } from './aiAgent.js';
 
 export const whatsappRouter = express.Router();
 

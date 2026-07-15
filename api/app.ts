@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
-import { query } from './_lib/db';
-import { signToken, hashPassword, comparePassword, verifyToken } from './_lib/auth';
-import { generateOTP, sendOTP, isSmsConfigured } from './_lib/sms';
-import { whatsappRouter } from './whatsapp';
+import { query } from './_lib/db.js';
+import { signToken, hashPassword, comparePassword, verifyToken } from './_lib/auth.js';
+import { generateOTP, sendOTP, isSmsConfigured } from './_lib/sms.js';
+import { whatsappRouter } from './whatsapp.js';
 
 const app = express();
 
