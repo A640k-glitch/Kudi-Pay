@@ -42,7 +42,7 @@ const RevenueCard = () => {
   const currentMeta = metaData[stage];
 
   return (
-    <div className="relative lg:absolute lg:top-0 lg:right-10 w-full lg:w-[420px] bg-white border-2 border-slate-900 rounded-[24px] shadow-[12px_12px_0px_#4F46E5] z-20 p-6 transform hover:-translate-y-2 transition-transform duration-300">
+    <div className="relative min-[800px]:absolute min-[800px]:top-0 min-[800px]:right-0 w-[400px] max-w-full bg-white border-2 border-slate-900 rounded-[24px] shadow-[12px_12px_0px_#4F46E5] z-20 p-6 transform hover:-translate-y-2 transition-transform duration-300">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[#E0FF4F] rounded-full border-2 border-slate-900 flex items-center justify-center transition-colors duration-300">
@@ -146,7 +146,7 @@ const TrustScoreCard = () => {
 
   return (
     <div 
-      className="relative lg:absolute lg:-bottom-10 lg:right-20 w-full lg:w-[360px] bg-white border-2 border-slate-900 rounded-[24px] z-10 p-6 transform lg:rotate-3 hover:rotate-0 transition-transform duration-300"
+      className="relative min-[800px]:absolute min-[800px]:bottom-0 min-[800px]:right-10 w-[340px] max-w-full bg-white border-2 border-slate-900 rounded-[24px] z-10 p-6 transform min-[800px]:rotate-3 hover:rotate-0 transition-transform duration-300"
       style={{ boxShadow: `12px 12px 0px ${currentColor}` }}
     >
       <div className="flex justify-between items-start mb-6">
@@ -172,6 +172,13 @@ const TrustScoreCard = () => {
 
 export const LandingPage: React.FC = () => {
   const location = useLocation();
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize, { passive: true });
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (location.hash === '#how-it-works') {
@@ -196,28 +203,28 @@ export const LandingPage: React.FC = () => {
         <div className="absolute top-[40%] right-[15%] w-[500px] h-[500px] bg-[#10B981] rounded-full mix-blend-multiply blur-[120px] opacity-40 animate-pulse pointer-events-none z-0" style={{ animationDuration: '10s' }} />
 
         {/* HERO SECTION */}
-        <section className="relative px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto mb-24 sm:mb-32 lg:mb-40 flex flex-col lg:flex-row items-center gap-12 sm:gap-16 lg:gap-8 z-10 pt-8 sm:pt-16 group/hero">
+        <section className="relative px-4 sm:px-6 lg:px-8 max-w-[1440px] mx-auto mb-24 sm:mb-32 lg:mb-40 flex flex-col min-[800px]:flex-row items-start min-[800px]:items-center justify-center gap-12 sm:gap-16 min-[800px]:gap-12 lg:gap-24 z-10 pt-8 sm:pt-16 group/hero">
 
           {/* Left Text */}
           <div className="flex-1 max-w-2xl z-20">
 
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-[90px] font-display font-black leading-[1.05] tracking-tight mb-6 sm:mb-8 text-slate-900">
+            <h1 className="text-4xl xs:text-5xl sm:text-6xl min-[800px]:text-[44px] min-[900px]:text-[52px] lg:text-[68px] xl:text-[80px] 2xl:text-[90px] font-display font-black leading-[1.05] tracking-tight mb-6 sm:mb-8 text-slate-900">
               Commerce.<br />
               <span className="text-[#4F46E5] inline-block -rotate-1 origin-left">Unleashed.</span>
             </h1>
 
-            <p className="text-lg sm:text-xl md:text-2xl text-slate-600 max-w-xl mb-8 sm:mb-12 leading-relaxed font-medium">
+            <p className="text-base sm:text-lg min-[800px]:text-sm min-[900px]:text-base lg:text-lg xl:text-xl 2xl:text-2xl text-slate-600 max-w-xl mb-8 sm:mb-12 leading-relaxed font-medium">
               We help ambitious merchants sell faster and build credit without the traditional banking friction. Effortless, instant, and transparent.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full sm:w-auto">
               <Link to="/signup" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-[#E0FF4F] text-slate-900 px-6 sm:px-10 py-4 sm:py-5 rounded-[12px] font-bold text-base sm:text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] sm:shadow-[6px_6px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] sm:hover:shadow-[4px_4px_0px_#0f172a] active:translate-y-[4px] sm:active:translate-y-[6px] active:translate-x-[4px] sm:active:translate-x-[6px] active:shadow-none transition-all">
+                <button className="w-full sm:w-auto bg-[#E0FF4F] text-slate-900 px-5 sm:px-8 min-[800px]:px-5 min-[900px]:px-6 lg:px-10 py-3.5 sm:py-4.5 min-[800px]:py-3.5 min-[900px]:py-4 lg:py-5 rounded-[12px] font-bold text-sm sm:text-base min-[800px]:text-sm min-[900px]:text-base lg:text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] sm:shadow-[6px_6px_0px_#0f172a] min-[800px]:shadow-[4px_4px_0px_#0f172a] min-[900px]:shadow-[5px_5px_0px_#0f172a] lg:shadow-[6px_6px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] sm:hover:shadow-[4px_4px_0px_#0f172a] active:translate-y-[4px] sm:active:translate-y-[6px] active:translate-x-[4px] sm:active:translate-x-[6px] active:shadow-none transition-all">
                   Start Selling Now
                 </button>
               </Link>
               <Link to="#how-it-works" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-white text-slate-900 px-6 sm:px-10 py-4 sm:py-5 rounded-[12px] font-bold text-base sm:text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] sm:shadow-[6px_6px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] sm:hover:shadow-[4px_4px_0px_#0f172a] active:translate-y-[4px] sm:active:translate-y-[6px] active:translate-x-[4px] sm:active:translate-x-[6px] active:shadow-none transition-all">
+                <button className="w-full sm:w-auto bg-white text-slate-900 px-5 sm:px-8 min-[800px]:px-5 min-[900px]:px-6 lg:px-10 py-3.5 sm:py-4.5 min-[800px]:py-3.5 min-[900px]:py-4 lg:py-5 rounded-[12px] font-bold text-sm sm:text-base min-[800px]:text-sm min-[900px]:text-base lg:text-lg border-2 border-slate-900 shadow-[4px_4px_0px_#0f172a] sm:shadow-[6px_6px_0px_#0f172a] min-[800px]:shadow-[4px_4px_0px_#0f172a] min-[900px]:shadow-[5px_5px_0px_#0f172a] lg:shadow-[6px_6px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] sm:hover:shadow-[4px_4px_0px_#0f172a] active:translate-y-[4px] sm:active:translate-y-[6px] active:translate-x-[4px] sm:active:translate-x-[6px] active:shadow-none transition-all">
                   How It Works
                 </button>
               </Link>
@@ -225,12 +232,28 @@ export const LandingPage: React.FC = () => {
           </div>
 
           {/* Right Hero Graphic - Complex UI Cards */}
-          <div className="flex-1 w-full relative flex flex-col gap-6 lg:block lg:h-[500px] perspective-1000 mt-8 lg:mt-0 items-center">
+          <div 
+            className="w-full min-[800px]:w-[440px] min-[800px]:h-[480px] relative flex flex-col items-center min-[800px]:block perspective-1000 mt-8 min-[800px]:mt-0 gap-8 self-center min-[800px]:self-auto min-[800px]:shrink-0 transition-transform duration-300"
+            style={
+              windowWidth >= 800
+                ? {
+                    transform: `scale(${Math.min(1, Math.max(0.70, 0.70 + (windowWidth - 800) * 0.00075))})`,
+                    transformOrigin: 'center center',
+                  }
+                : windowWidth < 450
+                ? {
+                    transform: `scale(${(windowWidth - 32) / 400})`,
+                    transformOrigin: 'top center',
+                    marginBottom: `${(((windowWidth - 32) / 400) - 1) * 680}px`,
+                  }
+                : {}
+            }
+          >
             {/* Sales Dashboard Card */}
             <RevenueCard />
 
             {/* Notification Card - Flashes continuously */}
-            <div className="relative lg:absolute lg:top-52 lg:right-80 w-[300px] bg-[#EF4444] text-white border-2 border-slate-900 rounded-[20px] shadow-[8px_8px_0px_#0f172a] z-30 p-5 animate-[flashCard_5s_ease-in-out_infinite] lg:-rotate-6 transition-all pointer-events-none mx-auto lg:mx-0">
+            <div className="relative min-[800px]:absolute min-[800px]:top-44 min-[800px]:left-0 w-[280px] max-w-full bg-[#EF4444] text-white border-2 border-slate-900 rounded-[20px] shadow-[8px_8px_0px_#0f172a] z-30 p-5 animate-[flashCard_5s_ease-in-out_infinite] min-[800px]:-rotate-6 transition-all pointer-events-none mx-auto min-[800px]:mx-0">
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm text-[#EF4444]">
                   <Lightning weight="fill" className="w-4 h-4" />
