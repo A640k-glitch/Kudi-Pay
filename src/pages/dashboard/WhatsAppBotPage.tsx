@@ -404,7 +404,7 @@ export default function WhatsAppBotPage() {
 async function handleBankSync(bId: string): Promise<string> {
   const hasLinked = await bankAccountService.hasLinkedAccount(bId);
   if (!hasLinked) {
-    return `❌ No linked bank account found.\n\nPlease link your bank account on the dashboard to sync and verify transactions!`;
+    return `❌ No Linked Bank Account\n\nYou need to link a bank account before you can sync transactions.\n\n📍 How to Link Your Bank:\n1. Tap the profile icon at the top of your dashboard to open the "Account" page\n2. Find the "Bank Connection" card\n3. Tap "Link Bank Account"\n4. Select your bank and enter your account number`;
   }
   try {
     const syncResult = await bankAccountService.syncTransactions(bId);
@@ -434,7 +434,7 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
   if (norm.includes('profit') || norm.includes('revenue') || norm.includes('income') || norm.includes('how much')) {
     try {
       const stats = await ledgerService.getStats(bId);
-      return `📊 Financial Summary\n\n• Revenue: ${formatNaira(stats.revenue)}\n• Expenses: ${formatNaira(stats.expenses)}\n• Net Profit: ${formatNaira(stats.profit)}`;
+      return `📊 Financial Summary\n\n• Revenue: ${formatNaira(stats.revenue)}\n• Expenses: ${formatNaira(stats.expenses)}\n• Net Profit: ${formatNaira(stats.profit)}\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load financial stats. Please make sure the server is running.`;
     }
@@ -444,13 +444,19 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
   if (norm.includes('score') || norm.includes('trust') || norm.includes('credit') || norm.includes('rating') || norm.includes('health')) {
     const hasLinked = await bankAccountService.hasLinkedAccount(bId);
     if (!hasLinked) {
-      return `⭐ Credit Status\n\n• Rating: N/A\n• Trust Score: 0 / 1000 PTS\n\nLink your bank account on the Dashboard to activate your trust score!`;
+      return `⭐ Trust Score: 0 / 1,000\n\nYour trust score isn't active because no bank account is linked.\n\nDo you want me to explain further?`;
     }
     const latest = trustScoreService.getLatestSnapshot(bId);
     if (!latest) {
-      return `⭐ Credit Status\n\n• Rating: Poor\n• Trust Score: 0 / 1000 PTS\n\nKeep transacting to build your score!`;
+      return `⭐ Trust Score: 0 / 1,000\n\nYour bank is linked — keep transacting to build your score.\n\nDo you want me to explain further?`;
     }
-    return `⭐ Credit Status\n\n• Rating: ${latest.tier}\n• Trust Score: ${latest.score} / 1000 PTS\n\nGo to the Lending page to view loan eligibility.`;
+    
+    let rating = 'Needs Improvement';
+    if (latest.score >= 700) rating = 'Excellent';
+    else if (latest.score >= 500) rating = 'Good';
+    else if (latest.score >= 300) rating = 'Fair';
+    
+    return `⭐ Trust Score: ${latest.score} / 1,000 (${rating})\n\nDo you want me to explain further?`;
   }
 
   // ── Loan Eligibility ──
@@ -458,20 +464,19 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     const latest = trustScoreService.getLatestSnapshot(bId);
     const score = latest?.score ?? 0;
     if (score < 300) {
-      return `🏦 Loan Eligibility\n\nYou need a Trust Score of at least 300 to apply for a loan.\n\nYour current score: ${score}/1000\n\nLink your bank account and keep transacting to improve your score!`;
+      return `🏦 Loan Eligibility: Not Yet Qualified\n\nYou need a trust score of 300 (Currently ${score}).\n\nDo you want me to explain further?`;
     }
-    return `🏦 Loan Eligibility\n\nYou qualify for loans with your current score (${score}/1000).\n\nVisit the Lending page to view available loan tiers and apply!`;
+    return `🏦 Loan Eligibility: Qualified ✓\n\nYou qualify with a score of ${score}/1,000. Check the "Loans" tab.\n\nDo you want me to explain further?`;
   }
 
   // ── Products ──
-  if (norm.includes('product') || norm.includes('inventory') || norm.includes('stock') || norm.includes('item') || norm.includes('sell')) {
+  if (norm.includes('product') || norm.includes('inventory') || norm.includes('stock') || norm.includes('item') || norm.includes('sell') || norm.includes('add a product') || norm.includes('add product')) {
     try {
       const products = await productService.getProducts(bId);
       if (products.length === 0) {
-        return `📦 Products\n\nYou have no products listed yet.\n\nGo to the Storefront page to add your first product and start selling!`;
+        return `📦 Products: 0 listed\n\nYou haven't added any products yet.\n\nDo you want me to explain further?`;
       }
-      const lines = products.map((p, i) => `${i + 1}. ${p.name} — ${formatNaira(p.price)}${p.stockCount != null ? ` (Stock: ${p.stockCount})` : ''}`);
-      return `📦 Products (${products.length})\n\n${lines.join('\n')}`;
+      return `📦 Products: ${products.length} listed\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load products. Please make sure the server is running.`;
     }
@@ -481,10 +486,13 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
   if (norm.includes('order') || norm.includes('sale') || (norm.includes('how many') && (norm.includes('order') || norm.includes('sale')))) {
     try {
       const orders = await orderService.getOrders(bId);
+      if (orders.length === 0) {
+        return `🛒 Orders: 0 received\n\nDo you want me to explain further?`;
+      }
       const totalSales = orders
         .filter(o => o.status === 'paid' || o.status === 'fulfilled')
         .reduce((sum, o) => sum + o.totalAmount, 0);
-      return `🛒 Orders & Sales\n\n• Total Orders: ${orders.length}\n• Paid/Fulfilled: ${orders.filter(o => o.status === 'paid' || o.status === 'fulfilled').length}\n• Total Sales Value: ${formatNaira(totalSales)}`;
+      return `🛒 Orders & Sales\n\n• Orders: ${orders.length}\n• Total Sales: ${formatNaira(totalSales)}\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load orders. Please make sure the server is running.`;
     }
@@ -495,9 +503,9 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     try {
       const account = await bankAccountService.getAccount(bId);
       if (!account) {
-        return `🏦 Bank Account\n\nNo linked bank account found.\n\nLink your bank account on the Dashboard to get started!`;
+        return `🏦 Bank Account: Not Linked\n\nDo you want me to explain further?`;
       }
-      return `🏦 Bank Account\n\n• Institution: ${account.institution}\n• Account Name: ${account.accountName}\n• Account Number: ${account.accountNumber}\n• Balance: ${formatNaira(account.balance)}`;
+      return `🏦 Bank Account\n\n• Bank: ${account.institution}\n• Balance: ${formatNaira(account.balance)}\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load bank account details. Please make sure the server is running.`;
     }
@@ -508,7 +516,7 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     try {
       const account = await bankAccountService.getAccount(bId);
       if (!account) {
-        return `💵 Balance\n\nNo linked bank account found.\n\nLink your bank account on the Dashboard to see your balance.`;
+        return `💵 Balance — No Bank Linked\n\nYou need to link a bank account to view your balance.\n\n📍 Go to the "Account" page (tap the profile icon at the top of your dashboard) → tap "Link Bank Account" to get started.`;
       }
       return `💵 Your current balance is ${formatNaira(account.balance)}.`;
     } catch {
@@ -522,9 +530,9 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       const data = await api.get(`/businesses/by-id/${bId}`);
       const slug = data.business?.storefrontSlug || data.business?.storefront_slug;
       if (slug) {
-        return `🔗 Your storefront link:\n\nhttps://kudipay.com/store/${slug}`;
+        return `🔗 Your Storefront Link:\nhttps://kudipay.com/store/${slug}\n\nDo you want me to explain further?`;
       }
-      return `🔗 Storefront Link\n\nCould not find your storefront slug. Visit the Storefront page to set it up.`;
+      return `🔗 Storefront Link: Not Set Up\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not retrieve storefront link.`;
     }
@@ -537,11 +545,8 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       const b = data.business;
       if (!b) return `❌ Could not load verification details.`;
       const tier = b.kycTier ?? b.kyc_tier ?? 0;
-      const cacVerification = b.cacVerification || b.cac_verification;
-      const isCacVerified = cacVerification && typeof cacVerification === 'object' && Object.keys(cacVerification).length > 0;
-      const cacStatus = isCacVerified ? 'Verified (Registered)' : 'Not Registered';
-      const tin = b.tinNumber || b.tin_number || 'Not Added';
-      return `🔐 KYC & Verification\n\n• KYC Tier: ${tier}\n• CAC Registration: ${cacStatus}\n• Tax ID (TIN): ${tin}\n\nComplete your verification on the Dashboard to unlock higher tiers.`;
+      
+      return `🔐 KYC Status: Tier ${tier}\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load verification details. Please make sure the server is running.`;
     }
@@ -552,11 +557,11 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
     try {
       const txs = await bankAccountService.getTransactions(bId);
       if (txs.length === 0) {
-        return `📋 Transactions\n\nNo transactions found. Link your bank account and sync to see your transaction history.`;
+        return `📋 Transactions: None found.\n\nDo you want me to explain further?`;
       }
       const recent = txs.slice(0, 5);
       const lines = recent.map(t => `${new Date(t.date).toLocaleDateString()}: ${t.type === 'credit' ? '+' : '-'}${formatNaira(t.amount)} ${t.narration ? `— ${t.narration}` : ''}`);
-      return `📋 Recent Transactions (last ${recent.length} of ${txs.length})\n\n${lines.join('\n')}`;
+      return `📋 Recent Transactions:\n${lines.join('\n')}\n\nDo you want me to explain further?`;
     } catch {
       return `❌ Could not load transactions. Please make sure the server is running.`;
     }
@@ -580,18 +585,17 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
       const finance = stats.status === 'fulfilled' ? stats.value : null;
 
       const lines = [`📊 Business Overview`];
-      if (b) {
-        lines.push(`━━━━━━━━━━━━━━━━━━━━`);
-        lines.push(`📍 Location: ${b.lga || ''}, ${b.state || ''} State`);
-        lines.push(`🏷️ Category: ${b.category}`);
-      }
-      if (products.length > 0) lines.push(`📦 Products: ${products.length}`);
+      lines.push(`📦 Products: ${products.length}`);
       if (ordersList.length > 0) {
         const paidSales = ordersList.filter(o => o.status === 'paid' || o.status === 'fulfilled').reduce((s, o) => s + o.totalAmount, 0);
         lines.push(`🛒 Orders: ${ordersList.length} | Sales: ${formatNaira(paidSales)}`);
+      } else {
+        lines.push(`🛒 Orders: 0`);
       }
-      if (bank) lines.push(`🏦 Bank: ${bank.institution} | Balance: ${formatNaira(bank.balance)}`);
-      if (finance) lines.push(`💰 Net Profit: ${formatNaira(finance.profit)}`);
+      if (bank) lines.push(`🏦 Bank: Linked`);
+      else lines.push(`🏦 Bank: Not linked`);
+      
+      lines.push(`\nDo you want me to explain further?`);
 
       return lines.join('\n');
     } catch {
@@ -602,3 +606,4 @@ async function parseOfflineFallback(msg: string, bId: string): Promise<string> {
   // Generic fallback — redirect to commands
   return "I'm a business assistant and can only help with questions about your dashboard data. Type /commands to see what I can do.";
 }
+

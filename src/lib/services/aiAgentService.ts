@@ -203,39 +203,86 @@ function answerFromClientContext(queryText: string, ctx: typeof DEFAULT_CONTEXT)
   const q = queryText.toLowerCase().trim();
 
   if (q.includes('product') || q.includes('inventory') || q.includes('stock') || q.includes('item')) {
-    return ctx.productCount === 0
-      ? "You have no products listed yet. Go to the Storefront page to add your first product."
-      : `You have ${ctx.productCount} product(s) listed on your storefront.`;
+    if (ctx.productCount === 0) {
+      return `📦 Products — None Listed Yet\n\nYou currently have 0 products on your storefront. Your store won't be visible to customers until you add at least one product.\n\n📍 How to Add Your First Product:\n1. Go to the "Products" tab in your sidebar\n2. Tap "Add Product"\n3. Fill in the product name, price, description, and upload an image\n4. Set your stock count and save\n\n💡 Tip: Adding products also contributes to your trust score. The more active your storefront, the higher your score climbs.`;
+    }
+    return `📦 Products (${ctx.productCount})\n\nYou have ${ctx.productCount} product(s) listed on your storefront.\n\n📍 To manage your products, go to the "Products" tab in your sidebar. You can edit prices, update stock counts, and add new items from there.`;
   }
 
   if (q.includes('order') || q.includes('sale') || (q.includes('how many') && (q.includes('order') || q.includes('sale')))) {
-    return `You have received ${ctx.orderCount} order(s) with a total paid sales value of ₦${Number(ctx.totalStorefrontSales).toLocaleString()}.`;
+    if (ctx.orderCount === 0) {
+      return `🛒 Orders — No Orders Yet\n\nYou haven't received any customer orders yet.\n\n📍 To start receiving orders:\n1. Make sure you have products listed — go to the "Products" tab in your sidebar\n2. Share your storefront link with customers\n3. Customize your store's look via the "Themes" tab to make it more appealing\n\n📍 Once orders come in, you can track and manage them from the "Orders" tab in your sidebar.`;
+    }
+    return `🛒 Orders & Sales Summary\n\n• Total Orders Received: ${ctx.orderCount}\n• Total Paid Sales Value: ₦${Number(ctx.totalStorefrontSales).toLocaleString()}\n\n📍 View full order details, filter by status (pending, paid, fulfilled), and manage fulfillment from the "Orders" tab in your sidebar.`;
   }
 
   if ((q.includes('bank') || q.includes('account') || q.includes('balance')) && (q.includes('link') || q.includes('balance') || q.includes('what') || q.includes('detail') || q.includes('name'))) {
-    return `Your linked bank account is ${ctx.bankInfo} with a current balance of ₦${Number(ctx.bankBalance).toLocaleString()}.`;
+    if (ctx.bankInfo === 'None linked') {
+      return `🏦 Bank Account — Not Linked\n\nYou don't have a bank account linked yet. Linking your bank is essential for:\n• Building your trust score\n• Tracking real transaction history\n• Qualifying for business loans\n\n📍 How to Link Your Bank:\n1. Tap the profile icon at the top of your dashboard to open the "Account" page\n2. Find the "Bank Connection" card\n3. Tap "Link Bank Account"\n4. Select your bank and enter your account number`;
+    }
+    return `🏦 Bank Account\n\n• Bank: ${ctx.bankInfo}\n• Current Balance: ₦${Number(ctx.bankBalance).toLocaleString()}\n\n📍 To view or manage your bank connection, tap the profile icon at the top of your dashboard to open the "Account" page.`;
   }
 
   if (q.includes('storefront') || q.includes('store link') || q.includes('shop link') || q.includes('url') || q.includes('my link')) {
-    return `Your storefront link is: https://kudipay.com/store/${ctx.storefrontSlug}`;
+    if (!ctx.storefrontSlug) {
+      return `🔗 Storefront Link — Not Set Up\n\nYour storefront slug hasn't been configured yet.\n\n📍 Go to the "Settings" tab in your sidebar to set up your storefront URL.`;
+    }
+    return `🔗 Your Storefront Link\n\nhttps://kudipay.com/store/${ctx.storefrontSlug}\n\nShare this link with customers so they can browse and buy from your store.\n\n📍 Customize your store's appearance via the "Themes" tab in your sidebar.`;
   }
 
   if (q.includes('kyc') || q.includes('verification') || q.includes('tier') || q.includes('cac') || q.includes('tin')) {
-    return `KYC Status:\n• KYC Tier: ${ctx.kycTier}\n• CAC Registration: ${ctx.cacStatus}\n• Tax ID (TIN): ${ctx.tinNumber}`;
+    const tierDescriptions: Record<number, string> = {
+      0: 'Unverified — No identity documents submitted',
+      1: 'Phone Verified — Account created with phone number only',
+      2: 'Identity Verified — BVN and NIN verified',
+      3: 'Fully Verified — BVN, NIN, and CAC (RC Number) verified'
+    };
+    const currentDesc = tierDescriptions[ctx.kycTier] || tierDescriptions[0];
+    
+    let response = `🔐 KYC & Verification Status\n\n• Current Tier: Tier ${ctx.kycTier} — ${currentDesc}\n• CAC Registration: ${ctx.cacStatus}\n• Tax ID (TIN): ${ctx.tinNumber}`;
+    
+    if (ctx.kycTier < 3) {
+      response += `\n\n📍 How to Upgrade Your KYC Tier:`;
+      if (ctx.kycTier < 2) {
+        response += `\n1. Tap the profile icon at the top of your dashboard to open the "Account" page\n2. Tap "Complete Verification"\n3. Enter your BVN and NIN\n4. This will upgrade you to Tier 2`;
+      }
+      if (ctx.kycTier < 3) {
+        response += `\n\nTo reach Tier 3:\n• Submit your CAC RC Number during verification`;
+      }
+      response += `\n\n💡 Higher KYC tiers improve your trust score and unlock better loan offers on the "Loans" tab.`;
+    }
+    return response;
   }
 
   if (q.includes('trust') || q.includes('score') || q.includes('credit') || q.includes('rating')) {
-    return `Your current trust score is ${ctx.latestScore}/1000.`;
+    let response = `⭐ Trust Score\n\n• Current Score: ${ctx.latestScore} / 1,000 PTS`;
+    
+    if (ctx.latestScore < 300) response += `\n• Rating: Needs Improvement`;
+    else if (ctx.latestScore < 500) response += `\n• Rating: Fair`;
+    else if (ctx.latestScore < 700) response += `\n• Rating: Good`;
+    else response += `\n• Rating: Excellent`;
+    
+    const suggestions: string[] = [];
+    if (ctx.bankInfo === 'None linked') suggestions.push('Link your bank account via the "Account" page (tap profile icon at top)');
+    if (ctx.kycTier < 2) suggestions.push('Complete identity verification on the "Account" page (BVN + NIN)');
+    if (ctx.productCount === 0) suggestions.push('Add products via the "Products" tab in your sidebar');
+    
+    if (suggestions.length > 0) {
+      response += `\n\n📍 Quick Wins to Boost Your Score:\n${suggestions.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+    }
+    
+    response += `\n\n📍 View your full score breakdown on the "Trust Score" tab in your sidebar.`;
+    return response;
   }
 
   if (q.includes('overview') || q.includes('summary') || q.includes('full') || q.includes('all') || q.includes('dashboard')) {
-    return [
-      `📊 Business Overview for ${ctx.businessName}`,
+    const lines = [
+      `📊 Business Overview — ${ctx.businessName}`,
       `━━━━━━━━━━━━━━━━━━━━`,
       `📍 Location: ${ctx.location}`,
       `🏷️ Category: ${ctx.category}`,
-      `⭐ Trust Score: ${ctx.latestScore}/1000`,
-      `🔐 KYC Tier: ${ctx.kycTier} | CAC: ${ctx.cacStatus}`,
+      `⭐ Trust Score: ${ctx.latestScore}/1,000`,
+      `🔐 KYC: Tier ${ctx.kycTier} | CAC: ${ctx.cacStatus}`,
       ``,
       `📦 Products: ${ctx.productCount}`,
       `🛒 Orders: ${ctx.orderCount}`,
@@ -243,21 +290,42 @@ function answerFromClientContext(queryText: string, ctx: typeof DEFAULT_CONTEXT)
       ``,
       `🏦 Bank: ${ctx.bankInfo}`,
       `💵 Balance: ₦${Number(ctx.bankBalance).toLocaleString()}`,
-    ].join('\n');
+    ];
+    
+    const gaps: string[] = [];
+    if (ctx.bankInfo === 'None linked') gaps.push('Link bank account → "Account" page (profile icon at top)');
+    if (ctx.kycTier < 2) gaps.push('Complete KYC verification → "Account" page (profile icon at top)');
+    if (ctx.productCount === 0) gaps.push('Add products → "Products" tab in sidebar');
+    
+    if (gaps.length > 0) {
+      lines.push(``, `⚠️ Setup Recommendations:`, ...gaps.map(g => `• ${g}`));
+    }
+    
+    return lines.join('\n');
   }
 
   if (q.includes('loan') || q.includes('borrow') || q.includes('funding') || q.includes('eligib')) {
     if (ctx.latestScore < 300) {
-      return `You need a trust score of at least 300 to qualify for a loan. Your current score is ${ctx.latestScore}/1000. Link your bank account and keep transacting to improve your score.`;
+      let response = `🏦 Loan Eligibility — Not Yet Qualified\n\nYou need a minimum trust score of 300 to apply for a business loan.\n\n• Your Current Score: ${ctx.latestScore}/1,000\n• Required Minimum: 300/1,000`;
+      
+      const steps: string[] = [];
+      if (ctx.bankInfo === 'None linked') steps.push('Link your bank account → "Account" page (tap profile icon at top)');
+      if (ctx.kycTier < 2) steps.push('Complete KYC verification → "Account" page (tap profile icon at top)');
+      if (ctx.productCount === 0) steps.push('Add products to your storefront → "Products" tab in sidebar');
+      
+      if (steps.length > 0) {
+        response += `\n\n📍 Steps to Improve Your Score:\n${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}`;
+      }
+      return response;
     }
-    return `You qualify for loans with your current score of ${ctx.latestScore}/1000. Visit the Lending page to view available loan tiers and apply.`;
+    return `🏦 Loan Eligibility — Qualified ✓\n\nYou qualify for business loans with your current trust score of ${ctx.latestScore}/1,000.\n\n📍 Go to the "Loans" tab in your sidebar to view available loan tiers and submit an application.`;
   }
 
   if (q.includes('transaction') || q.includes('history') || q.includes('recent') || q.includes('spending') || q.includes('income')) {
     if (!ctx.recentTxsText || ctx.recentTxsText === 'No bank transactions found.') {
-      return "No recent bank transactions found. Link your bank account and sync to see your transaction history.";
+      return `📋 Transactions — None Found\n\nNo recent bank transactions on record.\n\n📍 To see your transaction history:\n1. Link your bank account via the "Account" page (tap profile icon at top)\n2. Once linked, type "Bank sync" here to sync your latest transactions`;
     }
-    return `Here are your recent transactions:\n${ctx.recentTxsText}`;
+    return `📋 Recent Transactions\n\n${ctx.recentTxsText}\n\n📍 To sync your latest transactions, type "Sync my bank transactions" here.`;
   }
 
   return "I'm a business assistant and can only help with questions about your dashboard data. Type /commands to see what I can do.";

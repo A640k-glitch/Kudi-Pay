@@ -10,7 +10,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { cn } from '../../lib/utils';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
-import { ArrowRight, PaintBrushBroad } from '@phosphor-icons/react';
+import { ArrowRight, PaintBrushBroad, SignOut } from '@phosphor-icons/react';
 
 
 const NAV_ITEMS = [
@@ -31,6 +31,12 @@ export default function DashboardLayout() {
   const [storeLink, setStoreLink] = useState('');
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+
+  const handleLogout = () => {
+    authService.logout();
+    navigate('/');
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -110,7 +116,14 @@ export default function DashboardLayout() {
               })}
             </nav>
           </div>
-          <div className="pt-6 border-t-2 border-slate-100 mt-6">
+          <div className="pt-6 border-t-2 border-slate-100 mt-6 space-y-2">
+            <button
+              onClick={() => setIsLogoutModalOpen(true)}
+              className="w-full flex items-center gap-3 px-4 py-3.5 rounded-[12px] text-sm font-bold transition-all bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100 border-2 border-transparent hover:border-slate-200"
+            >
+              <SignOut className="w-5 h-5 text-[#FF6666] drop-shadow-[0_0_8px_rgba(255,102,102,0.6)]" strokeWidth={2} />
+              Log Out
+            </button>
             <Link
               to="/dashboard/account"
               className={cn(
@@ -130,18 +143,27 @@ export default function DashboardLayout() {
       {/* ── Mobile Top Bar ── */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b-2 border-slate-900 flex items-center justify-between px-4 h-[72px] shadow-[0_4px_0px_#0f172a]">
         <Logo className="h-7 text-slate-900" />
-        <Link
-          to="/dashboard/account"
-          className={cn(
-            "flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 transition-colors shadow-[2px_2px_0px_#0f172a]",
-            location.pathname === '/dashboard/account'
-              ? 'bg-[#E0FF4F] text-slate-900'
-              : 'bg-white text-slate-900 hover:bg-[#E0FF4F]'
-          )}
-          aria-label="Account"
-        >
-          <User className="w-5 h-5" strokeWidth={2} />
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsLogoutModalOpen(true)}
+            className="group flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 bg-white hover:bg-[#FF6666] transition-colors shadow-[2px_2px_0px_#0f172a]"
+            aria-label="Log Out"
+          >
+            <SignOut className="w-5 h-5 text-[#FF6666] drop-shadow-[0_0_8px_rgba(255,102,102,0.6)] group-hover:text-white group-hover:drop-shadow-none transition-all" strokeWidth={2} />
+          </button>
+          <Link
+            to="/dashboard/account"
+            className={cn(
+              "flex items-center justify-center w-10 h-10 rounded-full border-2 border-slate-900 transition-colors shadow-[2px_2px_0px_#0f172a]",
+              location.pathname === '/dashboard/account'
+                ? 'bg-[#E0FF4F] text-slate-900'
+                : 'bg-white text-slate-900 hover:bg-[#E0FF4F]'
+            )}
+            aria-label="Account"
+          >
+            <User className="w-5 h-5" strokeWidth={2} />
+          </Link>
+        </div>
       </header>
 
       {/* ── Main Content ── */}
@@ -264,6 +286,17 @@ export default function DashboardLayout() {
         </div>
       </Modal>
 
+      {/* Logout Modal */}
+      <Modal isOpen={isLogoutModalOpen} onClose={() => setIsLogoutModalOpen(false)}>
+        <div className="p-8 bg-white border-2 border-slate-900 rounded-[32px] shadow-[8px_8px_0px_#0f172a] text-center max-w-sm mx-auto">
+          <h3 className="text-2xl font-display font-black mb-4">Log out?</h3>
+          <p className="font-bold text-slate-500 mb-8 leading-relaxed">You will need to verify your phone number to log back in.</p>
+          <div className="flex gap-4">
+            <button className="flex-1 py-4 bg-white text-slate-900 font-bold rounded-[16px] border-2 border-slate-200 hover:border-slate-900 transition-colors" onClick={() => setIsLogoutModalOpen(false)}>Cancel</button>
+            <button className="flex-1 py-4 bg-slate-900 text-white font-bold rounded-[16px] shadow-[4px_4px_0px_#E0FF4F] border-2 border-slate-900 hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#E0FF4F] active:translate-y-[4px] active:translate-x-[4px] active:shadow-none transition-all" onClick={handleLogout}>Log Out</button>
+          </div>
+        </div>
+      </Modal>
 
     </div>
   );

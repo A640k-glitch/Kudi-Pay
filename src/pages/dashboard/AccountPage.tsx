@@ -231,20 +231,10 @@ export default function AccountPage() {
         </div>
 
         {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-          <button
-            onClick={() => setIsLogoutModalOpen(true)}
-            className="glass-panel p-3 sm:p-4 flex items-center gap-3 group hover:border-slate-400"
-          >
-            <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center group-hover:bg-slate-200 transition-colors">
-              <SignOut className="w-5 h-5 text-slate-700" weight="bold" />
-            </div>
-            <span className="text-lg font-bold text-slate-900">Log Out</span>
-          </button>
-          
+        <div className="pt-6">
           <button
             onClick={() => setIsDeleteModalOpen(true)}
-            className="bg-[#FF6666] text-white rounded-[24px] border-2 border-slate-900 p-3 sm:p-4 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-3"
+            className="w-full bg-[#FF6666] text-white rounded-[24px] border-2 border-slate-900 p-3 sm:p-4 shadow-[4px_4px_0px_#0f172a] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_#0f172a] transition-all flex items-center gap-3"
           >
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <Trash className="w-5 h-5 text-white" weight="fill" />
