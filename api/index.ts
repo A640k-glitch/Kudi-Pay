@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 
 // Lazy-load the Express app so any module-level crash is catchable
-// and returns a JSON error instead of FUNCTION_INVOCATION_FAILED
+// and returns useful JSON instead of FUNCTION_INVOCATION_FAILED
 let _app: any = null;
 let _loadError: { message: string; stack?: string } | null = null;
 
@@ -9,7 +9,7 @@ async function getApp() {
   if (_app) return _app;
   if (_loadError) return null;
   try {
-    const mod = await import('../server/app');
+    const mod = await import('./app');
     _app = mod.default;
     return _app;
   } catch (err: any) {
@@ -32,6 +32,5 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // Hand off to the Express app
   app(req, res);
 }
