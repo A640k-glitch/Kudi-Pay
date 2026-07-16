@@ -10,6 +10,7 @@ import { authService } from '../../lib/services/authService';
 import { formatNaira } from '../../lib/utils';
 import { api } from '../../lib/api';
 import { Logo } from '../../components/Logo';
+import LoadingProgress from '../../components/ui/LoadingProgress';
 
 interface ChatMessage {
   id: string;
@@ -286,6 +287,10 @@ export default function WhatsAppBotPage() {
       setIsBotTyping(false);
     }, 1200);
   };
+
+  if (!historyLoaded) {
+    return <LoadingProgress />;
+  }
 
   return (
     <div className="flex flex-col h-full md:h-[calc(100vh-64px)] w-full md:max-w-md mx-auto bg-slate-50 md:border-2 md:border-slate-200 md:rounded-[24px] overflow-hidden md:shadow-sm relative font-sans md:my-4">

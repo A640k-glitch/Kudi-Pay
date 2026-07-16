@@ -8,6 +8,7 @@ import { businessService, getDefaultHeroImageUrl, getDefaultThemeConfig } from '
 import { useCartStore } from '../../lib/store';
 import { useToast } from '../../components/Toast';
 import { getRegistry } from '../../lib/config/productRegistries';
+import LoadingProgress from '../../components/ui/LoadingProgress';
 
 const formatNaira = (amount: number) => {
   return new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount);
@@ -549,7 +550,7 @@ export default function StoreHomePage() {
     return () => channel.close();
   }, [business?.id, business?.category, slug]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="w-12 h-12 border-4 border-black border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <LoadingProgress />;
   if (!business) return <div className="min-h-screen flex items-center justify-center font-black text-2xl uppercase">Store not found</div>;
 
   const handleAdd = (p: Product, qty: number) => {

@@ -7,6 +7,7 @@ import { bankAccountService } from '../../lib/services/bankAccountService';
 import { businessVerificationService } from '../../lib/services/businessVerificationService';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
+import LoadingProgress from '../../components/ui/LoadingProgress';
 import type { TrustScoreBreakdown, FactorScore, ScoreSnapshot } from '../../lib/types';
 
 interface FactorItemProps {
@@ -110,11 +111,7 @@ export default function TrustScorePage() {
   }, [navigate]);
 
   if (loading) {
-    return (
-      <div className="p-4 md:p-6 max-w-2xl mx-auto flex items-center justify-center min-h-[60vh]">
-        <div className="text-lg font-bold text-slate-500 animate-pulse">Computing Trust Score...</div>
-      </div>
-    );
+    return <LoadingProgress />;
   }
 
   if (!scoreData) {

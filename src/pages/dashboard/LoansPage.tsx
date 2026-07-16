@@ -8,6 +8,7 @@ import { formatNaira } from '../../lib/utils';
 import type { LoanTier, ActiveLoan, TrustScoreBreakdown, Business } from '../../lib/types';
 import { authService } from '../../lib/services/authService';
 import { businessService } from '../../lib/services/businessService';
+import LoadingProgress from '../../components/ui/LoadingProgress';
 
 export default function LoansPage() {
   const [business, setBusiness] = useState<Business | null>(null);
@@ -20,6 +21,7 @@ export default function LoansPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [allLoans, setAllLoans] = useState<ActiveLoan[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const loadData = async (bId: string, biz: Business) => {
     // Ledger Balance
@@ -60,16 +62,26 @@ export default function LoansPage() {
 
   useEffect(() => {
     async function init() {
-      const phone = authService.getCurrentPhone();
-      if (!phone) return;
-      const b = await businessService.getBusinessByPhone(phone);
-      if (b) {
-        setBusiness(b);
-        await loadData(b.id, b);
+      try {
+        const phone = authService.getCurrentPhone();
+        if (!phone) return;
+        const b = await businessService.getBusinessByPhone(phone);
+        if (b) {
+          setBusiness(b);
+          await loadData(b.id, b);
+        }
+      } catch (err) {
+        console.error("Error loading loans data:", err);
+      } finally {
+        setLoading(false);
       }
     }
     init();
   }, []);
+
+  if (loading) {
+    return <LoadingProgress />;
+  }
 
   const handleOpenApply = (tier: LoanTier) => {
     setApplyingTier(tier);

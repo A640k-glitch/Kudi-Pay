@@ -35,3 +35,28 @@ Kudi is a premium digital storefront and embedded-finance platform tailored for 
    `npm run dev`
 3. View the app:
    `http://localhost:3000`
+
+---
+
+## Health Monitoring
+
+Kudi includes a built-in API and database connection health check script. You can run this script to verify that the Express backend server is active and the PostgreSQL database is connected.
+
+### Running the Health Check
+
+Run the monitor script with:
+```bash
+node scripts/monitor-health.js
+```
+
+### Specifying a Custom Target URL
+
+By default, the script checks the local development API at `http://localhost:3001/api/health`. To test a production Vercel deployment or another endpoint, pass the URL as a command line argument or set the `API_HEALTH_URL` environment variable:
+
+```bash
+# Pass as CLI argument:
+node scripts/monitor-health.js https://your-production-domain.vercel.app/api/health
+
+# Or set env variable:
+API_HEALTH_URL=https://your-production-domain.vercel.app/api/health node scripts/monitor-health.js
+```
