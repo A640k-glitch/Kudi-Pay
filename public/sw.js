@@ -54,6 +54,11 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
+  // Only intercept HTTP/HTTPS requests (ignores browser extension schemes like chrome-extension://)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
   // Bypass API calls and non-GET requests
   if (request.method !== 'GET' || url.pathname.startsWith('/api')) {
     return;
