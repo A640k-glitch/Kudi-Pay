@@ -1,10 +1,44 @@
 import express from 'express';
+import crypto from 'crypto';
 import { aiAgentService } from './aiAgent.js';
 
 export const whatsappRouter = express.Router();
 
 // Verification token for setting up the webhook with Meta
 const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN || 'kudi_verify_token';
+
+/**
+ * Middleware to verify request signature from Meta (WhatsApp)
+ */
+function verifyWhatsAppSignature(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const signature = req.headers['x-hub-signature-256'] as string;
+  const appSecret = process.env.WHATSAPP_APP_SECRET;
+
+  // Bypassed if app secret is not set (convenient for local dev/testing)
+  if (!appSecret) {
+    return next();
+  }
+
+  if (!signature) {
+    return res.status(401).send('Missing signature');
+  }
+
+  try {
+    const elements = signature.split('=');
+    const signatureHash = elements[1];
+    const payload = JSON.stringify(req.body);
+    const expectedHash = crypto.createHmac('sha256', appSecret).update(payload).digest('hex');
+
+    if (signatureHash !== expectedHash) {
+      return res.status(401).send('Signature mismatch');
+    }
+  } catch (err) {
+    console.error('[WhatsApp Signature] Verification failed:', err);
+    return res.status(401).send('Signature verification failed');
+  }
+
+  next();
+}
 
 /**
  * GET /api/whatsapp/webhook
@@ -31,7 +65,7 @@ whatsappRouter.get('/webhook', (req, res) => {
  * POST /api/whatsapp/webhook
  * Receives incoming messages from WhatsApp users.
  */
-whatsappRouter.post('/webhook', (req, res) => {
+whatsappRouter.post('/webhook', verifyWhatsAppSignature, (req, res) => {
   const body = req.body;
 
   if (body.object) {
@@ -42,9 +76,16 @@ whatsappRouter.post('/webhook', (req, res) => {
       body.entry[0].changes[0].value.messages &&
       body.entry[0].changes[0].value.messages[0]
     ) {
-      const phone_number_id = body.entry[0].changes[0].value.metadata.phone_number_id;
-      const from = body.entry[0].changes[0].value.messages[0].from; // sender's phone number
-      const msg_body = body.entry[0].changes[0].value.messages[0].text.body; // text message content
+      const changeValue = body.entry[0].changes[0].value;
+      const message = changeValue.messages[0];
+      const from = message.from; // sender's phone number
+      const msg_body = message.text?.body; // text message content with optional chaining
+
+      // If it's a non-text message (e.g. image, document, location), skip processing
+      if (!msg_body) {
+        console.log(`Received non-text WhatsApp message from ${from}`);
+        return res.sendStatus(200);
+      }
 
       console.log(`Received message from ${from}: ${msg_body}`);
 

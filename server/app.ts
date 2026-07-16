@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
 import { query } from '../api/_lib/db';
-import { signToken, hashPassword, comparePassword, verifyToken } from '../api/_lib/auth';
+import { signToken, hashPassword, comparePassword, verifyToken, authenticateToken } from '../api/_lib/auth';
 import { generateOTP, sendOTP, isSmsConfigured } from '../api/_lib/sms';
 import { aiAgentService } from './aiAgent';
 
@@ -227,10 +227,14 @@ app.post('/api/businesses', async (req, res) => {
   }
 });
 
-app.get('/api/businesses', async (req, res) => {
+app.get('/api/businesses', authenticateToken, async (req, res) => {
   try {
     const { phone } = req.query;
     if (!phone) return res.status(400).json({ error: 'Phone query parameter required' });
+
+    if ((req as any).user.phone !== phone) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const result = await query(`SELECT * FROM businesses WHERE owner_phone = $1`, [phone]);
     if (!result.rows[0]) return res.json({ business: null });
@@ -263,24 +267,52 @@ app.get('/api/businesses/by-id/:id', async (req, res) => {
     const result = await query(`SELECT * FROM businesses WHERE id = $1`, [id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Business not found' });
     const b = result.rows[0];
-    res.json({
-      business: {
-        id: b.id,
-        businessName: b.business_name,
-        ownerPhone: b.owner_phone,
-        category: b.category,
-        state: b.state,
-        lga: b.lga,
-        storefrontSlug: b.storefront_slug,
-        theme: b.theme,
-        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
-        logoUrl: b.logo_url,
-        kycTier: b.kyc_tier,
-        tinNumber: b.tin_number,
-        cacVerification: b.cac_verification,
-        createdAt: b.created_at
+
+    const authHeader = req.headers.authorization;
+    let isOwner = false;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      const payload = verifyToken(token);
+      if (payload && payload.businessId === id) {
+        isOwner = true;
       }
-    });
+    }
+
+    if (isOwner) {
+      res.json({
+        business: {
+          id: b.id,
+          businessName: b.business_name,
+          ownerPhone: b.owner_phone,
+          category: b.category,
+          state: b.state,
+          lga: b.lga,
+          storefrontSlug: b.storefront_slug,
+          theme: b.theme,
+          themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+          logoUrl: b.logo_url,
+          kycTier: b.kyc_tier,
+          tinNumber: b.tin_number,
+          cacVerification: b.cac_verification,
+          createdAt: b.created_at
+        }
+      });
+    } else {
+      res.json({
+        business: {
+          id: b.id,
+          businessName: b.business_name,
+          category: b.category,
+          state: b.state,
+          lga: b.lga,
+          storefrontSlug: b.storefront_slug,
+          theme: b.theme,
+          themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+          logoUrl: b.logo_url,
+          createdAt: b.created_at
+        }
+      });
+    }
   } catch (error) {
     console.error('get business by id error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -310,29 +342,59 @@ app.get('/api/businesses/:slug', async (req, res) => {
       return res.json({
         business: {
           id: `mock_biz_${slug}`, businessName: slug.split('-').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' '),
-          storefrontSlug: slug, ownerPhone: '08000000000', category: 'Fashion', state: 'Lagos', lga: 'Ikeja',
-          kycTier: 3, createdAt: new Date().toISOString(), theme: 'light',
+          storefrontSlug: slug, category: 'Fashion', state: 'Lagos', lga: 'Ikeja',
+          createdAt: new Date().toISOString(), theme: 'light',
           themeConfig: { primaryColor: '#111111', ctaText: 'Add to Bag', heroImageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAei2SCO828A82z9Nk8QNfFG7OaW_4XjTjOH-FkL-c719S45Y3t7z0pk4ORAE3EHBU2kGj_RqeUA8JZ7wu8A1PhozLhrANtFNBm82qZu82WAGc3yUrfAGE6SFAYFEfkuJI4QPh8tAKzitoqE866ICR3Rlih1IBwvJl5wMIBuVzuN_FML0QGmA5dTMI5scAxa_dhmnSLesA7M7RmcF2HsOsV5ZVPBgDEBVw3IEn83Kd4rDOjANhyi3hKZawQZ94mQRz65W7WwEUnob4' }
         }
       });
     }
     const b = result.rows[0];
-    res.json({
-      business: {
-        id: b.id,
-        businessName: b.business_name,
-        ownerPhone: b.owner_phone,
-        category: b.category,
-        state: b.state,
-        lga: b.lga,
-        storefrontSlug: b.storefront_slug,
-        theme: b.theme,
-        themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
-        logoUrl: b.logo_url,
-        kycTier: b.kyc_tier,
-        createdAt: b.created_at
+
+    const authHeader = req.headers.authorization;
+    let isOwner = false;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      const payload = verifyToken(token);
+      if (payload && payload.businessId === b.id) {
+        isOwner = true;
       }
-    });
+    }
+
+    if (isOwner) {
+      res.json({
+        business: {
+          id: b.id,
+          businessName: b.business_name,
+          ownerPhone: b.owner_phone,
+          category: b.category,
+          state: b.state,
+          lga: b.lga,
+          storefrontSlug: b.storefront_slug,
+          theme: b.theme,
+          themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+          logoUrl: b.logo_url,
+          kycTier: b.kyc_tier,
+          tinNumber: b.tin_number,
+          cacVerification: b.cac_verification,
+          createdAt: b.created_at
+        }
+      });
+    } else {
+      res.json({
+        business: {
+          id: b.id,
+          businessName: b.business_name,
+          category: b.category,
+          state: b.state,
+          lga: b.lga,
+          storefrontSlug: b.storefront_slug,
+          theme: b.theme,
+          themeConfig: typeof b.theme_config === 'string' ? JSON.parse(b.theme_config) : b.theme_config,
+          logoUrl: b.logo_url,
+          createdAt: b.created_at
+        }
+      });
+    }
   } catch (error) {
     console.error('get business by slug error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -495,10 +557,13 @@ app.delete('/api/products/:id', async (req, res) => {
   }
 });
 
-app.get('/api/orders', async (req, res) => {
+app.get('/api/orders', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const result = await query(`SELECT * FROM orders WHERE business_id = $1 ORDER BY created_at DESC`, [businessId]);
     res.json({ orders: result.rows });
   } catch (error) {
@@ -528,7 +593,23 @@ app.get('/api/orders/:id', async (req, res) => {
   try {
     const result = await query(`SELECT * FROM orders WHERE id = $1`, [req.params.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
-    res.json({ order: result.rows[0] });
+    const order = result.rows[0];
+
+    const authHeader = req.headers.authorization;
+    let isOwner = false;
+    if (authHeader) {
+      const token = authHeader.split(' ')[1];
+      const payload = verifyToken(token);
+      if (payload && payload.businessId === order.business_id) {
+        isOwner = true;
+      }
+    }
+
+    if (!isOwner && order.customer_phone) {
+      order.customer_phone = order.customer_phone.slice(0, 4) + '****' + order.customer_phone.slice(-4);
+    }
+
+    res.json({ order });
   } catch (error) {
     console.error('get order error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -557,10 +638,13 @@ app.patch('/api/orders/:id', async (req, res) => {
   }
 });
 
-app.get('/api/ledger', async (req, res) => {
+app.get('/api/ledger', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const result = await query(`SELECT * FROM ledger_entries WHERE business_id = $1 ORDER BY created_at DESC`, [businessId]);
     res.json({ entries: result.rows });
   } catch (error) {
@@ -569,10 +653,13 @@ app.get('/api/ledger', async (req, res) => {
   }
 });
 
-app.get('/api/ledger/stats', async (req, res) => {
+app.get('/api/ledger/stats', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const result = await query(
       `SELECT COALESCE(SUM(CASE WHEN type = 'revenue' AND (verification_status = 'verified' OR verification_source = 'bank_api') THEN amount ELSE 0 END), 0) as revenue,
@@ -609,10 +696,13 @@ app.post('/api/ledger', async (req, res) => {
   }
 });
 
-app.get('/api/bank/accounts', async (req, res) => {
+app.get('/api/bank/accounts', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const result = await query(`SELECT * FROM bank_accounts WHERE business_id = $1 AND is_active = true`, [businessId]);
     res.json({ account: result.rows[0] || null });
   } catch (error) {
@@ -646,10 +736,13 @@ app.post('/api/bank/accounts', async (req, res) => {
   }
 });
 
-app.post('/api/bank/accounts/unlink', async (req, res) => {
+app.post('/api/bank/accounts/unlink', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.body;
     if (!businessId) return res.status(400).json({ error: 'businessId is required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     await query('UPDATE bank_accounts SET is_active = false WHERE business_id = $1', [businessId]);
     res.json({ success: true });
   } catch (error) {
@@ -658,10 +751,13 @@ app.post('/api/bank/accounts/unlink', async (req, res) => {
   }
 });
 
-app.get('/api/bank/transactions', async (req, res) => {
+app.get('/api/bank/transactions', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const accountResult = await query(`SELECT id FROM bank_accounts WHERE business_id = $1 AND is_active = true`, [businessId]);
     if (accountResult.rows.length === 0) return res.json({ transactions: [] });
@@ -674,10 +770,13 @@ app.get('/api/bank/transactions', async (req, res) => {
   }
 });
 
-app.post('/api/bank/transactions/sync', async (req, res) => {
+app.post('/api/bank/transactions/sync', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.body;
     if (!businessId) return res.status(400).json({ error: 'businessId is required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const accountResult = await query(`SELECT id, balance FROM bank_accounts WHERE business_id = $1 AND is_active = true`, [businessId]);
     if (accountResult.rows.length === 0) return res.status(404).json({ error: 'No bank account found' });
@@ -1026,10 +1125,13 @@ app.post('/api/assistant/history', async (req, res) => {
   }
 });
 
-app.get('/api/trust-score/snapshots', async (req, res) => {
+app.get('/api/trust-score/snapshots', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const result = await query('SELECT * FROM trust_score_snapshots WHERE business_id = $1 ORDER BY date ASC', [businessId]);
     res.json({ snapshots: result.rows });
   } catch (error) {
@@ -1038,10 +1140,13 @@ app.get('/api/trust-score/snapshots', async (req, res) => {
   }
 });
 
-app.post('/api/trust-score/snapshots', async (req, res) => {
+app.post('/api/trust-score/snapshots', authenticateToken, async (req, res) => {
   try {
     const { businessId, score } = req.body;
     if (!businessId || score === undefined) return res.status(400).json({ error: 'businessId and score are required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     
     const today = new Date().toISOString().split('T')[0];
     const tier = score >= 800 ? 'Excellent' : score >= 600 ? 'Very Good' : score >= 400 ? 'Good' : score >= 200 ? 'Fair' : 'Poor';
@@ -1060,10 +1165,13 @@ app.post('/api/trust-score/snapshots', async (req, res) => {
   }
 });
 
-app.get('/api/loans', async (req, res) => {
+app.get('/api/loans', authenticateToken, async (req, res) => {
   try {
     const { businessId } = req.query;
     if (!businessId) return res.status(400).json({ error: 'businessId query parameter required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     const result = await query('SELECT * FROM loans WHERE business_id = $1 ORDER BY disbursed_at DESC', [businessId]);
     res.json({ loans: result.rows });
   } catch (error) {
@@ -1072,10 +1180,13 @@ app.get('/api/loans', async (req, res) => {
   }
 });
 
-app.post('/api/loans', async (req, res) => {
+app.post('/api/loans', authenticateToken, async (req, res) => {
   try {
     const { businessId, tierId, tierName, amount, interestRate, repaymentAmount, termDays } = req.body;
     if (!businessId || !tierId || !amount) return res.status(400).json({ error: 'Missing required loan fields' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
 
     const id = `loan_${Date.now()}`;
     const dueAt = new Date(Date.now() + termDays * 24 * 60 * 60 * 1000).toISOString();
@@ -1100,10 +1211,14 @@ app.post('/api/loans', async (req, res) => {
   }
 });
 
-app.post('/api/loans/:id/repay', async (req, res) => {
+app.post('/api/loans/:id/repay', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { businessId } = req.body;
+    if (!businessId) return res.status(400).json({ error: 'businessId is required' });
+    if ((req as any).user.businessId !== businessId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     
     const loanResult = await query('SELECT * FROM loans WHERE id = $1', [id]);
     const loan = loanResult.rows[0];
